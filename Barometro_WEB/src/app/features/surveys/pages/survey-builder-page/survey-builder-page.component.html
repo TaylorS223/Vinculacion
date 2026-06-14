@@ -1,0 +1,96 @@
+<section class="builder">
+  <header class="builder-header">
+    <h2>{{ pageTitle() }}</h2>
+    <button type="button" (click)="save()" [disabled]="isFormInvalid()">
+      {{ saving() ? 'Guardando...' : 'Guardar formulario' }}
+    </button>
+  </header>
+
+  @if (loading()) {
+    <p>Cargando formulario...</p>
+  } @else {
+    <form [formGroup]="form" class="survey-form">
+      <label>
+        Título
+        <input type="text" formControlName="title" (input)="dirty.set(true)" />
+      </label>
+
+      <label>
+        Descripción
+        <textarea rows="3" formControlName="description" (input)="dirty.set(true)"></textarea>
+      </label>
+
+      <label>
+        Estado
+        <select formControlName="status" (change)="dirty.set(true)">
+          @for (status of statusOptions; track status) {
+            <option [value]="status">{{ statusLabel(status) }}</option>
+          }
+        </select>
+      </label>
+    </form>
+
+    <section class="question-toolbar">
+      <h3>Preguntas ({{ questions().length }})</h3>
+      <div class="actions">
+        <select [value]="selectedType()" (change)="selectType($event)">
+          @for (type of questionTypes; track type) {
+            <option [value]="type">{{ questionTypeLabel(type) }}</option>
+          }
+        </select>
+        <button type="button" (click)="addQuestion()">Agregar pregunta</button>
+      </div>
+    </section>
+
+    <div class="question-list">
+      @for (question of questions(); track trackByQuestionId($index, question)) {
+        <article class="question-card">
+          <header>
+            <strong>#{{ question.order }} {{ questionTypeLabel(question.type) }}</strong>
+            <div class="card-actions">
+              <button type="button" (click)="moveQuestion(question.id, 'up')">↑</button>
+              <button type="button" (click)="moveQuestion(question.id, 'down')">↓</button>
+              <button type="button" (click)="removeQuestion(question.id)">Eliminar</button>
+            </div>
+          </header>
+
+          <label>
+            Enunciado
+            <input
+              type="text"
+              [value]="question.label"
+              (input)="updateQuestionLabel(question.id, $any($event.target).value)"
+            />
+          </label>
+
+          <label class="inline">
+            <input
+              type="checkbox"
+              [checked]="question.required"
+              (change)="toggleRequired(question.id, $any($event.target).checked)"
+            />
+            Obligatoria
+          </label>
+
+          @if (question.type === 'SINGLE_CHOICE' || question.type === 'MULTIPLE_CHOICE') {
+            <div class="options">
+              <p>Opciones</p>
+              @for (option of question.options; track option.id) {
+                <input
+                  type="text"
+                  [value]="option.label"
+                  (input)="updateOptionLabel(question.id, option.id, $any($event.target).value)"
+                />
+              }
+              <button type="button" (click)="addOption(question.id)">+ Opción</button>
+            </div>
+          }
+        </article>
+      }
+
+      @if (questions().length === 0) {
+        <p class="empty">Aún no hay preguntas. Agrega la primera para comenzar.</p>
+      }
+    </div>
+  }
+</section>
