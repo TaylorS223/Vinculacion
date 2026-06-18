@@ -1,0 +1,270 @@
+﻿<section class="builder-shell">
+  <header class="builder-topbar">
+    <div>
+      <p class="eyebrow">Form Builder</p>
+      <h1>{{ vm.isEditMode() ? 'Editar formulario' : 'Nuevo formulario' }}</h1>
+      <p class="subtitle">
+        Disena el cuestionario, agrega preguntas y guarda el borrador antes de implementarlo.
+      </p>
+    </div>
+
+    <div class="topbar-actions">
+      <a class="btn btn-secondary" routerLink="/admin/dashboard">
+        <span class="material-icons" aria-hidden="true">arrow_back</span>
+        Mis formularios
+      </a>
+      <button
+        class="btn btn-primary"
+        type="button"
+        (click)="vm.saveForm()"
+        [disabled]="!vm.isFormValid() || vm.isSaving() || vm.isLoading()"
+      >
+        <span class="material-icons" aria-hidden="true">save</span>
+        {{ vm.isSaving() ? 'Guardando...' : 'Guardar borrador' }}
+      </button>
+    </div>
+  </header>
+
+  @if (vm.errorMessage()) {
+    <div class="alert alert-error">{{ vm.errorMessage() }}</div>
+  }
+
+  @if (vm.successMessage()) {
+    <div class="alert alert-success">{{ vm.successMessage() }}</div>
+  }
+
+  @if (vm.state() === 'DEPLOYED') {
+    <div class="alert alert-warning">
+      Este formulario ya esta implementado. El backend no permite modificar sus preguntas.
+    </div>
+  }
+
+  @if (vm.isLoading()) {
+    <div class="loading-state">
+      <span class="material-icons spin" aria-hidden="true">progress_activity</span>
+      Cargando formulario...
+    </div>
+  } @else {
+    <div class="builder-grid">
+      <article class="editor-panel">
+        <section class="metadata-section">
+          <label class="field">
+            <span>Titulo del formulario *</span>
+            <input
+              type="text"
+              [ngModel]="vm.title()"
+              (ngModelChange)="vm.updateTitle($event)"
+              [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+              placeholder="Ej. Encuesta de satisfaccion comunitaria"
+            />
+          </label>
+
+          <label class="field">
+            <span>Descripcion</span>
+            <textarea
+              rows="3"
+              [ngModel]="vm.description()"
+              (ngModelChange)="vm.updateDescription($event)"
+              [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+              placeholder="Agrega contexto para quienes responderan el formulario"
+            ></textarea>
+          </label>
+        </section>
+
+        <section class="question-palette">
+          <div class="section-heading">
+            <div>
+              <h2>Agregar preguntas</h2>
+              <p>{{ vm.questionsCount() }} pregunta(s) en el borrador</p>
+            </div>
+          </div>
+
+          <div class="type-grid">
+            @for (type of questionTypes; track type.value) {
+              <button
+                class="type-button"
+                type="button"
+                (click)="vm.addQuestion(type.value)"
+                [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+              >
+                <span class="material-icons" aria-hidden="true">{{ type.icon }}</span>
+                <strong>{{ type.label }}</strong>
+                <small>{{ type.hint }}</small>
+              </button>
+            }
+          </div>
+        </section>
+
+        <section class="questions-section">
+          @if (vm.questions().length === 0) {
+            <div class="empty-state">
+              <span class="material-icons" aria-hidden="true">playlist_add</span>
+              <p>Agrega una pregunta para empezar a construir el formulario.</p>
+            </div>
+          }
+
+          @for (question of vm.questions(); track question.tempId; let index = $index) {
+            <article class="question-card">
+              <div class="question-card-header">
+                <div class="question-title-row">
+                  <span class="question-number">{{ index + 1 }}</span>
+                  <div>
+                    <strong>{{ vm.getTypeLabel(question.type) }}</strong>
+                    <small>Orden {{ index + 1 }}</small>
+                  </div>
+                </div>
+
+                <div class="question-actions">
+                  <button
+                    class="icon-button"
+                    type="button"
+                    title="Subir pregunta"
+                    (click)="vm.moveQuestion(question.tempId, -1)"
+                    [disabled]="index === 0 || vm.isSaving() || !vm.canEditQuestions()"
+                  >
+                    <span class="material-icons" aria-hidden="true">keyboard_arrow_up</span>
+                  </button>
+                  <button
+                    class="icon-button"
+                    type="button"
+                    title="Bajar pregunta"
+                    (click)="vm.moveQuestion(question.tempId, 1)"
+                    [disabled]="index === vm.questions().length - 1 || vm.isSaving() || !vm.canEditQuestions()"
+                  >
+                    <span class="material-icons" aria-hidden="true">keyboard_arrow_down</span>
+                  </button>
+                  <button
+                    class="icon-button danger"
+                    type="button"
+                    title="Eliminar pregunta"
+                    (click)="vm.removeQuestion(question.tempId)"
+                    [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                  >
+                    <span class="material-icons" aria-hidden="true">delete</span>
+                  </button>
+                </div>
+              </div>
+
+              <label class="field">
+                <span>Pregunta *</span>
+                <input
+                  type="text"
+                  [ngModel]="question.label"
+                  (ngModelChange)="vm.updateQuestionLabel(question.tempId, $event)"
+                  [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                  placeholder="Escribe la pregunta"
+                />
+              </label>
+
+              @if (['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'LIKERT'].includes(question.type)) {
+                <div class="options-block">
+                  <div class="options-header">
+                    <span>Opciones *</span>
+                    @if (question.type !== 'LIKERT') {
+                      <button
+                        class="text-button"
+                        type="button"
+                        (click)="vm.addOption(question.tempId)"
+                        [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                      >
+                        <span class="material-icons" aria-hidden="true">add</span>
+                        Agregar opcion
+                      </button>
+                    }
+                  </div>
+
+                  <div class="options-list">
+                    @for (option of question.options; track $index; let optionIndex = $index) {
+                      <div class="option-row">
+                        <input
+                          type="text"
+                          [ngModel]="option"
+                          (ngModelChange)="vm.updateOption(question.tempId, optionIndex, $event)"
+                          [disabled]="vm.isSaving() || !vm.canEditQuestions() || question.type === 'LIKERT'"
+                          placeholder="Opcion de respuesta"
+                        />
+                        @if (question.type !== 'LIKERT') {
+                          <button
+                            class="icon-button danger"
+                            type="button"
+                            title="Eliminar opcion"
+                            (click)="vm.removeOption(question.tempId, optionIndex)"
+                            [disabled]="question.options.length <= 1 || vm.isSaving() || !vm.canEditQuestions()"
+                          >
+                            <span class="material-icons" aria-hidden="true">close</span>
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <label class="toggle-row">
+                <input
+                  type="checkbox"
+                  [checked]="question.required"
+                  (change)="vm.updateQuestionRequired(question.tempId, $any($event.target).checked)"
+                  [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                />
+                <span>Pregunta obligatoria</span>
+              </label>
+            </article>
+          }
+        </section>
+      </article>
+
+      <aside class="preview-panel">
+        <div class="preview-toolbar">
+          <div>
+            <h2>Vista previa</h2>
+            <p>Asi se vera para quien responde.</p>
+          </div>
+          <span class="status-pill">{{ vm.state() }}</span>
+        </div>
+
+        <div class="mobile-preview">
+          <div class="preview-header">
+            <h3>{{ vm.title() || 'Titulo del formulario' }}</h3>
+            <p>{{ vm.description() || 'Descripcion opcional del formulario' }}</p>
+          </div>
+
+          <div class="preview-body">
+            @if (vm.questions().length === 0) {
+              <p class="preview-empty">Las preguntas apareceran aqui.</p>
+            }
+
+            @for (question of vm.questions(); track question.tempId; let index = $index) {
+              <div class="preview-question">
+                <p class="preview-label">
+                  <strong>{{ index + 1 }}. {{ question.label || 'Pregunta sin titulo' }}</strong>
+                  @if (question.required) {
+                    <span>*</span>
+                  }
+                </p>
+
+                @if (question.type === 'TEXT') {
+                  <input type="text" disabled placeholder="Respuesta corta" />
+                } @else if (question.type === 'NUMBER') {
+                  <input type="number" disabled placeholder="0" />
+                } @else {
+                  <div class="preview-options">
+                    @for (option of question.options; track $index) {
+                      <label>
+                        <input
+                          [type]="question.type === 'MULTIPLE_CHOICE' ? 'checkbox' : 'radio'"
+                          disabled
+                        />
+                        <span>{{ option || 'Opcion sin texto' }}</span>
+                      </label>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </aside>
+    </div>
+  }
+</section>

@@ -1,0 +1,187 @@
+{
+  "common": {
+    "buttons": {
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "create": "Crear",
+      "back": "Volver",
+      "confirm": "Confirmar",
+      "close": "Cerrar",
+      "export": "Exportar"
+    },
+    "labels": {
+      "actions": "Acciones"
+    },
+    "messages": {
+      "loading": "Cargando...",
+      "noData": "No hay datos disponibles"
+    },
+    "validation": {
+      "required": "Este campo es requerido",
+      "email": "Ingresa un correo valido"
+    }
+  },
+  "language": {
+    "select": "Seleccionar idioma"
+  },
+  "auth": {
+    "login": {
+      "title": "Formularios ULEAM",
+      "subtitle": "Ingresa a la plataforma de recoleccion de datos",
+      "email": "Correo electronico",
+      "emailPlaceholder": "correo@uleam.edu.ec",
+      "password": "Contrasena",
+      "submit": "Iniciar sesion",
+      "submitting": "Ingresando...",
+      "errors": {
+        "invalidCredentials": "Credenciales invalidas",
+        "loginFailed": "Error al iniciar sesion"
+      }
+    },
+    "logout": "Cerrar sesion"
+  },
+  "layout": {
+    "header": {
+      "brand": "Formularios ULEAM",
+      "brandSubtitle": "Recoleccion de datos",
+      "menu": "Menu",
+      "themeLight": "Modo claro",
+      "themeDark": "Modo oscuro",
+      "profile": "Mi perfil",
+      "settings": "Configuracion",
+      "administrator": "Administrador"
+    }
+  },
+  "profile": {
+    "title": "Mi perfil",
+    "subtitle": "Gestiona tu informacion personal y cuenta",
+    "personalInfo": "Informacion personal",
+    "personalInfoSubtitle": "Actualiza tus datos de perfil",
+    "accountInfo": "Informacion de la cuenta",
+    "fields": {
+      "name": "Nombre completo",
+      "email": "Correo electronico",
+      "telefono": "Telefono",
+      "cargo": "Cargo",
+      "bio": "Biografia",
+      "role": "Rol",
+      "createdAt": "Miembro desde"
+    },
+    "placeholders": {
+      "bio": "Cuéntanos brevemente sobre ti..."
+    },
+    "hints": {
+      "emailReadOnly": "El correo no se puede modificar"
+    },
+    "validation": {
+      "nameRequired": "El nombre es requerido",
+      "nameMaxLength": "El nombre no puede exceder 255 caracteres",
+      "telefonoMaxLength": "El telefono no puede exceder 20 caracteres",
+      "cargoMaxLength": "El cargo no puede exceder 100 caracteres",
+      "bioMaxLength": "La biografia no puede exceder 500 caracteres"
+    },
+    "avatar": {
+      "upload": "Subir imagen",
+      "delete": "Eliminar",
+      "hint": "Formatos permitidos: JPG, PNG, WebP. Tamano maximo: 2MB"
+    },
+    "roles": {
+      "superAdmin": "Super administrador",
+      "admin": "Administrador",
+      "user": "Usuario"
+    },
+    "messages": {
+      "updateSuccess": "Perfil actualizado correctamente",
+      "updateError": "Error al actualizar el perfil",
+      "avatarUpdated": "Imagen de perfil actualizada",
+      "avatarDeleted": "Imagen de perfil eliminada",
+      "avatarError": "Error al actualizar la imagen",
+      "invalidFileType": "Formato de archivo no valido. Usa JPG, PNG o WebP",
+      "fileTooLarge": "El archivo es demasiado grande. Maximo 2MB"
+    }
+  },
+  "users": {
+    "title": "Usuarios",
+    "subtitle": "Administra cuentas y permisos globales",
+    "columns": {
+      "name": "Nombre",
+      "email": "Correo",
+      "role": "Rol",
+      "status": "Estado",
+      "createdAt": "Creado"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "actions": {
+      "create": "Crear usuario",
+      "activate": "Activar",
+      "deactivate": "Desactivar",
+      "changeRole": "Cambiar rol"
+    },
+    "roles": {
+      "superAdminDesc": "gestiona administradores, usuarios y todos los formularios",
+      "adminDesc": "gestiona usuarios normales",
+      "userDesc": "crea formularios e invita colaboradores"
+    },
+    "form": {
+      "createTitle": "Crear usuario",
+      "editTitle": "Editar usuario",
+      "createSubtitle": "Registra una nueva cuenta",
+      "editSubtitle": "Actualiza los datos de la cuenta",
+      "basicInfo": "Datos basicos",
+      "basicInfoDesc": "Credenciales principales",
+      "name": "Nombre",
+      "email": "Correo",
+      "password": "Contrasena",
+      "passwordHint": "Dejala vacia para conservar la actual",
+      "roleStatus": "Rol y estado",
+      "roleStatusDesc": "Permisos globales de la plataforma",
+      "role": "Rol",
+      "isActive": "Usuario activo",
+      "isActiveHint": "Los usuarios inactivos no pueden ingresar",
+      "profileInfo": "Perfil",
+      "profileInfoDesc": "Datos opcionales del usuario",
+      "phone": "Telefono",
+      "position": "Cargo",
+      "bio": "Biografia"
+    },
+    "validation": {
+      "nameRequired": "El nombre es requerido",
+      "nameMaxLength": "El nombre no puede exceder 255 caracteres",
+      "emailRequired": "El correo es requerido",
+      "emailInvalid": "Ingresa un correo valido",
+      "passwordRequired": "La contrasena es requerida",
+      "passwordMinLength": "La contrasena debe tener al menos 8 caracteres"
+    },
+    "confirmToggle": {
+      "title": "Cambiar estado",
+      "message": "Deseas {{action}} a {{name}}?"
+    },
+    "confirmRole": {
+      "title": "Cambiar rol",
+      "message": "Deseas asignar el rol {{role}} a {{name}}?"
+    },
+    "confirmDelete": {
+      "title": "Eliminar usuario",
+      "message": "Deseas eliminar a {{name}}?"
+    },
+    "messages": {
+      "loadError": "Error al cargar usuarios",
+      "statusUpdated": "Estado actualizado",
+      "statusError": "Error al cambiar estado",
+      "roleUpdated": "Rol actualizado",
+      "roleError": "Error al cambiar rol",
+      "deleted": "Usuario eliminado",
+      "deleteError": "Error al eliminar usuario",
+      "created": "Usuario creado",
+      "createError": "Error al crear usuario",
+      "updated": "Usuario actualizado",
+      "updateError": "Error al actualizar usuario",
+      "noUsers": "No hay usuarios registrados"
+    }
+  }
+}

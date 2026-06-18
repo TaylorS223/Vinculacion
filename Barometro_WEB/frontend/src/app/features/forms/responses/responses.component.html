@@ -1,0 +1,105 @@
+﻿<div class="responses-container">
+  <div class="page-header">
+    <a routerLink="/admin/dashboard" class="back-link">
+      <mat-icon>arrow_back</mat-icon>
+      Volver a formularios
+    </a>
+    <div class="header-row">
+      <div>
+        <h1 class="page-title">{{ vm.formTitle() || 'Respuestas' }}</h1>
+        <p class="page-subtitle">{{ vm.responses().length }} respuesta(s) recibidas</p>
+      </div>
+      <div class="export-actions">
+        <button
+          class="btn-export"
+          (click)="vm.exportData('csv')"
+          [disabled]="vm.isExporting() || vm.responses().length === 0"
+          type="button"
+        >
+          <mat-icon>download</mat-icon>
+          Exportar CSV
+        </button>
+        <button
+          class="btn-export btn-excel"
+          (click)="vm.exportData('xlsx')"
+          [disabled]="vm.isExporting() || vm.responses().length === 0"
+          type="button"
+        >
+          <mat-icon>table_view</mat-icon>
+          Exportar Excel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (vm.errorMessage()) {
+    <div class="alert alert-error">{{ vm.errorMessage() }}</div>
+  }
+
+  @if (vm.isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Cargando respuestas...</p>
+    </div>
+  } @else {
+    @if (vm.chartableQuestions().length > 0) {
+      <section class="charts-section">
+        <h2>Resumen grafico</h2>
+        <div class="charts-grid">
+          @for (chart of vm.chartableQuestions(); track chart.questionId) {
+            <div class="chart-card">
+              <h3>{{ chart.label }}</h3>
+              @if (chart.type === 'MULTIPLE_CHOICE') {
+                <app-bar-chart
+                  [categories]="chart.categories"
+                  [values]="chart.values"
+                  height="280px"
+                />
+              } @else {
+                <app-pie-chart
+                  [categories]="chart.categories"
+                  [values]="chart.values"
+                  [isDonut]="true"
+                  height="280px"
+                />
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <section class="table-section">
+      <h2>Datos recolectados</h2>
+
+      @if (vm.responses().length === 0) {
+        <div class="empty-state">
+          <mat-icon>inbox</mat-icon>
+          <p>Aun no hay respuestas para este formulario.</p>
+          <p class="hint">Comparte el enlace de recoleccion para empezar a recibir datos.</p>
+        </div>
+      } @else {
+        <div class="table-wrapper">
+          <table mat-table [dataSource]="vm.responses()" class="responses-table">
+            @for (col of vm.tableColumns(); track col.key) {
+              <ng-container [matColumnDef]="col.key">
+                <th mat-header-cell *matHeaderCellDef>{{ col.label }}</th>
+                <td mat-cell *matCellDef="let row">
+                  @if (col.key === '_submitted') {
+                    {{ row.submitted_at | date: 'dd/MM/yyyy HH:mm' }}
+                  } @else {
+                    {{ row.answers[col.key] || '-' }}
+                  }
+                </td>
+              </ng-container>
+            }
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </div>
+      }
+    </section>
+  }
+</div>
+

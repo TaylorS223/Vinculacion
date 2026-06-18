@@ -1,0 +1,187 @@
+{
+  "common": {
+    "buttons": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "create": "Create",
+      "back": "Back",
+      "confirm": "Confirm",
+      "close": "Close",
+      "export": "Export"
+    },
+    "labels": {
+      "actions": "Actions"
+    },
+    "messages": {
+      "loading": "Loading...",
+      "noData": "No data available"
+    },
+    "validation": {
+      "required": "This field is required",
+      "email": "Enter a valid email"
+    }
+  },
+  "language": {
+    "select": "Select language"
+  },
+  "auth": {
+    "login": {
+      "title": "ULEAM Forms",
+      "subtitle": "Sign in to the data collection platform",
+      "email": "Email",
+      "emailPlaceholder": "email@uleam.edu.ec",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "errors": {
+        "invalidCredentials": "Invalid credentials",
+        "loginFailed": "Login failed"
+      }
+    },
+    "logout": "Sign out"
+  },
+  "layout": {
+    "header": {
+      "brand": "ULEAM Forms",
+      "brandSubtitle": "Data collection",
+      "menu": "Menu",
+      "themeLight": "Light mode",
+      "themeDark": "Dark mode",
+      "profile": "My profile",
+      "settings": "Settings",
+      "administrator": "Administrator"
+    }
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Manage your personal information and account",
+    "personalInfo": "Personal information",
+    "personalInfoSubtitle": "Update your profile data",
+    "accountInfo": "Account information",
+    "fields": {
+      "name": "Full name",
+      "email": "Email",
+      "telefono": "Phone",
+      "cargo": "Position",
+      "bio": "Bio",
+      "role": "Role",
+      "createdAt": "Member since"
+    },
+    "placeholders": {
+      "bio": "Briefly tell us about yourself..."
+    },
+    "hints": {
+      "emailReadOnly": "Email cannot be changed"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameMaxLength": "Name cannot exceed 255 characters",
+      "telefonoMaxLength": "Phone cannot exceed 20 characters",
+      "cargoMaxLength": "Position cannot exceed 100 characters",
+      "bioMaxLength": "Bio cannot exceed 500 characters"
+    },
+    "avatar": {
+      "upload": "Upload image",
+      "delete": "Delete",
+      "hint": "Allowed formats: JPG, PNG, WebP. Max size: 2MB"
+    },
+    "roles": {
+      "superAdmin": "Super administrator",
+      "admin": "Administrator",
+      "user": "User"
+    },
+    "messages": {
+      "updateSuccess": "Profile updated successfully",
+      "updateError": "Failed to update profile",
+      "avatarUpdated": "Profile picture updated",
+      "avatarDeleted": "Profile picture deleted",
+      "avatarError": "Failed to update picture",
+      "invalidFileType": "Invalid file format. Use JPG, PNG, or WebP",
+      "fileTooLarge": "File is too large. Max 2MB"
+    }
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Manage accounts and global permissions",
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "createdAt": "Created"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "create": "Create user",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "changeRole": "Change role"
+    },
+    "roles": {
+      "superAdminDesc": "manages admins, users and all forms",
+      "adminDesc": "manages normal users",
+      "userDesc": "creates forms and invites collaborators"
+    },
+    "form": {
+      "createTitle": "Create user",
+      "editTitle": "Edit user",
+      "createSubtitle": "Register a new account",
+      "editSubtitle": "Update account data",
+      "basicInfo": "Basic data",
+      "basicInfoDesc": "Main credentials",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "Leave empty to keep the current one",
+      "roleStatus": "Role and status",
+      "roleStatusDesc": "Global platform permissions",
+      "role": "Role",
+      "isActive": "Active user",
+      "isActiveHint": "Inactive users cannot sign in",
+      "profileInfo": "Profile",
+      "profileInfoDesc": "Optional user data",
+      "phone": "Phone",
+      "position": "Position",
+      "bio": "Bio"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameMaxLength": "Name cannot exceed 255 characters",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must have at least 8 characters"
+    },
+    "confirmToggle": {
+      "title": "Change status",
+      "message": "Do you want to {{action}} {{name}}?"
+    },
+    "confirmRole": {
+      "title": "Change role",
+      "message": "Do you want to assign {{role}} to {{name}}?"
+    },
+    "confirmDelete": {
+      "title": "Delete user",
+      "message": "Do you want to delete {{name}}?"
+    },
+    "messages": {
+      "loadError": "Failed to load users",
+      "statusUpdated": "Status updated",
+      "statusError": "Failed to change status",
+      "roleUpdated": "Role updated",
+      "roleError": "Failed to change role",
+      "deleted": "User deleted",
+      "deleteError": "Failed to delete user",
+      "created": "User created",
+      "createError": "Failed to create user",
+      "updated": "User updated",
+      "updateError": "Failed to update user",
+      "noUsers": "No registered users"
+    }
+  }
+}
