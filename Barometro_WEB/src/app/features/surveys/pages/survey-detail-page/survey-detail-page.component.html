@@ -1,0 +1,26 @@
+<section class="survey-detail">
+  <a routerLink="/surveys">← Volver a formularios</a>
+
+  @if (loading()) {
+    <p>Cargando formulario...</p>
+  } @else if (survey(); as surveyData) {
+    <h2>{{ surveyData.title }}</h2>
+    <p>{{ surveyData.description }}</p>
+    <p>Estado: <strong>{{ statusLabel(surveyData.status) }}</strong></p>
+
+    <h3>Preguntas ({{ surveyData.questions.length }})</h3>
+    <ol>
+      @for (question of surveyData.questions; track question.id) {
+        <li>
+          <div>
+            <strong>{{ question.label }}</strong>
+            <span> · {{ questionTypeLabel(question.type) }}</span>
+            <span> · {{ question.required ? 'Obligatoria' : 'Opcional' }}</span>
+          </div>
+        </li>
+      }
+    </ol>
+  } @else {
+    <p>No se encontró el formulario solicitado.</p>
+  }
+</section>

@@ -1,0 +1,84 @@
+.builder {
+  display: grid;
+  gap: 1rem;
+}
+
+.builder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.survey-form {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #dbe2ea;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.question-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.question-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.question-card {
+  border: 1px solid #dbe2ea;
+  border-radius: 0.75rem;
+  background: #fff;
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.question-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.inline {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.options {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.empty {
+  margin: 0;
+  color: #64748b;
+}
+
+input,
+textarea,
+select,
+button {
+  padding: 0.55rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+}
+
+button {
+  cursor: pointer;
+}
