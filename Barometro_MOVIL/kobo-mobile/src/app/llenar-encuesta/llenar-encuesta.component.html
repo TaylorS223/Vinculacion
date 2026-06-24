@@ -1,0 +1,88 @@
+<div class="formulario-container">
+  <div class="form-header">
+    <a routerLink="/lista" class="btn-cancelar">✕ Cancelar</a>
+    <h2>
+      @if (encuestaId === '1') { Llenando Diagnóstico }
+      @else { Llenando Censo Agrícola }
+    </h2>
+  </div>
+
+  <div class="meta-info">
+    <p><strong>Cuestionario:</strong> 
+      @if (encuestaId === '1') { Diagnóstico Comunitario }
+      @else { Censo de Producción Agrícola }
+    </p>
+    <p><small>ID: #00{{ encuestaId }} • Inició: {{ tiempoInicioFormato }}</small></p>
+  </div>
+
+  @if (encuestaId === '1') {
+    <form (ngSubmit)="guardarFormulario()" #formComunidad="ngForm" class="form-body">
+      
+      <div class="pregunta-box">
+        <label class="pregunta-label">1. Nombre completo del encuestado:</label>
+        <input type="text" name="nombre" [(ngModel)]="respuestasComunidad.nombreEncuestado" placeholder="Escriba aquí..." required class="form-input">
+      </div>
+
+      <div class="pregunta-box">
+        <label class="pregunta-label">2. Edad (en años):</label>
+        <input type="number" name="edad" [(ngModel)]="respuestasComunidad.edad" placeholder="Ej. 25" min="0" required class="form-input">
+      </div>
+
+      <div class="pregunta-box">
+        <label class="pregunta-label">3. Sector de residencia en la comunidad:</label>
+        <label class="radio-option">
+          <input type="radio" name="sector" value="Norte" [(ngModel)]="respuestasComunidad.sector" required> <span class="radio-text">Sector Norte</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="sector" value="Centro" [(ngModel)]="respuestasComunidad.sector"> <span class="radio-text">Sector Centro / Urbana</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="sector" value="Sur" [(ngModel)]="respuestasComunidad.sector"> <span class="radio-text">Sector Sur / Rural</span>
+        </label>
+      </div>
+
+      <div class="pregunta-box">
+        <label class="pregunta-label">4. Observaciones adicionales:</label>
+        <textarea name="observaciones" [(ngModel)]="respuestasComunidad.observaciones" placeholder="Detalles..." rows="3" class="form-textarea"></textarea>
+      </div>
+
+      <button type="submit" [disabled]="!formComunidad.form.valid" class="btn-guardar">
+        💾 Guardar Diagnóstico
+      </button>
+    </form>
+  }
+
+  @else {
+    <form (ngSubmit)="guardarFormulario()" #formAgricola="ngForm" class="form-body">
+      
+      <div class="pregunta-box">
+        <label class="pregunta-label">1. Nombre del productor agrícola:</label>
+        <input type="text" name="productor" [(ngModel)]="respuestasAgricola.nombreProductor" placeholder="Escriba nombre del agricultor..." required class="form-input">
+      </div>
+
+      <div class="pregunta-box">
+        <label class="pregunta-label">2. Tipo de cultivo principal en la finca:</label>
+        <input type="text" name="cultivo" [(ngModel)]="respuestasAgricola.tipoCultivo" placeholder="Ej. Maíz, Café, Plátano, Cacao..." required class="form-input">
+      </div>
+
+      <div class="pregunta-box">
+        <label class="pregunta-label">3. Extensión del terreno (en Hectáreas):</label>
+        <input type="number" name="hectareas" [(ngModel)]="respuestasAgricola.hectareas" placeholder="Ej. 5" min="0" required class="form-input">
+      </div>
+
+      <div class="pregunta-box">
+        <label class="pregunta-label">4. ¿Cuenta con sistema de riego artificial?</label>
+        <label class="radio-option">
+          <input type="radio" name="riego" value="Si" [(ngModel)]="respuestasAgricola.usaRiego" required> <span class="radio-text">Sí, cuenta con riego</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="riego" value="No" [(ngModel)]="respuestasAgricola.usaRiego"> <span class="radio-text">No, depende de las lluvias</span>
+        </label>
+      </div>
+
+      <button type="submit" [disabled]="!formAgricola.form.valid" class="btn-guardar" style="background-color: #2e7d32;">
+        🌾 Guardar Censo Agrícola
+      </button>
+    </form>
+  }
+</div>

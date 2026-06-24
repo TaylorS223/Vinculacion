@@ -1,0 +1,124 @@
+<div class="header-superior">
+  <div class="server-url-display">
+    <p class="server-label">{{ urlServidor }}</p>
+  </div>
+  
+  <!-- Avatar del usuario -->
+  <div class="avatar-container">
+    <button class="avatar-btn" (click)="toggleMenuPerfil()" title="Menú de perfil">
+      {{ inicialUsuario }}
+    </button>
+    
+    <!-- Menú desplegable -->
+    @if (mostrarMenuPerfil) {
+      <div class="menu-perfil">
+        <div class="menu-header">
+          <h3>{{ nombreUsuario }}</h3>
+          <button class="close-menu" (click)="cerrarMenuPerfil()">✕</button>
+        </div>
+        
+        <div class="menu-opciones">
+          <button class="menu-item" (click)="cerrarMenuPerfil(); irAjustes()">
+            <span class="icon">⚙️</span> Ajustes
+          </button>
+          
+          <button class="menu-item" (click)="cerrarMenuPerfil(); mostrarAviso('Acerca de — próximamente disponible')">
+            <span class="icon">ℹ️</span> Acerca de
+          </button>
+          
+          <hr style="margin: 8px 0; border: none; border-top: 1px solid #444;">
+          
+          <button class="menu-item logout" (click)="cerrarMenuPerfil(); cerrarSesion()">
+            <span class="icon">🚪</span> Cerrar sesión
+          </button>
+        </div>
+      </div>
+      
+      <!-- Overlay para cerrar menú al hacer click afuera -->
+      <div class="menu-overlay" (click)="cerrarMenuPerfil()"></div>
+    }
+  </div>
+</div>
+
+<div class="connection-wrapper">
+@if (isOnline) {
+  <div class="connection-status online">
+    <span class="status-dot"></span> Conectado al servidor central
+  </div>
+} @else {
+  <div class="connection-status offline" style="background-color: #ffebee; color: #c62828; border-bottom: 2px solid #c62828; padding: 10px; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+    <span class="status-dot" style="background-color: #c62828; width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span> 🔴 Modo Offline - Guardando datos localmente
+  </div>
+}
+</div>
+
+<div class="kobo-menu">
+
+  <a routerLink="/lista" class="btn-nuevo-formulario">
+    <span class="icono-mas">+</span> Llenar nuevo formulario
+  </a>
+
+  <div class="opciones-lista">
+
+    <button type="button" class="opcion-item" (click)="abrirSeccion('Borradores')">
+      <span class="opcion-icono">✏️</span>
+      <span class="opcion-texto">Borradores</span>
+    </button>
+
+    <button type="button" class="opcion-item" (click)="abrirSeccion('Listo para enviar')">
+      <span class="opcion-icono">📨</span>
+      <span class="opcion-texto">Listo para enviar ({{ cantidadListos }})</span>
+    </button>
+
+    <button type="button" class="opcion-item" (click)="abrirSeccion('Enviado')">
+      <span class="opcion-icono">✅</span>
+      <span class="opcion-texto">Enviado</span>
+    </button>
+
+    <button type="button" class="opcion-item" (click)="abrirSeccion('Descargar formulario')">
+      <span class="opcion-icono">⬇️</span>
+      <span class="opcion-texto">Descargar formulario</span>
+    </button>
+
+    <button type="button" class="opcion-item peligro" (click)="abrirSeccion('Borrar formulario')">
+      <span class="opcion-icono">🗑️</span>
+      <span class="opcion-texto">Borrar formulario</span>
+    </button>
+
+  </div>
+
+  <p class="version-app">ULEAM v1.0.0 (Proyecto Integrador)</p>
+</div>
+
+@if (cargando) {
+  <div class="modal-overlay">
+    <div class="modal-box">
+      <span class="close-modal" (click)="cargando = false">✕</span>
+      <div class="spinner"></div>
+      <h3>Conectando al servidor...</h3>
+      <p>Descargando plantillas de encuestas actualizadas.</p>
+    </div>
+  </div>
+}
+
+@if (enviando) {
+  <div class="modal-overlay">
+    <div class="modal-box">
+      <span class="close-modal" (click)="enviando = false">✕</span>
+      <div class="spinner" style="border-top-color: #1565c0;"></div>
+      <h3 style="color: #1565c0;">Subiendo datos...</h3>
+      <p>Enviando formularios recolectados al servidor central.</p>
+    </div>
+  </div>
+}
+
+@if (mensajeExito) {
+  <div class="modal-overlay">
+    <div class="modal-box">
+      <span class="close-modal" (click)="mensajeExito = false">✕</span>
+      <div class="success-icon">✔</div>
+      <h3>¡Acción Exitosa!</h3>
+      <p>{{ textoExito }}</p>
+    </div>
+  </div>
+}
