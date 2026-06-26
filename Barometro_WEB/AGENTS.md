@@ -40,7 +40,7 @@ Comandos principales:
 
 - PostgreSQL corre con `docker-compose.yml`.
 - Backend corre dentro de Docker con imagen `backend-backend`.
-- Los scripts usan `DB_HOST=postgres` cuando existe la red Docker Compose `observatirio_default`; `host.docker.internal` queda como fallback.
+- Los scripts detectan la red real del contenedor `observatorio_db`; usan `DB_HOST=postgres`/`DB_PORT=5432` dentro de Docker y `host.docker.internal`/`5433` como fallback.
 - El frontend corre en el host con Bun.
 
 ## Frontend

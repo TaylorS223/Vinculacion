@@ -22,8 +22,8 @@ El desarrollo backend usa Docker para evitar depender de PHP/Composer instalados
 
 Los scripts conectan el backend a PostgreSQL de esta forma:
 
-- Si existe la red Docker Compose `observatirio_default`, usan `--network observatirio_default` y `DB_HOST=postgres`.
-- Si la red no existe, usan `host.docker.internal` como fallback.
+- Si el contenedor `observatorio_db` existe, detectan su red Docker Compose y usan `DB_HOST=postgres` con `DB_PORT=5432`.
+- Si el contenedor no existe, usan `host.docker.internal` y el puerto publicado `5433` como fallback.
 
 Valores esperados:
 
@@ -36,6 +36,7 @@ DB_PASSWORD=secret123
 ```
 
 `backend/.env` se crea desde `.env.example` si no existe.
+Para ejecutar Laravel directamente en el host, usar `DB_HOST=127.0.0.1` y `DB_PORT=5433`.
 
 ## Swagger
 

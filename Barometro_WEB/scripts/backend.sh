@@ -8,8 +8,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_PATH="$SCRIPT_DIR/../backend"
 IMAGE_NAME="backend-backend"
 CONTAINER_NAME="observatorio-backend-dev"
+POSTGRES_CONTAINER_NAME="observatorio_db"
 ENV_FILE="$BACKEND_PATH/.env"
 COMPOSE_NETWORK="observatirio_default"
+HOST_DB_PORT="5433"
 COMMAND="${1:-help}"
 
 cd "$BACKEND_PATH"
@@ -29,13 +31,27 @@ ensure_backend_image() {
 }
 
 docker_db_args() {
-  if docker network inspect "$COMPOSE_NETWORK" >/dev/null 2>&1; then
-    DB_HOST_VALUE="postgres"
-    DOCKER_DB_ARGS=(--network "$COMPOSE_NETWORK")
-  else
-    DB_HOST_VALUE="host.docker.internal"
-    DOCKER_DB_ARGS=(--add-host=host.docker.internal:host-gateway)
+  local networks network
+
+  if networks="$(docker inspect "$POSTGRES_CONTAINER_NAME" --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' 2>/dev/null)" && [ -n "$networks" ]; then
+    network="$(printf '%s\n' "$networks" | awk -v preferred="$COMPOSE_NETWORK" '$0 == preferred { print; found=1; exit } END { if (!found) exit 1 }')" || true
+    if [ -z "$network" ]; then
+      network="$(printf '%s\n' "$networks" | sed '/^$/d' | head -n 1)"
+    fi
+
+    if [ -n "$network" ]; then
+      DB_HOST_VALUE="postgres"
+      DB_PORT_VALUE="5432"
+      DB_RUNTIME_LABEL="Docker network $network"
+      DOCKER_DB_ARGS=(--network "$network")
+      return
+    fi
   fi
+
+  DB_HOST_VALUE="host.docker.internal"
+  DB_PORT_VALUE="$HOST_DB_PORT"
+  DB_RUNTIME_LABEL="host port fallback"
+  DOCKER_DB_ARGS=(--add-host=host.docker.internal:host-gateway)
 }
 
 dev_mount_args() {
@@ -62,6 +78,7 @@ run_artisan() {
     "${DOCKER_DEV_MOUNT_ARGS[@]}" \
     --env-file "$ENV_FILE" \
     -e DB_HOST="$DB_HOST_VALUE" \
+    -e DB_PORT="$DB_PORT_VALUE" \
     --entrypoint php \
     "$IMAGE_NAME" artisan "$@"
 }
@@ -72,7 +89,7 @@ case "$COMMAND" in
     ensure_backend_image
     docker_db_args
     dev_mount_args
-    echo "Starting Laravel API at http://127.0.0.1:8000 using DB_HOST=$DB_HOST_VALUE..."
+    echo "Starting Laravel API at http://127.0.0.1:8000 using DB_HOST=$DB_HOST_VALUE, DB_PORT=$DB_PORT_VALUE ($DB_RUNTIME_LABEL)..."
     docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
     docker run -d \
       --name "$CONTAINER_NAME" \
@@ -82,6 +99,7 @@ case "$COMMAND" in
       "${DOCKER_DEV_MOUNT_ARGS[@]}" \
       --env-file "$ENV_FILE" \
       -e DB_HOST="$DB_HOST_VALUE" \
+      -e DB_PORT="$DB_PORT_VALUE" \
       --entrypoint php \
       "$IMAGE_NAME" artisan serve --host=0.0.0.0 --port=8000 >/dev/null
     echo "Backend started. Use './scripts/backend.sh logs' to inspect output."

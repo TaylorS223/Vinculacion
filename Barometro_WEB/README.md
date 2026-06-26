@@ -6,7 +6,7 @@ Aplicacion full-stack para crear formularios dinamicos, publicarlos mediante enl
 
 - Backend: Laravel 12 API, PHP 8.4 en Docker para desarrollo.
 - Frontend: Angular 21 con SSR.
-- Base de datos: PostgreSQL 16 en Docker. El backend usa la red interna de Docker Compose cuando esta disponible.
+- Base de datos: PostgreSQL 16 en Docker. El backend detecta la red interna de Docker Compose cuando esta disponible.
 - Auth: Laravel Sanctum con tokens.
 - Frontend package manager: Bun 1.2.18.
 
@@ -79,7 +79,7 @@ En Bash:
 | API | http://localhost:8000/api |
 | Swagger UI | http://localhost:8000/api/docs |
 | Swagger JSON | http://localhost:8000/api/documentation |
-| PostgreSQL | localhost:5432 |
+| PostgreSQL | localhost:5433 |
 
 Swagger se genera desde los controladores activos de formularios, autenticacion, perfil, usuarios y seed. No expone endpoints heredados del proyecto anterior.
 

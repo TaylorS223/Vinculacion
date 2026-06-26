@@ -10,8 +10,10 @@ param(
 $BackendPath = Join-Path $PSScriptRoot '..\backend'
 $ImageName = 'backend-backend'
 $ContainerName = 'observatorio-backend-dev'
+$PostgresContainerName = 'observatorio_db'
 $EnvFile = Join-Path $BackendPath '.env'
 $ComposeNetwork = 'observatirio_default'
+$HostDbPort = '5433'
 
 function Ensure-EnvFile {
     if (-not (Test-Path $EnvFile)) {
@@ -30,12 +32,19 @@ function Ensure-BackendImage {
 }
 
 function Get-DbRuntime {
-    docker network inspect $ComposeNetwork *> $null
+    $networks = docker inspect $PostgresContainerName --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' 2>$null
     if ($LASTEXITCODE -eq 0) {
-        return [pscustomobject]@{ Args = @('--network', $ComposeNetwork); Host = 'postgres' }
+        $network = $networks | Where-Object { $_ -eq $ComposeNetwork } | Select-Object -First 1
+        if (-not $network) {
+            $network = $networks | Where-Object { $_ } | Select-Object -First 1
+        }
+
+        if ($network) {
+            return [pscustomobject]@{ Args = @('--network', $network); Host = 'postgres'; Port = '5432'; Label = "Docker network $network" }
+        }
     }
 
-    return [pscustomobject]@{ Args = @('--add-host=host.docker.internal:host-gateway'); Host = 'host.docker.internal' }
+    return [pscustomobject]@{ Args = @('--add-host=host.docker.internal:host-gateway'); Host = 'host.docker.internal'; Port = $HostDbPort; Label = 'host port fallback' }
 }
 
 function Get-DevMountArgs {
@@ -61,7 +70,7 @@ function Run-Artisan {
     Ensure-EnvFile
     Ensure-BackendImage
     $db = Get-DbRuntime
-    $dockerArgs = @('run', '--rm') + $db.Args + (Get-DevMountArgs) + @('--env-file', $EnvFile, '-e', "DB_HOST=$($db.Host)", '--entrypoint', 'php', $ImageName, 'artisan') + $Args
+    $dockerArgs = @('run', '--rm') + $db.Args + (Get-DevMountArgs) + @('--env-file', $EnvFile, '-e', "DB_HOST=$($db.Host)", '-e', "DB_PORT=$($db.Port)", '--entrypoint', 'php', $ImageName, 'artisan') + $Args
     & docker @dockerArgs
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
@@ -75,10 +84,10 @@ try {
             $db = Get-DbRuntime
             Write-Host 'Starting backend at http://127.0.0.1:8000 with PHP 8.4 (Docker)...' -ForegroundColor Green
             docker rm -f $ContainerName 2>$null | Out-Null
-            $dockerArgs = @('run', '-d', '--name', $ContainerName, '--rm', '-p', '8000:8000') + $db.Args + (Get-DevMountArgs) + @('--env-file', $EnvFile, '-e', "DB_HOST=$($db.Host)", '--entrypoint', 'php', $ImageName, 'artisan', 'serve', '--host=0.0.0.0', '--port=8000')
+            $dockerArgs = @('run', '-d', '--name', $ContainerName, '--rm', '-p', '8000:8000') + $db.Args + (Get-DevMountArgs) + @('--env-file', $EnvFile, '-e', "DB_HOST=$($db.Host)", '-e', "DB_PORT=$($db.Port)", '--entrypoint', 'php', $ImageName, 'artisan', 'serve', '--host=0.0.0.0', '--port=8000')
             & docker @dockerArgs | Out-Null
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            Write-Host "Backend started using DB_HOST=$($db.Host)." -ForegroundColor Green
+            Write-Host "Backend started using DB_HOST=$($db.Host), DB_PORT=$($db.Port) ($($db.Label))." -ForegroundColor Green
         }
         'stop' {
             docker rm -f $ContainerName 2>$null | Out-Null

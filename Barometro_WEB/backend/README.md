@@ -88,7 +88,7 @@ Para probar rutas protegidas en Swagger:
 
 ## Configuracion
 
-Si `backend/.env` no existe, los scripts lo crean desde `.env.example`. En ejecucion Docker, los scripts usan `DB_HOST=postgres` cuando existe la red `observatirio_default`; si no existe, usan `host.docker.internal` como fallback.
+Si `backend/.env` no existe, los scripts lo crean desde `.env.example`. En ejecucion Docker, los scripts detectan la red donde esta conectado `observatorio_db`, usan `DB_HOST=postgres` y `DB_PORT=5432`; si no encuentran el contenedor de PostgreSQL, usan `host.docker.internal` y el puerto publicado `5433` como fallback.
 
 ## Notas de refactor
 
