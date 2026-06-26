@@ -86,7 +86,7 @@
               </a>
             }
 
-            @if (form.state === 'DRAFT') {
+            @if (form.state === 'DRAFT' || form.state === 'ARCHIVED') {
               <button
                 class="btn-action btn-deploy"
                 (click)="vm.deployForm(form.id)"
@@ -94,7 +94,7 @@
                 type="button"
               >
                 <mat-icon>rocket_launch</mat-icon>
-                Implementar
+                {{ form.state === 'ARCHIVED' ? 'Volver a implementar' : 'Implementar' }}
               </button>
             }
 

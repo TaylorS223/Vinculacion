@@ -14,6 +14,12 @@ export const ADMIN_ROUTES: Routes = [
     title: 'Mis Formularios',
   },
   {
+    path: 'configuracion',
+    loadComponent: () =>
+      import('../features/profile/profile.component').then((m) => m.ProfileComponent),
+    title: 'Configuracion de cuenta',
+  },
+  {
     path: 'forms/builder',
     loadComponent: () =>
       import('../features/forms/builder/builder.component').then((m) => m.BuilderComponent),

@@ -12,9 +12,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Facades\Excel;
 use OpenApi\Attributes as OA;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 #[OA\Tag(name: 'Forms', description: 'Formularios dinamicos, publicacion, respuestas y comparticion')]
 class FormController extends Controller
@@ -108,6 +112,11 @@ class FormController extends Controller
     public function deploy(Request $request, string $id): JsonResponse
     {
         $form = $this->findEditableForm($id, $request->user());
+
+        if (!in_array($form->state, ['DRAFT', 'ARCHIVED'], true)) {
+            return response()->json(['message' => 'El formulario ya esta implementado'], 422);
+        }
+
         $form->update([
             'state' => 'DEPLOYED',
             'link_uuid' => $form->link_uuid ?? Str::uuid(),
@@ -120,6 +129,11 @@ class FormController extends Controller
     public function archive(Request $request, string $id): JsonResponse
     {
         $form = $this->findEditableForm($id, $request->user());
+
+        if ($form->state !== 'DEPLOYED') {
+            return response()->json(['message' => 'Solo se puede archivar un formulario implementado'], 422);
+        }
+
         $form->update(['state' => 'ARCHIVED']);
 
         return response()->json($form);
@@ -304,10 +318,25 @@ class FormController extends Controller
         $filename = Str::slug($form->title) . '_respuestas_' . now()->format('Y-m-d');
 
         if ($format === 'xlsx' || $format === 'excel') {
-            $export = new class($exportData['rows'], $exportData['headers']) implements FromArray, WithHeadings {
-                public function __construct(private array $rows, private array $headers) {}
+            $export = new class($exportData['rows'], $exportData['headers'], $form->title) implements FromArray, ShouldAutoSize, WithHeadings, WithStyles, WithTitle {
+                public function __construct(private array $rows, private array $headers, private string $formTitle) {}
                 public function array(): array { return $this->rows; }
                 public function headings(): array { return $this->headers; }
+                public function title(): string
+                {
+                    $title = preg_replace('/[\\\\\/?*\[\]:]/', '', $this->formTitle) ?: 'Respuestas';
+
+                    return mb_substr($title, 0, 31);
+                }
+                public function styles(Worksheet $sheet): array
+                {
+                    $sheet->freezePane('A2');
+                    $sheet->setAutoFilter($sheet->calculateWorksheetDimension());
+
+                    return [
+                        1 => ['font' => ['bold' => true]],
+                    ];
+                }
             };
 
             return Excel::download($export, "{$filename}.xlsx");
@@ -368,26 +397,41 @@ class FormController extends Controller
 
     private function buildExportMatrix(Form $form): array
     {
-        $headers = ['_id', '_submitted'];
+        $headers = ['start', 'end'];
         $columnMap = [];
 
         foreach ($form->questions as $question) {
             if ($question->type === 'MULTIPLE_CHOICE' && is_array($question->options)) {
+                $headers[] = $question->label;
+                $columnMap[] = ['type' => 'multi_summary', 'question_id' => $question->id];
                 foreach ($question->options as $option) {
                     $headers[] = "{$question->label}/{$option}";
                     $columnMap[] = ['type' => 'multi_option', 'question_id' => $question->id, 'option' => $option];
                 }
-                $headers[] = $question->label;
-                $columnMap[] = ['type' => 'multi_summary', 'question_id' => $question->id];
             } else {
                 $headers[] = $question->label;
                 $columnMap[] = ['type' => 'simple', 'question_id' => $question->id];
             }
         }
 
+        $headers = array_merge($headers, [
+            '_id',
+            '_uuid',
+            '_submission_time',
+            '_validation_status',
+            '_notes',
+            '_status',
+            '_submitted_by',
+            '__version__',
+            '_tags',
+            'meta/rootUuid',
+            '_index',
+        ]);
+
         $rows = [];
-        foreach ($form->responses as $response) {
-            $row = [$response->id, $response->created_at?->toDateTimeString() ?? ''];
+        foreach ($form->responses as $index => $response) {
+            $submittedAt = $response->created_at?->toDateTimeString() ?? '';
+            $row = [$submittedAt, $submittedAt];
 
             foreach ($columnMap as $col) {
                 $answer = $response->data[$col['question_id']] ?? null;
@@ -400,6 +444,20 @@ class FormController extends Controller
                     $row[] = $answer ?? '';
                 }
             }
+
+            $row = array_merge($row, [
+                $response->id,
+                $response->id,
+                $submittedAt,
+                '',
+                '',
+                'submitted_via_web',
+                '',
+                (string) ($form->updated_at?->timestamp ?? ''),
+                '',
+                "uuid:{$response->id}",
+                $index + 1,
+            ]);
 
             $rows[] = $row;
         }

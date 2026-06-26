@@ -89,7 +89,7 @@ import { ThemeService } from '@core/services/theme.service';
               </div>
               <div class="user-info">
                 <span class="user-name">{{ user.name }}</span>
-                <span class="user-role">{{ 'layout.header.administrator' | translate }}</span>
+                <span class="user-role">{{ roleLabel(user.rol) | translate }}</span>
               </div>
               <mat-icon class="dropdown-icon">expand_more</mat-icon>
             </button>
@@ -112,7 +112,7 @@ import { ThemeService } from '@core/services/theme.service';
                 <span>{{ 'layout.header.profile' | translate }}</span>
               </button>
 
-              <button mat-menu-item routerLink="/configuracion" class="menu-item">
+              <button mat-menu-item routerLink="/admin/configuracion" class="menu-item">
                 <mat-icon>settings</mat-icon>
                 <span>{{ 'layout.header.settings' | translate }}</span>
               </button>
@@ -429,6 +429,16 @@ export class HeaderComponent {
   themeService = inject(ThemeService);
   languageService = inject(LanguageService);
   toggleSidenav = output<void>();
+
+  roleLabel(role: string): string {
+    const labels: Record<string, string> = {
+      SUPER_ADMIN: 'profile.roles.superAdmin',
+      ADMIN: 'profile.roles.admin',
+      USER: 'profile.roles.user',
+    };
+
+    return labels[role] ?? 'profile.roles.user';
+  }
 
   logout(): void {
     this.authService.logout().subscribe();
