@@ -34,11 +34,11 @@ class CreateUserUseCase
 
             // Validar rol
             if (!in_array($dto->rol, User::ROLES, true)) {
-                throw new \InvalidArgumentException('Rol inválido. Los roles permitidos son: SUPER_ADMIN, ADMIN, USER');
+                throw new \InvalidArgumentException('Rol inválido. Los roles permitidos son: SUPER_ADMIN, ADMIN, PROJECT_LEADER, USER');
             }
 
             if (!$admin->canManageRole($dto->rol)) {
-                throw new AccessDeniedHttpException('Solo el super admin puede crear administradores');
+                throw new AccessDeniedHttpException('No tienes permisos para crear usuarios con ese rol');
             }
 
             // Crear usuario

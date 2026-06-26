@@ -27,8 +27,8 @@ class GetUsersUseCase
             ->orderBy('created_at', 'desc')
             ;
 
-        if (!$admin->isSuperAdmin()) {
-            $query->where('rol', User::ROLE_USER);
+        if ($admin->isAdmin()) {
+            $query->whereIn('rol', [User::ROLE_PROJECT_LEADER, User::ROLE_USER]);
         }
 
         return $query->paginate($perPage);

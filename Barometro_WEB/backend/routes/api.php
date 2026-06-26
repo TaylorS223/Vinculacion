@@ -61,4 +61,5 @@ require __DIR__ . '/modules/profile.php';
 require __DIR__ . '/modules/seed.php';
 
 Route::prefix('forms')->group(__DIR__ . '/modules/forms.php');
+Route::prefix('projects')->group(__DIR__ . '/modules/projects.php');
 Route::prefix('users')->group(__DIR__ . '/modules/users.php');

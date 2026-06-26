@@ -1,5 +1,6 @@
 ﻿import { Injectable, computed, inject, signal } from '@angular/core';
 import { Form, FormQuestion, FormService } from '@core/services/form.service';
+import { Project, ProjectService } from '@core/services/project.service';
 import { firstValueFrom } from 'rxjs';
 
 export interface FormQuestionDraft {
@@ -24,8 +25,11 @@ const DEFAULT_LIKERT_OPTIONS = [
 @Injectable()
 export class FormBuilderViewModel {
   private formService = inject(FormService);
+  private projectService = inject(ProjectService);
 
   formId = signal<string | null>(null);
+  projectId = signal<string | null>(null);
+  projects = signal<Project[]>([]);
   title = signal('');
   description = signal('');
   state = signal<Form['state']>('DRAFT');
@@ -60,6 +64,7 @@ export class FormBuilderViewModel {
     try {
       const form = await firstValueFrom(this.formService.getForm(id));
       this.formId.set(form.id);
+      this.projectId.set(form.project_id ?? null);
       this.title.set(form.title);
       this.description.set(form.description ?? '');
       this.state.set(form.state);
@@ -74,6 +79,15 @@ export class FormBuilderViewModel {
       this.errorMessage.set(error?.error?.message || 'Error al cargar el formulario');
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  async loadProjects(): Promise<void> {
+    try {
+      const projects = await firstValueFrom(this.projectService.getProjects());
+      this.projects.set(projects);
+    } catch {
+      this.projects.set([]);
     }
   }
 
@@ -127,6 +141,11 @@ export class FormBuilderViewModel {
 
   updateDescription(value: string): void {
     this.description.set(value);
+    this.clearMessages();
+  }
+
+  updateProject(projectId: string | null): void {
+    this.projectId.set(projectId || null);
     this.clearMessages();
   }
 
@@ -195,6 +214,7 @@ export class FormBuilderViewModel {
             this.formService.createForm({
               title: this.title().trim(),
               description: this.description().trim(),
+              project_id: this.projectId(),
             }),
           );
 
@@ -227,6 +247,7 @@ export class FormBuilderViewModel {
 
   resetForm(): void {
     this.formId.set(null);
+    this.projectId.set(null);
     this.title.set('');
     this.description.set('');
     this.state.set('DRAFT');

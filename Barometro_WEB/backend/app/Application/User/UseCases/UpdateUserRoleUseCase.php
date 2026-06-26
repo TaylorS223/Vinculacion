@@ -35,11 +35,11 @@ class UpdateUserRoleUseCase
 
             // Validar que el rol sea válido
             if (!in_array($dto->rol, User::ROLES, true)) {
-                throw new \InvalidArgumentException('Rol inválido. Los roles permitidos son: SUPER_ADMIN, ADMIN, USER');
+                throw new \InvalidArgumentException('Rol inválido. Los roles permitidos son: SUPER_ADMIN, ADMIN, PROJECT_LEADER, USER');
             }
 
             if (!$admin->canManageRole($user->rol) || !$admin->canManageRole($dto->rol)) {
-                throw new AccessDeniedHttpException('Solo el super admin puede administrar administradores');
+                throw new AccessDeniedHttpException('No tienes permisos para administrar ese rol');
             }
 
             // Actualizar el rol (el modelo User permitirá esto porque el admin está autenticado)

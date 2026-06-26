@@ -6,10 +6,11 @@ API REST para la plataforma de formularios dinamicos del Observatorio ULEAM.
 
 - Autenticacion con Sanctum.
 - Gestion administrativa de usuarios.
-- Roles globales `SUPER_ADMIN`, `ADMIN` y `USER`.
+- Roles globales `SUPER_ADMIN`, `ADMIN`, `PROJECT_LEADER` y `USER`.
+- Gestion de proyectos y asignacion de lideres de proyecto.
 - CRUD de formularios y preguntas.
 - Ciclo de vida de formularios: borrador, implementado y archivado.
-- Comparticion de formularios con colaboradores `EDITOR` o `LECTOR`.
+- Comparticion de formularios con permisos `EDITOR` o `RECOLECTOR`.
 - Recoleccion publica por `link_uuid`.
 - Consulta de respuestas, estadisticas y exportacion.
 - Seed inicial de usuario super admin.
@@ -51,6 +52,8 @@ Comandos equivalentes en Bash:
 - `GET /api/user`
 - `GET|POST /api/forms`
 - `GET|PUT|DELETE /api/forms/{id}`
+- `GET|POST /api/projects`
+- `GET|PUT|DELETE /api/projects/{id}`
 - `POST /api/forms/{id}/questions`
 - `POST /api/forms/{id}/deploy`
 - `POST /api/forms/{id}/archive`
@@ -63,11 +66,12 @@ Comandos equivalentes en Bash:
 
 ## Roles y permisos
 
-- `SUPER_ADMIN`: administra usuarios y administradores, ve todos los formularios y puede eliminar formularios por moderacion.
-- `ADMIN`: administra usuarios normales.
-- `USER`: administra sus propios formularios e invita colaboradores como `EDITOR` o `LECTOR`.
+- `SUPER_ADMIN`: control total sobre usuarios, proyectos, formularios, configuracion y datos.
+- `ADMIN`: gestiona proyectos, asigna lideres y crea/gestiona formularios.
+- `PROJECT_LEADER`: gestiona formularios y permisos dentro de proyectos asignados.
+- `USER`: recolecta datos y edita formularios solo cuando recibe permiso `EDITOR`.
 
-Los colaboradores de formulario no son roles globales; viven en `form_user_shares`.
+Los permisos de formulario no son roles globales; viven en `form_user_shares` como `EDITOR` o `RECOLECTOR`.
 
 La fuente de verdad es `backend/routes/api.php` y los archivos activos en `backend/routes/modules/`.
 
@@ -77,7 +81,7 @@ La fuente de verdad es `backend/routes/api.php` y los archivos activos en `backe
 - JSON: `GET /api/documentation`
 - Generacion: `.\scripts\backend.ps1 swagger`
 
-La documentacion se genera solo desde controladores activos: Auth, Forms, Profile, Seed y Users.
+La documentacion se genera solo desde controladores activos: Auth, Forms, Projects, Profile, Seed y Users.
 
 Para probar rutas protegidas en Swagger:
 

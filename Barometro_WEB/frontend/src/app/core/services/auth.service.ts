@@ -24,6 +24,7 @@ export class AuthService {
   readonly isLoading = computed(() => this.loadingSignal());
   readonly isSuperAdmin = computed(() => this.userSignal()?.rol === 'SUPER_ADMIN');
   readonly isAdmin = computed(() => ['SUPER_ADMIN', 'ADMIN'].includes(this.userSignal()?.rol ?? ''));
+  readonly isProjectLeader = computed(() => this.userSignal()?.rol === 'PROJECT_LEADER');
   readonly isUser = computed(() => this.userSignal()?.rol === 'USER');
   readonly userRole = computed(() => this.userSignal()?.rol ?? null);
 

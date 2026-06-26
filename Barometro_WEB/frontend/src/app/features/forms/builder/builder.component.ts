@@ -56,6 +56,8 @@ export class BuilderComponent implements OnInit {
   ];
 
   ngOnInit(): void {
+    void this.vm.loadProjects();
+
     const formId = this.route.snapshot.paramMap.get('id');
     if (formId) {
       void this.vm.loadForm(formId);

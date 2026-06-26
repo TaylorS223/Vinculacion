@@ -48,6 +48,7 @@ return [
                     base_path('app/Presentation/Http/Controllers/Api/AuthController.php'),
                     base_path('app/Presentation/Http/Controllers/Api/FormController.php'),
                     base_path('app/Presentation/Http/Controllers/Api/ProfileController.php'),
+                    base_path('app/Presentation/Http/Controllers/Api/ProjectController.php'),
                     base_path('app/Presentation/Http/Controllers/Api/SeedController.php'),
                     base_path('app/Presentation/Http/Controllers/Api/UserController.php'),
                 ],

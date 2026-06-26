@@ -28,15 +28,31 @@ class FormController extends Controller
     {
         $user = $request->user();
 
-        if ($user->isSuperAdmin()) {
+        if ($user->isSuperAdmin() || $user->isAdmin()) {
             return response()->json([
-                'my_forms' => Form::with('owner:id,name,email,rol')->withCount('responses')->latest()->get(),
+                'my_forms' => Form::with(['owner:id,name,email,rol', 'project:id,name'])->withCount('responses')->latest()->get(),
                 'shared_forms' => [],
             ]);
         }
 
-        $myForms = Form::where('user_id', $user->id)->withCount('responses')->latest()->get();
+        $myForms = Form::query()
+            ->when($user->isProjectLeader(), function ($query) use ($user) {
+                $projectIds = $user->ledProjects()->pluck('projects.id');
+
+                $query->where(function ($inner) use ($user, $projectIds) {
+                    $inner->where('user_id', $user->id);
+                    if ($projectIds->isNotEmpty()) {
+                        $inner->orWhereIn('project_id', $projectIds);
+                    }
+                });
+            }, fn($query) => $query->where('user_id', $user->id))
+            ->with(['project:id,name'])
+            ->withCount('responses')
+            ->latest()
+            ->get();
+
         $sharedForms = Form::whereHas('shares', fn($q) => $q->where('user_id', $user->id))
+            ->with(['project:id,name'])
             ->withCount('responses')
             ->latest()
             ->get();
@@ -53,12 +69,27 @@ class FormController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'project_id' => 'nullable|uuid|exists:projects,id',
         ]);
+
+        $projectId = $request->input('project_id');
+        $user = $request->user();
+
+        if ($user->isUser()) {
+            return response()->json(['message' => 'Los usuarios recolectores no pueden crear formularios'], 403);
+        }
+
+        if ($user->isProjectLeader()) {
+            if (!$projectId || !$user->leadsProject($projectId)) {
+                return response()->json(['message' => 'Debes crear formularios dentro de un proyecto asignado'], 403);
+            }
+        }
 
         $form = Form::create([
             'title' => $request->title,
             'description' => $request->description,
-            'user_id' => $request->user()->id,
+            'user_id' => $user->id,
+            'project_id' => $projectId,
             'state' => 'DRAFT',
         ]);
 
@@ -69,7 +100,7 @@ class FormController extends Controller
     public function show(Request $request, string $id): JsonResponse
     {
         $form = $this->findViewableForm($id, $request->user());
-        $form->load(['questions' => fn($q) => $q->orderBy('order'), 'shares.user:id,name,email,rol']);
+        $form->load(['project:id,name', 'questions' => fn($q) => $q->orderBy('order'), 'shares.user:id,name,email,rol']);
 
         return response()->json($form);
     }
@@ -99,7 +130,7 @@ class FormController extends Controller
         $form = Form::findOrFail($id);
         $user = $request->user();
 
-        if (!$user->isSuperAdmin() && (int) $form->user_id !== (int) $user->id) {
+        if (!$this->canDeleteForm($form, $user)) {
             return response()->json(['message' => 'No tienes permisos para eliminar este formulario'], 403);
         }
 
@@ -202,19 +233,19 @@ class FormController extends Controller
     #[OA\Get(path: '/forms/{id}/shares', summary: 'Listar usuarios invitados', security: [['sanctum' => []]], tags: ['Forms'])]
     public function getShares(Request $request, string $id): JsonResponse
     {
-        $form = $this->findViewableForm($id, $request->user());
+        $form = $this->findShareManageableForm($id, $request->user());
 
         return response()->json($form->shares()->with('user:id,name,email,rol')->get());
     }
 
-    #[OA\Post(path: '/forms/{id}/shares', summary: 'Invitar usuario como editor o lector', security: [['sanctum' => []]], tags: ['Forms'])]
+    #[OA\Post(path: '/forms/{id}/shares', summary: 'Asignar usuario como editor o recolector', security: [['sanctum' => []]], tags: ['Forms'])]
     public function storeShare(Request $request, string $id): JsonResponse
     {
-        $form = $this->findEditableForm($id, $request->user());
+        $form = $this->findShareManageableForm($id, $request->user());
 
         $request->validate([
             'email' => 'required|email',
-            'role' => 'required|in:EDITOR,LECTOR',
+            'role' => 'required|in:EDITOR,RECOLECTOR',
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -224,6 +255,10 @@ class FormController extends Controller
 
         if ((int) $user->id === (int) $form->user_id) {
             return response()->json(['message' => 'No puedes compartir el formulario contigo mismo'], 422);
+        }
+
+        if (!$user->isUser()) {
+            return response()->json(['message' => 'Solo usuarios recolectores pueden recibir permisos por formulario'], 422);
         }
 
         $share = FormUserShare::updateOrCreate(
@@ -237,7 +272,7 @@ class FormController extends Controller
     #[OA\Delete(path: '/forms/{id}/shares/{share_id}', summary: 'Retirar invitacion', security: [['sanctum' => []]], tags: ['Forms'])]
     public function destroyShare(Request $request, string $id, string $share_id): JsonResponse
     {
-        $form = $this->findEditableForm($id, $request->user());
+        $form = $this->findShareManageableForm($id, $request->user());
         $share = FormUserShare::where('form_id', $form->id)->findOrFail($share_id);
         $share->delete();
 
@@ -369,9 +404,17 @@ class FormController extends Controller
         return $form;
     }
 
+    private function findShareManageableForm(string $id, User $user): Form
+    {
+        $form = Form::findOrFail($id);
+        $this->abortUnlessCanManageShares($form, $user);
+
+        return $form;
+    }
+
     private function abortUnlessCanView(Form $form, User $user): void
     {
-        if ($user->isSuperAdmin() || (int) $form->user_id === (int) $user->id || $this->shareRole($form, $user) !== null) {
+        if ($user->isSuperAdmin() || $user->isAdmin() || $user->leadsProject($form->project_id) || (int) $form->user_id === (int) $user->id || $this->shareRole($form, $user) !== null) {
             return;
         }
 
@@ -381,11 +424,25 @@ class FormController extends Controller
     private function abortUnlessCanEdit(Form $form, User $user): void
     {
         $role = $this->shareRole($form, $user);
-        if ((int) $form->user_id === (int) $user->id || $role === 'EDITOR') {
+        if ($user->isSuperAdmin() || $user->isAdmin() || $user->leadsProject($form->project_id) || ((int) $form->user_id === (int) $user->id && !$user->isUser()) || $role === 'EDITOR') {
             return;
         }
 
         abort(response()->json(['message' => 'No tienes permisos para editar este formulario'], 403));
+    }
+
+    private function abortUnlessCanManageShares(Form $form, User $user): void
+    {
+        if ($user->isSuperAdmin() || $user->isAdmin() || $user->leadsProject($form->project_id)) {
+            return;
+        }
+
+        abort(response()->json(['message' => 'No tienes permisos para gestionar accesos de este formulario'], 403));
+    }
+
+    private function canDeleteForm(Form $form, User $user): bool
+    {
+        return $user->isSuperAdmin() || $user->isAdmin() || $user->leadsProject($form->project_id) || ((int) $form->user_id === (int) $user->id && !$user->isUser());
     }
 
     private function shareRole(Form $form, User $user): ?string

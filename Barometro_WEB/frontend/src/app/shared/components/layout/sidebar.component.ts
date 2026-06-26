@@ -54,6 +54,19 @@ import { IsAdminDirective } from '../../directives/is-admin.directive';
         <a
           *isAdmin
           class="nav-item"
+          routerLink="/admin/proyectos"
+          routerLinkActive="active"
+          (click)="navigate.emit()"
+        >
+          <div class="nav-icon-wrapper">
+            <mat-icon class="nav-icon">folder_managed</mat-icon>
+          </div>
+          <span class="nav-text">Proyectos</span>
+        </a>
+
+        <a
+          *isAdmin
+          class="nav-item"
           routerLink="/admin/usuarios"
           routerLinkActive="active"
           (click)="navigate.emit()"

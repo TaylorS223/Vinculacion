@@ -48,6 +48,22 @@
     <div class="builder-grid">
       <article class="editor-panel">
         <section class="metadata-section">
+          @if (vm.projects().length > 0) {
+            <label class="field">
+              <span>Proyecto</span>
+              <select
+                [ngModel]="vm.projectId()"
+                (ngModelChange)="vm.updateProject($event)"
+                [disabled]="vm.isSaving() || vm.isEditMode() || !vm.canEditQuestions()"
+              >
+                <option [ngValue]="null">Sin proyecto asignado</option>
+                @for (project of vm.projects(); track project.id) {
+                  <option [ngValue]="project.id">{{ project.name }}</option>
+                }
+              </select>
+            </label>
+          }
+
           <label class="field">
             <span>Titulo del formulario *</span>
             <input

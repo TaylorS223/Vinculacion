@@ -39,7 +39,7 @@ class ToggleUserStatusUseCase
             }
 
             if (!$admin->canManageRole($user->rol)) {
-                throw new AccessDeniedHttpException('Solo el super admin puede activar o desactivar administradores');
+                throw new AccessDeniedHttpException('No tienes permisos para activar o desactivar usuarios con ese rol');
             }
 
             // Si se especifica el estado, usarlo; si no, invertir el actual

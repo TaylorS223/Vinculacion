@@ -19,7 +19,7 @@ export class FormDashboardViewModel {
   shareModalOpen = signal(false);
   shareFormId = signal<string | null>(null);
   shareEmail = signal('');
-  shareRole = signal<'EDITOR' | 'LECTOR'>('LECTOR');
+  shareRole = signal<'EDITOR' | 'RECOLECTOR'>('RECOLECTOR');
   shareError = signal('');
   shares = signal<FormShare[]>([]);
 
@@ -109,7 +109,7 @@ export class FormDashboardViewModel {
   openShareModal(formId: string): void {
     this.shareFormId.set(formId);
     this.shareEmail.set('');
-    this.shareRole.set('LECTOR');
+    this.shareRole.set('RECOLECTOR');
     this.shareError.set('');
     this.shareModalOpen.set(true);
     this.loadShares(formId);

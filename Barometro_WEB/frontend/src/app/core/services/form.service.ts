@@ -7,6 +7,8 @@ export interface Form {
   id: string;
   title: string;
   description?: string;
+  project_id?: string | null;
+  project?: { id: string; name: string };
   state: 'DRAFT' | 'DEPLOYED' | 'ARCHIVED';
   link_uuid?: string;
   responses_count?: number;
@@ -30,7 +32,7 @@ export interface FormShare {
   id: string;
   form_id: string;
   user_id: string;
-  role: 'EDITOR' | 'LECTOR';
+  role: 'EDITOR' | 'RECOLECTOR';
   user?: { id: string; name: string; email: string };
 }
 
@@ -49,7 +51,7 @@ export class FormService {
     return this.http.get<Form>(`${this.apiUrl}/${id}`);
   }
 
-  createForm(data: { title: string; description?: string }): Observable<Form> {
+  createForm(data: { title: string; description?: string; project_id?: string | null }): Observable<Form> {
     return this.http.post<Form>(this.apiUrl, data);
   }
 
@@ -85,7 +87,7 @@ export class FormService {
     return this.http.get<FormShare[]>(`${this.apiUrl}/${formId}/shares`);
   }
 
-  createShare(formId: string, data: { email: string; role: 'EDITOR' | 'LECTOR' }): Observable<FormShare> {
+  createShare(formId: string, data: { email: string; role: 'EDITOR' | 'RECOLECTOR' }): Observable<FormShare> {
     return this.http.post<FormShare>(`${this.apiUrl}/${formId}/shares`, data);
   }
 

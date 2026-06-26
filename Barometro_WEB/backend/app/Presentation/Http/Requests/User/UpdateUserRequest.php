@@ -28,7 +28,7 @@ class UpdateUserRequest extends FormRequest
                 Rule::unique('users', 'email')->ignore($userId)
             ],
             'password' => ['nullable', 'string', 'min:8'],
-            'rol' => ['sometimes', 'string', 'in:SUPER_ADMIN,ADMIN,USER'],
+            'rol' => ['sometimes', 'string', 'in:SUPER_ADMIN,ADMIN,PROJECT_LEADER,USER'],
             'is_active' => ['sometimes', 'boolean'],
             'telefono' => ['nullable', 'string', 'max:20'],
             'cargo' => ['nullable', 'string', 'max:100'],
@@ -43,7 +43,7 @@ class UpdateUserRequest extends FormRequest
             'email.email' => 'El email debe tener un formato válido',
             'email.unique' => 'Este email ya está en uso por otro usuario',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres',
-            'rol.in' => 'El rol debe ser SUPER_ADMIN, ADMIN o USER',
+            'rol.in' => 'El rol debe ser SUPER_ADMIN, ADMIN, PROJECT_LEADER o USER',
             'is_active.boolean' => 'El campo is_active debe ser verdadero o falso',
         ];
     }

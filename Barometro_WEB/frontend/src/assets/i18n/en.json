@@ -90,6 +90,7 @@
     "roles": {
       "superAdmin": "Super administrator",
       "admin": "Administrator",
+      "projectLeader": "Project leader",
       "user": "User"
     },
     "messages": {
@@ -123,9 +124,10 @@
       "changeRole": "Change role"
     },
     "roles": {
-      "superAdminDesc": "manages admins, users and all forms",
-      "adminDesc": "manages normal users",
-      "userDesc": "creates forms and invites collaborators"
+      "superAdminDesc": "full control over users, settings and data",
+      "adminDesc": "manages projects, leaders and forms",
+      "projectLeaderDesc": "manages forms and access inside assigned projects",
+      "userDesc": "collects data and edits only with explicit permission"
     },
     "form": {
       "createTitle": "Create user",

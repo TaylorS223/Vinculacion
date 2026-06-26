@@ -13,12 +13,14 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->foreignId('user_id');
+            $table->uuid('project_id')->nullable();
             // DRAFT, DEPLOYED, ARCHIVED
             $table->enum('state', ['DRAFT', 'DEPLOYED', 'ARCHIVED'])->default('DRAFT');
             $table->uuid('link_uuid')->nullable()->unique();
             $table->timestamps();
             
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('project_id')->references('id')->on('projects')->nullOnDelete();
         });
     }
 

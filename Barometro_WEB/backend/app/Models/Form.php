@@ -14,6 +14,7 @@ class Form extends Model
         'title',
         'description',
         'user_id',
+        'project_id',
         'state',
         'link_uuid'
     ];
@@ -21,6 +22,11 @@ class Form extends Model
     public function owner()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function questions()

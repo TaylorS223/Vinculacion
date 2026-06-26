@@ -15,7 +15,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
-import { User } from '@core/models';
+import { User, UserRole } from '@core/models';
 import { UserService } from '@core/services/user.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
@@ -128,7 +128,7 @@ export class UsuarioListComponent implements OnInit {
     });
   }
 
-  changeRole(user: User, newRole: 'SUPER_ADMIN' | 'ADMIN' | 'USER'): void {
+  changeRole(user: User, newRole: UserRole): void {
     if (user.rol === newRole) return;
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
@@ -199,7 +199,8 @@ export class UsuarioListComponent implements OnInit {
 
   getRoleBadgeClass(rol: string): string {
     if (rol === 'SUPER_ADMIN') return 'badge-super-admin';
-    return rol === 'ADMIN' ? 'badge-admin' : 'badge-user';
+    if (rol === 'ADMIN') return 'badge-admin';
+    return rol === 'PROJECT_LEADER' ? 'badge-project-leader' : 'badge-user';
   }
 
   getStatusBadgeClass(isActive: boolean): string {

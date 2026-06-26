@@ -22,8 +22,8 @@ class DeleteUserUseCase
             // Verificar que el usuario que ejecuta la acción es admin
             $admin = User::findOrFail($adminId);
 
-            if (!$admin->canManageUsers()) {
-                throw new AccessDeniedHttpException('Solo los administradores pueden eliminar usuarios');
+            if (!$admin->isSuperAdmin()) {
+                throw new AccessDeniedHttpException('Solo el super admin puede eliminar usuarios');
             }
 
             // No permitir auto-eliminación

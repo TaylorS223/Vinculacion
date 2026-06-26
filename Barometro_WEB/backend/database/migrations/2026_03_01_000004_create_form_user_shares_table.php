@@ -12,8 +12,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('form_id');
             $table->foreignId('user_id');
-            // EDITOR, LECTOR
-            $table->enum('role', ['EDITOR', 'LECTOR']);
+            // EDITOR, RECOLECTOR
+            $table->enum('role', ['EDITOR', 'RECOLECTOR']);
             $table->timestamps();
             
             $table->foreign('form_id')->references('id')->on('forms')->onDelete('cascade');

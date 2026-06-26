@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -16,10 +17,12 @@ class User extends Authenticatable
 
     public const ROLE_SUPER_ADMIN = 'SUPER_ADMIN';
     public const ROLE_ADMIN = 'ADMIN';
+    public const ROLE_PROJECT_LEADER = 'PROJECT_LEADER';
     public const ROLE_USER = 'USER';
     public const ROLES = [
         self::ROLE_SUPER_ADMIN,
         self::ROLE_ADMIN,
+        self::ROLE_PROJECT_LEADER,
         self::ROLE_USER,
     ];
 
@@ -34,7 +37,7 @@ class User extends Authenticatable
                 return;
             }
 
-            if (in_array($user->rol, [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN], true) && !$currentUser->isSuperAdmin()) {
+            if (!$currentUser->canManageRole($user->rol)) {
                 $user->rol = self::ROLE_USER;
             }
         });
@@ -51,7 +54,7 @@ class User extends Authenticatable
                 return;
             }
 
-            if (in_array($user->rol, [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN], true) && !$currentUser->isSuperAdmin()) {
+            if (!$currentUser->canManageRole($user->rol)) {
                 $user->rol = $user->getOriginal('rol');
             }
         });
@@ -84,6 +87,11 @@ class User extends Authenticatable
         return $this->hasOne(Perfil::class);
     }
 
+    public function ledProjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_user_leaders')->withTimestamps();
+    }
+
     public function isAdmin(): bool
     {
         return $this->rol === self::ROLE_ADMIN;
@@ -92,6 +100,11 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return $this->rol === self::ROLE_SUPER_ADMIN;
+    }
+
+    public function isProjectLeader(): bool
+    {
+        return $this->rol === self::ROLE_PROJECT_LEADER;
     }
 
     public function canManageUsers(): bool
@@ -105,7 +118,21 @@ class User extends Authenticatable
             return in_array($role, self::ROLES, true);
         }
 
-        return $this->isAdmin() && $role === self::ROLE_USER;
+        return $this->isAdmin() && in_array($role, [self::ROLE_PROJECT_LEADER, self::ROLE_USER], true);
+    }
+
+    public function canManageProjects(): bool
+    {
+        return in_array($this->rol, [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN], true);
+    }
+
+    public function leadsProject(?string $projectId): bool
+    {
+        if (!$projectId || !$this->isProjectLeader()) {
+            return false;
+        }
+
+        return $this->ledProjects()->whereKey($projectId)->exists();
     }
 
     public function isUser(): bool

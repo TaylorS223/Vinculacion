@@ -56,6 +56,7 @@ Rutas activas:
 
 - `/auth/login`
 - `/admin/dashboard`
+- `/admin/proyectos`
 - `/admin/forms/builder`
 - `/admin/forms/:id/edit`
 - `/admin/forms/:id/responses`
@@ -69,19 +70,21 @@ Rutas activas orientadas a formularios:
 
 - Auth: login, logout, user.
 - Forms: CRUD, preguntas, deploy, archive, responses, stats, export.
+- Projects: CRUD de proyectos y asignacion de lideres.
 - Public collect: fetch/submit por `link_uuid`.
 - Users: administracion de usuarios.
 - Seed: super admin inicial.
 
 El registro publico esta deshabilitado. Los usuarios se crean desde el panel administrativo.
 
-Roles globales:
+Roles globales y permisos:
 
-- `SUPER_ADMIN`: gestiona usuarios, administradores y todos los formularios; puede desactivar/eliminar usuarios y eliminar formularios por moderacion.
-- `ADMIN`: crea y gestiona usuarios normales.
-- `USER`: gestiona sus formularios e invita colaboradores `EDITOR` o `LECTOR`.
+- `SUPER_ADMIN`: control total de usuarios, proyectos, formularios, configuracion y datos.
+- `ADMIN`: gestiona proyectos, asigna lideres de proyecto y crea/gestiona formularios dentro de sus proyectos.
+- `PROJECT_LEADER`: gestiona formularios y permisos dentro de proyectos asignados.
+- `USER`: usuario recolector/editor movil; recolecta datos y solo edita formularios con permiso explicito.
 
-Los roles `EDITOR` y `LECTOR` pertenecen solo a la comparticion de formularios, no al rol global del usuario.
+Los permisos `EDITOR` y `RECOLECTOR` pertenecen a la comparticion de formularios, no al rol global del usuario.
 
 ## Convenciones
 

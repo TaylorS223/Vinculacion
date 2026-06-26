@@ -37,6 +37,13 @@ export const ADMIN_ROUTES: Routes = [
       import('../features/forms/responses/responses.component').then((m) => m.ResponsesComponent),
     title: 'Respuestas de formulario',
   },
+  {
+    path: 'proyectos',
+    loadComponent: () =>
+      import('../features/projects/project-list.component').then((m) => m.ProjectListComponent),
+    canActivate: [adminGuard],
+    title: 'Proyectos',
+  },
   // Usuarios (solo admin)
   {
     path: 'usuarios',

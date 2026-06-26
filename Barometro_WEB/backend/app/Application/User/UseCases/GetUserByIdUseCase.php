@@ -30,7 +30,7 @@ class GetUserByIdUseCase
         }
 
         if (!$admin->canManageRole($user->rol)) {
-            throw new AccessDeniedHttpException('Solo el super admin puede ver administradores');
+            throw new AccessDeniedHttpException('No tienes permisos para ver usuarios con ese rol');
         }
 
         return $user;

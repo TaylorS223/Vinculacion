@@ -16,16 +16,18 @@ Aplicacion full-stack para crear formularios dinamicos, publicarlos mediante enl
 - Gestion de usuarios segun rol global.
 - Creacion y edicion de formularios.
 - Preguntas dinamicas con opciones y validaciones basicas.
-- Comparticion de formularios con colaboradores `EDITOR` o `LECTOR`.
+- Proyectos con lideres asignados por Admin o Super Admin.
+- Comparticion de formularios con permisos `EDITOR` o `RECOLECTOR`.
 - Publicacion mediante enlace `/collect/:uuid`.
 - Captura publica de respuestas.
 - Dashboard de formularios y vista de respuestas/exportacion.
 
 ## Roles
 
-- `SUPER_ADMIN`: administra usuarios, administradores y todos los formularios. Puede desactivar/eliminar usuarios y eliminar formularios que incumplan normas.
-- `ADMIN`: crea y gestiona usuarios normales.
-- `USER`: crea y gestiona sus formularios, y puede invitar colaboradores como `EDITOR` o `LECTOR`.
+- `SUPER_ADMIN`: control total sobre usuarios, proyectos, formularios, configuracion y datos.
+- `ADMIN`: gestiona proyectos, asigna lideres de proyecto y puede crear/gestionar formularios.
+- `PROJECT_LEADER`: crea y gestiona formularios y permisos dentro de proyectos asignados.
+- `USER`: usuario recolector/editor; recolecta datos y solo edita formularios con permiso explicito `EDITOR`.
 
 ## Estructura
 
@@ -81,7 +83,7 @@ En Bash:
 | Swagger JSON | http://localhost:8000/api/documentation |
 | PostgreSQL | localhost:5433 |
 
-Swagger se genera desde los controladores activos de formularios, autenticacion, perfil, usuarios y seed. No expone endpoints heredados del proyecto anterior.
+Swagger se genera desde los controladores activos de formularios, proyectos, autenticacion, perfil, usuarios y seed. No expone endpoints heredados del proyecto anterior.
 
 ## Estado actual
 

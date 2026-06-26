@@ -137,6 +137,14 @@
                 </button>
                 <button
                   mat-menu-item
+                  (click)="changeRole(user, 'PROJECT_LEADER')"
+                  [disabled]="user.rol === 'PROJECT_LEADER'"
+                >
+                  <mat-icon>assignment_ind</mat-icon>
+                  <span>PROJECT_LEADER</span>
+                </button>
+                <button
+                  mat-menu-item
                   (click)="changeRole(user, 'USER')"
                   [disabled]="user.rol === 'USER'"
                 >

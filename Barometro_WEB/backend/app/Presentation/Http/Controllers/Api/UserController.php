@@ -23,7 +23,7 @@ use App\Presentation\Http\Resources\Auth\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-#[OA\Tag(name: 'Users', description: 'Gestion de usuarios. ADMIN gestiona usuarios normales; SUPER_ADMIN gestiona usuarios y administradores.')]
+#[OA\Tag(name: 'Users', description: 'Gestion de usuarios. ADMIN gestiona lideres de proyecto y usuarios; SUPER_ADMIN controla todos los roles.')]
 class UserController extends Controller
 {
     public function __construct(
@@ -78,7 +78,7 @@ class UserController extends Controller
             content: new OA\JsonContent(
                 required: ['rol'],
                 properties: [
-                    new OA\Property(property: 'rol', type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'USER'], example: 'USER')
+                    new OA\Property(property: 'rol', type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'PROJECT_LEADER', 'USER'], example: 'USER')
                 ]
             )
         ),
@@ -139,7 +139,7 @@ class UserController extends Controller
                     new OA\Property(property: 'name', type: 'string', example: 'Juan Pérez'),
                     new OA\Property(property: 'email', type: 'string', format: 'email', example: 'juan@example.com'),
                     new OA\Property(property: 'password', type: 'string', example: 'password123'),
-                    new OA\Property(property: 'rol', type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'USER'], example: 'USER'),
+                    new OA\Property(property: 'rol', type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'PROJECT_LEADER', 'USER'], example: 'USER'),
                     new OA\Property(property: 'is_active', type: 'boolean', example: true),
                     new OA\Property(property: 'telefono', type: 'string', example: '+593999999999'),
                     new OA\Property(property: 'cargo', type: 'string', example: 'Analista'),
@@ -182,7 +182,7 @@ class UserController extends Controller
                     new OA\Property(property: 'name', type: 'string', example: 'Juan Pérez'),
                     new OA\Property(property: 'email', type: 'string', format: 'email', example: 'juan@example.com'),
                     new OA\Property(property: 'password', type: 'string', example: 'newpassword123'),
-                    new OA\Property(property: 'rol', type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'USER'], example: 'USER'),
+                    new OA\Property(property: 'rol', type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'PROJECT_LEADER', 'USER'], example: 'USER'),
                     new OA\Property(property: 'is_active', type: 'boolean', example: true),
                     new OA\Property(property: 'telefono', type: 'string', example: '+593999999999'),
                     new OA\Property(property: 'cargo', type: 'string', example: 'Analista'),
