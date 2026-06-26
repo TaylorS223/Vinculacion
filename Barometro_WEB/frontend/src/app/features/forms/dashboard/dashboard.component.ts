@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { FormDashboardViewModel } from '@presentation/viewmodels/form-dashboard.viewmodel';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-forms-dashboard',
@@ -21,6 +22,7 @@ import { FormDashboardViewModel } from '@presentation/viewmodels/form-dashboard.
     MatMenuModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    TranslateModule,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
@@ -30,9 +32,9 @@ export class DashboardComponent implements OnInit {
   readonly vm = inject(FormDashboardViewModel);
 
   readonly tabs = [
-    { key: 'DRAFT' as const, label: 'Borrador', icon: 'edit_note' },
-    { key: 'DEPLOYED' as const, label: 'Implementado', icon: 'cloud_done' },
-    { key: 'ARCHIVED' as const, label: 'Archivado', icon: 'inventory_2' },
+    { key: 'DRAFT' as const, labelKey: 'forms.dashboard.tabs.DRAFT', icon: 'edit_note' },
+    { key: 'DEPLOYED' as const, labelKey: 'forms.dashboard.tabs.DEPLOYED', icon: 'cloud_done' },
+    { key: 'ARCHIVED' as const, labelKey: 'forms.dashboard.tabs.ARCHIVED', icon: 'inventory_2' },
   ];
 
   ngOnInit(): void {

@@ -1,5 +1,6 @@
 ﻿import { Injectable, computed, inject, signal } from '@angular/core';
 import { FormQuestion, FormService } from '@core/services/form.service';
+import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -20,6 +21,7 @@ export interface QuestionChart {
 @Injectable()
 export class FormResponsesViewModel {
   private formService = inject(FormService);
+  private translate = inject(TranslateService);
 
   formId = signal<string | null>(null);
   formTitle = signal('');
@@ -55,7 +57,7 @@ export class FormResponsesViewModel {
       key: q.id,
       label: q.label,
     }));
-    return [{ key: '_submitted', label: 'Fecha envio' }, ...cols];
+    return [{ key: '_submitted', label: this.translate.instant('forms.responses.submitted') }, ...cols];
   });
 
   async load(formId: string): Promise<void> {
@@ -82,7 +84,7 @@ export class FormResponsesViewModel {
 
       this.responses.set(rows);
     } catch (error: any) {
-      this.errorMessage.set(error?.error?.message || 'Error al cargar respuestas');
+      this.errorMessage.set(error?.error?.message || this.translate.instant('forms.responses.errors.load'));
     } finally {
       this.isLoading.set(false);
     }
@@ -99,11 +101,11 @@ export class FormResponsesViewModel {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${this.formTitle() || 'formulario'}_respuestas.${ext}`;
+      link.download = `${this.formTitle() || this.translate.instant('forms.responses.filePrefix')}_${this.translate.instant('forms.responses.fileSuffix')}.${ext}`;
       link.click();
       window.URL.revokeObjectURL(url);
     } catch (error: any) {
-      this.errorMessage.set(error?.error?.message || 'Error al exportar datos');
+      this.errorMessage.set(error?.error?.message || this.translate.instant('forms.responses.errors.export'));
     } finally {
       this.isExporting.set(false);
     }

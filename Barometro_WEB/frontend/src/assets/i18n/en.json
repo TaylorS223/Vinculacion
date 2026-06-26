@@ -9,14 +9,31 @@
       "back": "Back",
       "confirm": "Confirm",
       "close": "Close",
-      "export": "Export"
+      "export": "Export",
+      "copy": "Copy",
+      "share": "Share",
+      "invite": "Invite",
+      "archive": "Archive",
+      "deploy": "Deploy",
+      "redeploy": "Deploy again",
+      "results": "Results",
+      "createForm": "Create form",
+      "newForm": "New form"
     },
     "labels": {
-      "actions": "Actions"
+      "actions": "Actions",
+      "search": "Search",
+      "project": "Project",
+      "form": "Form",
+      "members": "Members",
+      "forms": "Forms"
     },
     "messages": {
       "loading": "Loading...",
-      "noData": "No data available"
+      "noData": "No data available",
+      "saving": "Saving...",
+      "loadingForm": "Loading form...",
+      "loadingResponses": "Loading responses..."
     },
     "validation": {
       "required": "This field is required",
@@ -25,6 +42,20 @@
   },
   "language": {
     "select": "Select language"
+  },
+  "routes": {
+    "login": "Sign in - ULEAM Forms",
+    "dashboard": "My forms - ULEAM Forms",
+    "accountSettings": "Account settings - ULEAM Forms",
+    "newForm": "New form - ULEAM Forms",
+    "editForm": "Edit form - ULEAM Forms",
+    "formResponses": "Form responses - ULEAM Forms",
+    "projects": "Projects - ULEAM Forms",
+    "users": "Users - ULEAM Forms",
+    "newUser": "New user - ULEAM Forms",
+    "editUser": "Edit user - ULEAM Forms",
+    "collect": "Complete form - ULEAM Forms",
+    "profile": "My profile - ULEAM Forms"
   },
   "auth": {
     "login": {
@@ -35,6 +66,7 @@
       "password": "Password",
       "submit": "Sign in",
       "submitting": "Signing in...",
+      "inviteOnly": "Access is invitation-only. Request your credentials from an administrator.",
       "errors": {
         "invalidCredentials": "Invalid credentials",
         "loginFailed": "Login failed"
@@ -52,6 +84,13 @@
       "profile": "My profile",
       "settings": "Settings",
       "administrator": "Administrator"
+    },
+    "sidebar": {
+      "sectionForms": "Forms",
+      "myForms": "My forms",
+      "newForm": "New form",
+      "projects": "Projects",
+      "users": "Users"
     }
   },
   "profile": {
@@ -184,6 +223,178 @@
       "updated": "User updated",
       "updateError": "Failed to update user",
       "noUsers": "No registered users"
+    }
+  },
+  "forms": {
+    "dashboard": {
+      "title": "My forms",
+      "subtitle": "Manage your forms by status and project",
+      "searchPlaceholder": "Search by title or description...",
+      "emptyTitle": "No forms in this category",
+      "emptySubtitle": "Switch tabs to view other statuses.",
+      "loading": "Loading forms...",
+      "responsesCount": "{{count}} responses",
+      "updatedAt": "Updated: {{date}}",
+      "publicLinkTitle": "Collection link",
+      "publicLinkSubtitle": "Use this link in the mobile app or browser to collect responses.",
+      "shareTitle": "Share form",
+      "shareSubtitle": "Assign permissions to a registered collector user",
+      "shareEmailPlaceholder": "User email",
+      "sharedUsers": "Users with access",
+      "removeAccess": "Remove access",
+      "userFallback": "User",
+      "tabs": {
+        "DRAFT": "Draft",
+        "DEPLOYED": "Deployed",
+        "ARCHIVED": "Archived"
+      },
+      "actions": {
+        "edit": "Edit",
+        "viewLink": "View link"
+      },
+      "roles": {
+        "EDITOR": "Editor",
+        "RECOLECTOR": "Collector"
+      },
+      "errors": {
+        "load": "Failed to load forms",
+        "deploy": "Failed to deploy form",
+        "archive": "Failed to archive form",
+        "delete": "Failed to delete form",
+        "shareEmail": "Enter a valid email",
+        "share": "Failed to share form",
+        "removeShare": "Failed to remove access"
+      }
+    },
+    "builder": {
+      "eyebrow": "Form builder",
+      "newTitle": "New form",
+      "editTitle": "Edit form",
+      "subtitle": "Design the questionnaire, add questions, and save the draft before deploying it.",
+      "back": "My forms",
+      "saveDraft": "Save draft",
+      "deployedWarning": "This form is already deployed. The backend does not allow question changes.",
+      "noProjects": "There are no projects available to create forms.",
+      "selectProject": "Select a project",
+      "titleLabel": "Form title *",
+      "titlePlaceholder": "E.g. Community satisfaction survey",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Add context for respondents",
+      "addQuestions": "Add questions",
+      "questionCount": "{{count}} question(s) in the draft",
+      "emptyQuestions": "Add a question to start building the form.",
+      "order": "Order {{order}}",
+      "moveUp": "Move question up",
+      "moveDown": "Move question down",
+      "deleteQuestion": "Delete question",
+      "questionLabel": "Question *",
+      "questionPlaceholder": "Write the question",
+      "optionsLabel": "Options *",
+      "addOption": "Add option",
+      "optionPlaceholder": "Answer option",
+      "deleteOption": "Delete option",
+      "required": "Required question",
+      "previewTitle": "Preview",
+      "previewSubtitle": "This is how respondents will see it.",
+      "previewFormTitle": "Form title",
+      "previewDescription": "Optional form description",
+      "previewEmpty": "Questions will appear here.",
+      "untitledQuestion": "Untitled question",
+      "shortAnswer": "Short answer",
+      "emptyOption": "Empty option",
+      "types": {
+        "SINGLE_CHOICE": "Single choice",
+        "MULTIPLE_CHOICE": "Multiple choice",
+        "LIKERT": "Likert scale",
+        "TEXT": "Text",
+        "NUMBER": "Number"
+      },
+      "hints": {
+        "SINGLE_CHOICE": "One answer",
+        "MULTIPLE_CHOICE": "Several answers",
+        "LIKERT": "Agreement level",
+        "TEXT": "Open answer",
+        "NUMBER": "Numeric value"
+      },
+      "messages": {
+        "invalid": "Select a project and complete the title, questions, and options before saving",
+        "saved": "Draft saved successfully"
+      },
+      "errors": {
+        "load": "Failed to load form",
+        "save": "Failed to save form"
+      }
+    },
+    "responses": {
+      "back": "Back to forms",
+      "title": "Responses",
+      "subtitle": "{{count}} response(s) received",
+      "exportCsv": "Export CSV",
+      "exportExcel": "Export Excel",
+      "loading": "Loading responses...",
+      "chartsTitle": "Graphic summary",
+      "tableTitle": "Collected data",
+      "empty": "There are no responses for this form yet.",
+      "emptyHint": "Share the collection link to start receiving data.",
+      "submitted": "Submission date",
+      "filePrefix": "form",
+      "fileSuffix": "responses",
+      "errors": {
+        "load": "Failed to load responses",
+        "export": "Failed to export data"
+      }
+    },
+    "collect": {
+      "loading": "Loading form...",
+      "submittedTitle": "Response sent",
+      "submittedText": "Thank you for completing the form.",
+      "sendAnother": "Send another response",
+      "textPlaceholder": "Write your answer...",
+      "submitting": "Sending...",
+      "submit": "Submit responses",
+      "errors": {
+        "invalidLink": "Invalid link",
+        "load": "Could not load the form. Check the link.",
+        "submit": "Failed to submit the response. Try again."
+      }
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "View projects, forms, and assigned members.",
+    "name": "Name",
+    "description": "Description",
+    "leader": "Project leader",
+    "create": "Create",
+    "save": "Save",
+    "noVisible": "No visible projects",
+    "noDescription": "No description",
+    "formsCount": "{{count}} form(s)",
+    "selectPrompt": "Select a project to view its forms and members.",
+    "newForm": "New form",
+    "visibleFormsEmpty": "There are no visible forms for this project.",
+    "membersCount": "{{count}} members",
+    "noMembers": "No members assigned yet.",
+    "editProject": "Edit project",
+    "projectScope": "Project",
+    "formScope": "Form",
+    "roles": {
+      "PROJECT_LEADER": "Project leader",
+      "EDITOR": "Editor",
+      "RECOLECTOR": "Collector"
+    },
+    "scopes": {
+      "project": "Project",
+      "form": "Form"
+    },
+    "messages": {
+      "created": "Project created",
+      "updated": "Project updated"
+    },
+    "errors": {
+      "load": "Failed to load projects",
+      "loadProject": "Failed to load project",
+      "save": "Failed to save project"
     }
   }
 }

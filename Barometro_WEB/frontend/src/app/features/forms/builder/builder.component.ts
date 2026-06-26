@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormQuestion } from '@core/services/form.service';
 import { FormBuilderViewModel } from '@presentation/viewmodels/form-builder.viewmodel';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-builder',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, TranslateModule],
   templateUrl: './builder.component.html',
   styleUrl: './builder.component.scss',
   providers: [FormBuilderViewModel],
@@ -19,38 +20,38 @@ export class BuilderComponent implements OnInit {
 
   readonly questionTypes: Array<{
     value: FormQuestion['type'];
-    label: string;
-    hint: string;
+    labelKey: string;
+    hintKey: string;
     icon: string;
   }> = [
     {
       value: 'SINGLE_CHOICE',
-      label: 'Seleccion unica',
-      hint: 'Una sola respuesta',
+      labelKey: 'forms.builder.types.SINGLE_CHOICE',
+      hintKey: 'forms.builder.hints.SINGLE_CHOICE',
       icon: 'radio_button_checked',
     },
     {
       value: 'MULTIPLE_CHOICE',
-      label: 'Seleccion multiple',
-      hint: 'Varias respuestas',
+      labelKey: 'forms.builder.types.MULTIPLE_CHOICE',
+      hintKey: 'forms.builder.hints.MULTIPLE_CHOICE',
       icon: 'checklist',
     },
     {
       value: 'LIKERT',
-      label: 'Escala Likert',
-      hint: 'Nivel de acuerdo',
+      labelKey: 'forms.builder.types.LIKERT',
+      hintKey: 'forms.builder.hints.LIKERT',
       icon: 'linear_scale',
     },
     {
       value: 'TEXT',
-      label: 'Texto',
-      hint: 'Respuesta abierta',
+      labelKey: 'forms.builder.types.TEXT',
+      hintKey: 'forms.builder.hints.TEXT',
       icon: 'short_text',
     },
     {
       value: 'NUMBER',
-      label: 'Numero',
-      hint: 'Valor numerico',
+      labelKey: 'forms.builder.types.NUMBER',
+      hintKey: 'forms.builder.hints.NUMBER',
       icon: 'tag',
     },
   ];

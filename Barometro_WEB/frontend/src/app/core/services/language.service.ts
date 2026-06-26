@@ -20,8 +20,8 @@ export class LanguageService {
   private readonly STORAGE_KEY = 'app_language';
   
   readonly availableLanguages: LanguageOption[] = [
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
-    { code: 'en', name: 'English', flag: '🇺🇸' }
+    { code: 'es', name: 'Espanol', flag: 'ES' },
+    { code: 'en', name: 'English', flag: 'EN' }
   ];
   
   currentLang = signal<Language>('es');

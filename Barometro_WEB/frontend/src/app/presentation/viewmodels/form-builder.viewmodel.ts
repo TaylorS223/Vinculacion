@@ -1,6 +1,7 @@
 ﻿import { Injectable, computed, inject, signal } from '@angular/core';
 import { Form, FormQuestion, FormService } from '@core/services/form.service';
 import { Project, ProjectService } from '@core/services/project.service';
+import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 export interface FormQuestionDraft {
@@ -26,6 +27,7 @@ const DEFAULT_LIKERT_OPTIONS = [
 export class FormBuilderViewModel {
   private formService = inject(FormService);
   private projectService = inject(ProjectService);
+  private translate = inject(TranslateService);
 
   formId = signal<string | null>(null);
   projectId = signal<string | null>(null);
@@ -77,7 +79,7 @@ export class FormBuilderViewModel {
           .map((question, index) => this.toDraft(question, index)),
       );
     } catch (error: any) {
-      this.errorMessage.set(error?.error?.message || 'Error al cargar el formulario');
+      this.errorMessage.set(error?.error?.message || this.translate.instant('forms.builder.errors.load'));
     } finally {
       this.isLoading.set(false);
     }
@@ -193,7 +195,7 @@ export class FormBuilderViewModel {
 
   async saveForm(): Promise<void> {
     if (!this.isFormValid()) {
-      this.errorMessage.set('Selecciona un proyecto y completa el titulo, las preguntas y sus opciones antes de guardar');
+      this.errorMessage.set(this.translate.instant('forms.builder.messages.invalid'));
       this.successMessage.set('');
       return;
     }
@@ -238,9 +240,9 @@ export class FormBuilderViewModel {
       }
 
       this.deletedQuestionIds.set([]);
-      this.successMessage.set('Borrador guardado correctamente');
+      this.successMessage.set(this.translate.instant('forms.builder.messages.saved'));
     } catch (error: any) {
-      this.errorMessage.set(error?.error?.message || 'Error al guardar el formulario');
+      this.errorMessage.set(error?.error?.message || this.translate.instant('forms.builder.errors.save'));
     } finally {
       this.isSaving.set(false);
     }
@@ -259,11 +261,11 @@ export class FormBuilderViewModel {
 
   getTypeLabel(type: FormQuestion['type']): string {
     const labels: Record<FormQuestion['type'], string> = {
-      SINGLE_CHOICE: 'Seleccion unica',
-      MULTIPLE_CHOICE: 'Seleccion multiple',
-      LIKERT: 'Escala Likert',
-      TEXT: 'Texto',
-      NUMBER: 'Numero',
+      SINGLE_CHOICE: 'forms.builder.types.SINGLE_CHOICE',
+      MULTIPLE_CHOICE: 'forms.builder.types.MULTIPLE_CHOICE',
+      LIKERT: 'forms.builder.types.LIKERT',
+      TEXT: 'forms.builder.types.TEXT',
+      NUMBER: 'forms.builder.types.NUMBER',
     };
 
     return labels[type];

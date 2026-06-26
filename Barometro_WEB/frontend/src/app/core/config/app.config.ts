@@ -1,20 +1,20 @@
 import { AppConfig } from './app-config.interface';
 
 /**
- * Configuración estática de la aplicación
- * Centraliza la información que se repite en todo el sitio
+ * Configuracion estatica de la aplicacion.
+ * Centraliza la informacion que se repite en todo el sitio.
  */
 export const APP_CONFIG: AppConfig = {
   app: {
-    name: 'Observatorio Territorial Multidisciplinario',
-    shortName: 'OTM',
-    description: 'Sistema de Información y Observatorio Territorial',
+    name: 'Formularios ULEAM',
+    shortName: 'ULEAM Forms',
+    description: 'Plataforma de formularios dinamicos y recoleccion de datos',
   },
   university: {
-    name: 'Universidad Laica Eloy Alfaro de Manabí',
+    name: 'Universidad Laica Eloy Alfaro de Manabi',
     shortName: 'ULEAM',
     url: 'https://www.uleam.edu.ec',
-    address: 'Av. Circunvalación - Vía a San Mateo',
-    location: 'Manta - Manabí - Ecuador',
+    address: 'Av. Circunvalacion - Via a San Mateo',
+    location: 'Manta - Manabi - Ecuador',
   },
 } as const;

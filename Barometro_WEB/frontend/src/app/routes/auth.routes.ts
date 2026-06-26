@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+﻿import { Routes } from '@angular/router';
 import { guestGuard } from '../core/guards/auth.guard';
 
 export const AUTH_ROUTES: Routes = [
@@ -7,7 +7,7 @@ export const AUTH_ROUTES: Routes = [
     loadComponent: () =>
       import('../features/auth/login/login.component').then((m) => m.LoginComponent),
     canActivate: [guestGuard],
-    title: 'Iniciar Sesión - Observatorio',
+    title: 'routes.login',
   },
   {
     path: '',

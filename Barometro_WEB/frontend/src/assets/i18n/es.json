@@ -9,14 +9,31 @@
       "back": "Volver",
       "confirm": "Confirmar",
       "close": "Cerrar",
-      "export": "Exportar"
+      "export": "Exportar",
+      "copy": "Copiar",
+      "share": "Compartir",
+      "invite": "Invitar",
+      "archive": "Archivar",
+      "deploy": "Implementar",
+      "redeploy": "Volver a implementar",
+      "results": "Resultados",
+      "createForm": "Crear formulario",
+      "newForm": "Nuevo formulario"
     },
     "labels": {
-      "actions": "Acciones"
+      "actions": "Acciones",
+      "search": "Buscar",
+      "project": "Proyecto",
+      "form": "Formulario",
+      "members": "Miembros",
+      "forms": "Formularios"
     },
     "messages": {
       "loading": "Cargando...",
-      "noData": "No hay datos disponibles"
+      "noData": "No hay datos disponibles",
+      "saving": "Guardando...",
+      "loadingForm": "Cargando formulario...",
+      "loadingResponses": "Cargando respuestas..."
     },
     "validation": {
       "required": "Este campo es requerido",
@@ -25,6 +42,20 @@
   },
   "language": {
     "select": "Seleccionar idioma"
+  },
+  "routes": {
+    "login": "Iniciar sesion - Formularios ULEAM",
+    "dashboard": "Mis formularios - Formularios ULEAM",
+    "accountSettings": "Configuracion de cuenta - Formularios ULEAM",
+    "newForm": "Nuevo formulario - Formularios ULEAM",
+    "editForm": "Editar formulario - Formularios ULEAM",
+    "formResponses": "Respuestas de formulario - Formularios ULEAM",
+    "projects": "Proyectos - Formularios ULEAM",
+    "users": "Usuarios - Formularios ULEAM",
+    "newUser": "Nuevo usuario - Formularios ULEAM",
+    "editUser": "Editar usuario - Formularios ULEAM",
+    "collect": "Completar formulario - Formularios ULEAM",
+    "profile": "Mi perfil - Formularios ULEAM"
   },
   "auth": {
     "login": {
@@ -35,6 +66,7 @@
       "password": "Contrasena",
       "submit": "Iniciar sesion",
       "submitting": "Ingresando...",
+      "inviteOnly": "El acceso es solo por invitacion. Solicita tus credenciales a un administrador.",
       "errors": {
         "invalidCredentials": "Credenciales invalidas",
         "loginFailed": "Error al iniciar sesion"
@@ -52,6 +84,13 @@
       "profile": "Mi perfil",
       "settings": "Configuracion",
       "administrator": "Administrador"
+    },
+    "sidebar": {
+      "sectionForms": "Formularios",
+      "myForms": "Mis formularios",
+      "newForm": "Nuevo formulario",
+      "projects": "Proyectos",
+      "users": "Usuarios"
     }
   },
   "profile": {
@@ -70,7 +109,7 @@
       "createdAt": "Miembro desde"
     },
     "placeholders": {
-      "bio": "Cuéntanos brevemente sobre ti..."
+      "bio": "Cu\u00e9ntanos brevemente sobre ti..."
     },
     "hints": {
       "emailReadOnly": "El correo no se puede modificar"
@@ -184,6 +223,178 @@
       "updated": "Usuario actualizado",
       "updateError": "Error al actualizar usuario",
       "noUsers": "No hay usuarios registrados"
+    }
+  },
+  "forms": {
+    "dashboard": {
+      "title": "Mis formularios",
+      "subtitle": "Gestiona tus formularios por estado y proyecto",
+      "searchPlaceholder": "Buscar por titulo o descripcion...",
+      "emptyTitle": "No hay formularios en esta categoria",
+      "emptySubtitle": "Cambia de pestana para ver otros estados.",
+      "loading": "Cargando formularios...",
+      "responsesCount": "{{count}} respuestas",
+      "updatedAt": "Actualizado: {{date}}",
+      "publicLinkTitle": "Enlace de recoleccion",
+      "publicLinkSubtitle": "Usa este enlace en la app movil o navegador para recolectar respuestas.",
+      "shareTitle": "Compartir formulario",
+      "shareSubtitle": "Asigna permisos a un usuario recolector registrado",
+      "shareEmailPlaceholder": "Correo del usuario",
+      "sharedUsers": "Usuarios con acceso",
+      "removeAccess": "Quitar acceso",
+      "userFallback": "Usuario",
+      "tabs": {
+        "DRAFT": "Borrador",
+        "DEPLOYED": "Implementado",
+        "ARCHIVED": "Archivado"
+      },
+      "actions": {
+        "edit": "Editar",
+        "viewLink": "Ver enlace"
+      },
+      "roles": {
+        "EDITOR": "Editor",
+        "RECOLECTOR": "Recolector"
+      },
+      "errors": {
+        "load": "Error al cargar formularios",
+        "deploy": "Error al implementar formulario",
+        "archive": "Error al archivar formulario",
+        "delete": "Error al eliminar formulario",
+        "shareEmail": "Ingresa un correo valido",
+        "share": "Error al compartir formulario",
+        "removeShare": "Error al eliminar acceso"
+      }
+    },
+    "builder": {
+      "eyebrow": "Constructor de formularios",
+      "newTitle": "Nuevo formulario",
+      "editTitle": "Editar formulario",
+      "subtitle": "Disena el cuestionario, agrega preguntas y guarda el borrador antes de implementarlo.",
+      "back": "Mis formularios",
+      "saveDraft": "Guardar borrador",
+      "deployedWarning": "Este formulario ya esta implementado. El backend no permite modificar sus preguntas.",
+      "noProjects": "No hay proyectos disponibles para crear formularios.",
+      "selectProject": "Selecciona un proyecto",
+      "titleLabel": "Titulo del formulario *",
+      "titlePlaceholder": "Ej. Encuesta de satisfaccion comunitaria",
+      "descriptionLabel": "Descripcion",
+      "descriptionPlaceholder": "Agrega contexto para quienes responderan el formulario",
+      "addQuestions": "Agregar preguntas",
+      "questionCount": "{{count}} pregunta(s) en el borrador",
+      "emptyQuestions": "Agrega una pregunta para empezar a construir el formulario.",
+      "order": "Orden {{order}}",
+      "moveUp": "Subir pregunta",
+      "moveDown": "Bajar pregunta",
+      "deleteQuestion": "Eliminar pregunta",
+      "questionLabel": "Pregunta *",
+      "questionPlaceholder": "Escribe la pregunta",
+      "optionsLabel": "Opciones *",
+      "addOption": "Agregar opcion",
+      "optionPlaceholder": "Opcion de respuesta",
+      "deleteOption": "Eliminar opcion",
+      "required": "Pregunta obligatoria",
+      "previewTitle": "Vista previa",
+      "previewSubtitle": "Asi se vera para quien responde.",
+      "previewFormTitle": "Titulo del formulario",
+      "previewDescription": "Descripcion opcional del formulario",
+      "previewEmpty": "Las preguntas apareceran aqui.",
+      "untitledQuestion": "Pregunta sin titulo",
+      "shortAnswer": "Respuesta corta",
+      "emptyOption": "Opcion sin texto",
+      "types": {
+        "SINGLE_CHOICE": "Seleccion unica",
+        "MULTIPLE_CHOICE": "Seleccion multiple",
+        "LIKERT": "Escala Likert",
+        "TEXT": "Texto",
+        "NUMBER": "Numero"
+      },
+      "hints": {
+        "SINGLE_CHOICE": "Una sola respuesta",
+        "MULTIPLE_CHOICE": "Varias respuestas",
+        "LIKERT": "Nivel de acuerdo",
+        "TEXT": "Respuesta abierta",
+        "NUMBER": "Valor numerico"
+      },
+      "messages": {
+        "invalid": "Selecciona un proyecto y completa el titulo, las preguntas y sus opciones antes de guardar",
+        "saved": "Borrador guardado correctamente"
+      },
+      "errors": {
+        "load": "Error al cargar el formulario",
+        "save": "Error al guardar el formulario"
+      }
+    },
+    "responses": {
+      "back": "Volver a formularios",
+      "title": "Respuestas",
+      "subtitle": "{{count}} respuesta(s) recibidas",
+      "exportCsv": "Exportar CSV",
+      "exportExcel": "Exportar Excel",
+      "loading": "Cargando respuestas...",
+      "chartsTitle": "Resumen grafico",
+      "tableTitle": "Datos recolectados",
+      "empty": "Aun no hay respuestas para este formulario.",
+      "emptyHint": "Comparte el enlace de recoleccion para empezar a recibir datos.",
+      "submitted": "Fecha envio",
+      "filePrefix": "formulario",
+      "fileSuffix": "respuestas",
+      "errors": {
+        "load": "Error al cargar respuestas",
+        "export": "Error al exportar datos"
+      }
+    },
+    "collect": {
+      "loading": "Cargando formulario...",
+      "submittedTitle": "Respuesta enviada",
+      "submittedText": "Gracias por completar el formulario.",
+      "sendAnother": "Enviar otra respuesta",
+      "textPlaceholder": "Escribe tu respuesta...",
+      "submitting": "Enviando...",
+      "submit": "Enviar respuestas",
+      "errors": {
+        "invalidLink": "Enlace invalido",
+        "load": "No se pudo cargar el formulario. Verifica el enlace.",
+        "submit": "Error al enviar la respuesta. Intenta de nuevo."
+      }
+    }
+  },
+  "projects": {
+    "title": "Proyectos",
+    "subtitle": "Consulta proyectos, formularios y miembros asignados.",
+    "name": "Nombre",
+    "description": "Descripcion",
+    "leader": "Lider de proyecto",
+    "create": "Crear",
+    "save": "Guardar",
+    "noVisible": "No hay proyectos visibles",
+    "noDescription": "Sin descripcion",
+    "formsCount": "{{count}} formulario(s)",
+    "selectPrompt": "Selecciona un proyecto para ver sus formularios y miembros.",
+    "newForm": "Nuevo formulario",
+    "visibleFormsEmpty": "No hay formularios visibles para este proyecto.",
+    "membersCount": "{{count}} miembros",
+    "noMembers": "Aun no hay miembros asignados.",
+    "editProject": "Editar proyecto",
+    "projectScope": "Proyecto",
+    "formScope": "Formulario",
+    "roles": {
+      "PROJECT_LEADER": "Lider de proyecto",
+      "EDITOR": "Editor",
+      "RECOLECTOR": "Recolector"
+    },
+    "scopes": {
+      "project": "Proyecto",
+      "form": "Formulario"
+    },
+    "messages": {
+      "created": "Proyecto creado",
+      "updated": "Proyecto actualizado"
+    },
+    "errors": {
+      "load": "Error al cargar proyectos",
+      "loadProject": "Error al cargar el proyecto",
+      "save": "Error al guardar proyecto"
     }
   }
 }

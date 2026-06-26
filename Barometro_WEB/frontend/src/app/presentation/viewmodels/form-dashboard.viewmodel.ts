@@ -1,6 +1,7 @@
 ﻿import { Injectable, computed, inject, signal } from '@angular/core';
 import { AuthService } from '@core/services/auth.service';
 import { Form, FormService, FormShare } from '@core/services/form.service';
+import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 export type FormTab = 'DRAFT' | 'DEPLOYED' | 'ARCHIVED';
@@ -9,6 +10,7 @@ export type FormTab = 'DRAFT' | 'DEPLOYED' | 'ARCHIVED';
 export class FormDashboardViewModel {
   private formService = inject(FormService);
   private authService = inject(AuthService);
+  private translate = inject(TranslateService);
 
   activeTab = signal<FormTab>('DRAFT');
   searchQuery = signal('');
@@ -62,7 +64,7 @@ export class FormDashboardViewModel {
       this.myForms.set(data.my_forms);
       this.sharedForms.set(data.shared_forms);
     } catch (error: any) {
-      this.errorMessage.set(error?.error?.message || 'Error al cargar formularios');
+      this.errorMessage.set(error?.error?.message || this.translate.instant('forms.dashboard.errors.load'));
     } finally {
       this.isLoading.set(false);
     }
@@ -94,7 +96,7 @@ export class FormDashboardViewModel {
       await firstValueFrom(this.formService.deployForm(id));
       await this.loadForms();
     } catch (error: any) {
-      this.errorMessage.set(error?.error?.message || 'Error al implementar formulario');
+      this.errorMessage.set(error?.error?.message || this.translate.instant('forms.dashboard.errors.deploy'));
     } finally {
       this.actionLoading.set(null);
     }
@@ -106,7 +108,7 @@ export class FormDashboardViewModel {
       await firstValueFrom(this.formService.archiveForm(id));
       await this.loadForms();
     } catch (error: any) {
-      this.errorMessage.set(error?.error?.message || 'Error al archivar formulario');
+      this.errorMessage.set(error?.error?.message || this.translate.instant('forms.dashboard.errors.archive'));
     } finally {
       this.actionLoading.set(null);
     }
@@ -118,7 +120,7 @@ export class FormDashboardViewModel {
       await firstValueFrom(this.formService.deleteForm(id));
       await this.loadForms();
     } catch (error: any) {
-      this.errorMessage.set(error?.error?.message || 'Error al eliminar formulario');
+      this.errorMessage.set(error?.error?.message || this.translate.instant('forms.dashboard.errors.delete'));
     } finally {
       this.actionLoading.set(null);
     }
@@ -151,7 +153,7 @@ export class FormDashboardViewModel {
   async submitShare(): Promise<void> {
     const formId = this.shareFormId();
     if (!formId || !this.shareEmail().trim()) {
-      this.shareError.set('Ingresa un correo valido');
+      this.shareError.set(this.translate.instant('forms.dashboard.errors.shareEmail'));
       return;
     }
 
@@ -166,7 +168,7 @@ export class FormDashboardViewModel {
       this.shareEmail.set('');
       await this.loadShares(formId);
     } catch (error: any) {
-      this.shareError.set(error?.error?.message || 'Error al compartir formulario');
+      this.shareError.set(error?.error?.message || this.translate.instant('forms.dashboard.errors.share'));
     }
   }
 
@@ -178,7 +180,7 @@ export class FormDashboardViewModel {
       await firstValueFrom(this.formService.deleteShare(formId, shareId));
       await this.loadShares(formId);
     } catch (error: any) {
-      this.shareError.set(error?.error?.message || 'Error al eliminar acceso');
+      this.shareError.set(error?.error?.message || this.translate.instant('forms.dashboard.errors.removeShare'));
     }
   }
 
@@ -196,9 +198,9 @@ export class FormDashboardViewModel {
 
   getStateLabel(state: Form['state']): string {
     const labels: Record<Form['state'], string> = {
-      DRAFT: 'Borrador',
-      DEPLOYED: 'Implementado',
-      ARCHIVED: 'Archivado',
+      DRAFT: this.translate.instant('forms.dashboard.tabs.DRAFT'),
+      DEPLOYED: this.translate.instant('forms.dashboard.tabs.DEPLOYED'),
+      ARCHIVED: this.translate.instant('forms.dashboard.tabs.ARCHIVED'),
     };
     return labels[state];
   }

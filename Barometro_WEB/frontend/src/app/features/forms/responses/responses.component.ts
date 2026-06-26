@@ -8,6 +8,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BarChartComponent } from '@presentation/components/charts/bar-chart.component';
 import { PieChartComponent } from '@presentation/components/charts/pie-chart.component';
 import { FormResponsesViewModel } from '@presentation/viewmodels/form-responses.viewmodel';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-form-responses',
@@ -21,6 +22,7 @@ import { FormResponsesViewModel } from '@presentation/viewmodels/form-responses.
     MatTableModule,
     BarChartComponent,
     PieChartComponent,
+    TranslateModule,
   ],
   templateUrl: './responses.component.html',
   styleUrl: './responses.component.scss',

@@ -14,7 +14,7 @@ export const routes: Routes = [
       import('./features/forms/collect/form-collect.component').then(
         (m) => m.FormCollectComponent,
       ),
-    title: 'Completar Formulario',
+    title: 'routes.collect',
   },
   {
     path: 'auth',
@@ -25,7 +25,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/profile/profile.component').then((m) => m.ProfileComponent),
     canActivate: [authGuard],
-    title: 'Mi Perfil - Observatorio',
+    title: 'routes.profile',
   },
   {
     path: 'admin',

@@ -11,7 +11,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '@core/services/auth.service';
-import { Project, ProjectService } from '@core/services/project.service';
+import { Project, ProjectMember, ProjectService } from '@core/services/project.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-project-list',
@@ -28,30 +29,31 @@ import { Project, ProjectService } from '@core/services/project.service';
     MatProgressSpinnerModule,
     MatSelectModule,
     MatSnackBarModule,
+    TranslateModule,
   ],
   template: `
     <section class="projects-page">
       <header class="page-header">
         <div>
-          <h1>Proyectos</h1>
-          <p>Consulta proyectos, formularios y miembros asignados.</p>
+          <h1>{{ 'projects.title' | translate }}</h1>
+          <p>{{ 'projects.subtitle' | translate }}</p>
         </div>
       </header>
 
       @if (canManageProjects()) {
         <form class="project-form" [formGroup]="projectForm" (ngSubmit)="saveProject()">
           <mat-form-field appearance="outline">
-            <mat-label>Nombre</mat-label>
+            <mat-label>{{ 'projects.name' | translate }}</mat-label>
             <input matInput formControlName="name" />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Descripcion</mat-label>
+            <mat-label>{{ 'projects.description' | translate }}</mat-label>
             <textarea matInput rows="2" formControlName="description"></textarea>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Lider de proyecto</mat-label>
+            <mat-label>{{ 'projects.leader' | translate }}</mat-label>
             <mat-select formControlName="leader_ids" multiple>
               @for (leader of projectLeaders(); track leader.id) {
                 <mat-option [value]="leader.id">{{ leader.name }} - {{ leader.email }}</mat-option>
@@ -61,11 +63,11 @@ import { Project, ProjectService } from '@core/services/project.service';
 
           <div class="form-actions">
             @if (editingProject()) {
-              <button mat-stroked-button type="button" (click)="cancelEdit()">Cancelar</button>
+              <button mat-stroked-button type="button" (click)="cancelEdit()">{{ 'common.buttons.cancel' | translate }}</button>
             }
             <button mat-flat-button color="primary" type="submit" [disabled]="projectForm.invalid || saving()">
               <mat-icon>{{ editingProject() ? 'save' : 'add' }}</mat-icon>
-              {{ editingProject() ? 'Guardar' : 'Crear' }}
+              {{ (editingProject() ? 'projects.save' : 'projects.create') | translate }}
             </button>
           </div>
         </form>
@@ -87,14 +89,14 @@ import { Project, ProjectService } from '@core/services/project.service';
               >
                 <span>
                   <strong>{{ project.name }}</strong>
-                  <small>{{ project.description || 'Sin descripcion' }}</small>
+                <small>{{ project.description || ('projects.noDescription' | translate) }}</small>
                 </span>
-                <em>{{ project.forms_count ?? 0 }} formulario(s)</em>
+                <em>{{ 'projects.formsCount' | translate: { count: project.forms_count ?? 0 } }}</em>
               </button>
             } @empty {
               <div class="empty-state">
                 <mat-icon>folder_open</mat-icon>
-                <p>No hay proyectos visibles</p>
+              <p>{{ 'projects.noVisible' | translate }}</p>
               </div>
             }
           </div>
@@ -103,16 +105,16 @@ import { Project, ProjectService } from '@core/services/project.service';
             <mat-card class="project-panel">
               <mat-card-header>
                 <mat-card-title>{{ project.name }}</mat-card-title>
-                <mat-card-subtitle>{{ project.forms?.length ?? project.forms_count ?? 0 }} formulario(s)</mat-card-subtitle>
+                <mat-card-subtitle>{{ 'projects.formsCount' | translate: { count: project.forms?.length ?? project.forms_count ?? 0 } }}</mat-card-subtitle>
               </mat-card-header>
               <mat-card-content>
                 <section class="panel-section">
                   <div class="section-title">
-                    <h2>Formularios</h2>
+                    <h2>{{ 'common.labels.forms' | translate }}</h2>
                     @if (canCreateFormsInProject(project)) {
                       <a mat-stroked-button [routerLink]="['/admin/forms/builder']" [queryParams]="{ project_id: project.id }">
                         <mat-icon>add_circle</mat-icon>
-                        Nuevo formulario
+                        {{ 'projects.newForm' | translate }}
                       </a>
                     }
                   </div>
@@ -127,14 +129,14 @@ import { Project, ProjectService } from '@core/services/project.service';
                       }
                     </div>
                   } @else {
-                    <p class="muted">No hay formularios visibles para este proyecto.</p>
+                    <p class="muted">{{ 'projects.visibleFormsEmpty' | translate }}</p>
                   }
                 </section>
 
                 <section class="panel-section">
                   <div class="section-title">
-                    <h2>Miembros</h2>
-                    <span>{{ project.members?.length ?? 0 }}</span>
+                    <h2>{{ 'common.labels.members' | translate }}</h2>
+                    <span>{{ 'projects.membersCount' | translate: { count: project.members?.length ?? 0 } }}</span>
                   </div>
 
                   @if ((project.members ?? []).length > 0) {
@@ -146,12 +148,12 @@ import { Project, ProjectService } from '@core/services/project.service';
                             <small>{{ member.email }}</small>
                           </span>
                           <span class="member-role">{{ roleLabel(member.role) }}</span>
-                          <em>{{ member.form_title || member.scope }}</em>
+                          <em>{{ member.form_title || scopeLabel(member.scope) }}</em>
                         </div>
                       }
                     </div>
                   } @else {
-                    <p class="muted">Aun no hay miembros asignados.</p>
+                    <p class="muted">{{ 'projects.noMembers' | translate }}</p>
                   }
                 </section>
               </mat-card-content>
@@ -159,7 +161,7 @@ import { Project, ProjectService } from '@core/services/project.service';
                 <mat-card-actions align="end">
                   <button mat-button type="button" (click)="editProject(project)">
                     <mat-icon>edit</mat-icon>
-                    Editar proyecto
+                    {{ 'projects.editProject' | translate }}
                   </button>
                 </mat-card-actions>
               }
@@ -167,7 +169,7 @@ import { Project, ProjectService } from '@core/services/project.service';
           } @else {
             <mat-card class="project-panel empty-panel">
               <mat-icon>ads_click</mat-icon>
-              <p>Selecciona un proyecto para ver sus formularios y miembros.</p>
+              <p>{{ 'projects.selectPrompt' | translate }}</p>
             </mat-card>
           }
         </div>
@@ -197,6 +199,10 @@ import { Project, ProjectService } from '@core/services/project.service';
         grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.4fr) minmax(220px, 1.2fr) auto;
         gap: 1rem;
         align-items: start;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        background: var(--card-bg);
       }
 
       .form-actions {
@@ -225,12 +231,13 @@ import { Project, ProjectService } from '@core/services/project.service';
       .project-list {
         display: grid;
         gap: 0.5rem;
+        padding: 0.25rem;
       }
 
       .project-row {
         width: 100%;
         border: 1px solid var(--border-color);
-        background: var(--bg-primary);
+        background: var(--card-bg);
         color: var(--text-primary);
         border-radius: var(--radius-md);
         padding: 0.85rem;
@@ -239,12 +246,14 @@ import { Project, ProjectService } from '@core/services/project.service';
         gap: 1rem;
         text-align: left;
         cursor: pointer;
+        transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
       }
 
       .project-row.active,
       .project-row:hover {
         border-color: var(--primary-500);
         background: var(--primary-50);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
       }
 
       .project-row span,
@@ -301,6 +310,7 @@ import { Project, ProjectService } from '@core/services/project.service';
         align-items: center;
         text-decoration: none;
         color: var(--text-primary);
+        background: var(--bg-primary);
       }
 
       .member-role {
@@ -331,6 +341,7 @@ export class ProjectListComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly projectService = inject(ProjectService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly translate = inject(TranslateService);
 
   projects = signal<Project[]>([]);
   projectLeaders = signal<Array<{ id: number; name: string; email: string }>>([]);
@@ -365,7 +376,7 @@ export class ProjectListComponent implements OnInit {
         }
       },
       error: () => {
-        this.snackBar.open('Error al cargar proyectos', 'Cerrar', { duration: 3000 });
+        this.snackBar.open(this.translate.instant('projects.errors.load'), this.translate.instant('common.buttons.close'), { duration: 3000 });
         this.loading.set(false);
       },
     });
@@ -382,7 +393,7 @@ export class ProjectListComponent implements OnInit {
   selectProject(project: Project): void {
     this.projectService.getProject(project.id).subscribe({
       next: (detail) => this.selectedProject.set(detail),
-      error: () => this.snackBar.open('Error al cargar el proyecto', 'Cerrar', { duration: 3000 }),
+      error: () => this.snackBar.open(this.translate.instant('projects.errors.loadProject'), this.translate.instant('common.buttons.close'), { duration: 3000 }),
     });
   }
 
@@ -402,7 +413,7 @@ export class ProjectListComponent implements OnInit {
 
     request.subscribe({
       next: (project) => {
-        this.snackBar.open(current ? 'Proyecto actualizado' : 'Proyecto creado', 'Cerrar', {
+        this.snackBar.open(this.translate.instant(current ? 'projects.messages.updated' : 'projects.messages.created'), this.translate.instant('common.buttons.close'), {
           duration: 3000,
         });
         this.cancelEdit();
@@ -411,7 +422,7 @@ export class ProjectListComponent implements OnInit {
         this.saving.set(false);
       },
       error: (error) => {
-        this.snackBar.open(error?.error?.message || 'Error al guardar proyecto', 'Cerrar', {
+        this.snackBar.open(error?.error?.message || this.translate.instant('projects.errors.save'), this.translate.instant('common.buttons.close'), {
           duration: 3000,
         });
         this.saving.set(false);
@@ -437,17 +448,26 @@ export class ProjectListComponent implements OnInit {
     });
   }
 
-  canCreateFormsInProject(project: Project): boolean {
+  canCreateFormsInProject(_project: Project): boolean {
     return this.authService.isAdmin() || this.authService.isProjectLeader();
   }
 
   roleLabel(role: string): string {
     const labels: Record<string, string> = {
-      PROJECT_LEADER: 'Lider de proyecto',
-      EDITOR: 'Editor',
-      RECOLECTOR: 'Recolector',
+      PROJECT_LEADER: this.translate.instant('projects.roles.PROJECT_LEADER'),
+      EDITOR: this.translate.instant('projects.roles.EDITOR'),
+      RECOLECTOR: this.translate.instant('projects.roles.RECOLECTOR'),
     };
 
     return labels[role] ?? role;
+  }
+
+  scopeLabel(scope: ProjectMember['scope']): string {
+    const labels: Record<string, string> = {
+      Proyecto: this.translate.instant('projects.scopes.project'),
+      Formulario: this.translate.instant('projects.scopes.form'),
+    };
+
+    return labels[scope] ?? scope;
   }
 }

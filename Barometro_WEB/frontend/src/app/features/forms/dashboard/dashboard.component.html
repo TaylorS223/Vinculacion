@@ -1,13 +1,13 @@
 ﻿<div class="dashboard-container">
   <div class="page-header">
     <div>
-      <h1 class="page-title">Mis Formularios</h1>
-      <p class="page-subtitle">Gestiona tus formularios por estado, como en KoboToolbox</p>
+      <h1 class="page-title">{{ 'forms.dashboard.title' | translate }}</h1>
+      <p class="page-subtitle">{{ 'forms.dashboard.subtitle' | translate }}</p>
     </div>
     @if (vm.canCreateForms()) {
       <a routerLink="/admin/forms/builder" class="btn-primary">
         <mat-icon>add</mat-icon>
-        Nuevo Formulario
+        {{ 'common.buttons.newForm' | translate }}
       </a>
     }
   </div>
@@ -22,7 +22,7 @@
           type="button"
         >
           <mat-icon>{{ tab.icon }}</mat-icon>
-          {{ tab.label }}
+          {{ tab.labelKey | translate }}
           <span class="tab-count">{{ vm.tabCounts()[tab.key] }}</span>
         </button>
       }
@@ -32,7 +32,7 @@
       <mat-icon>search</mat-icon>
       <input
         type="text"
-        placeholder="Buscar por titulo o descripcion..."
+        [placeholder]="'forms.dashboard.searchPlaceholder' | translate"
         [ngModel]="vm.searchQuery()"
         (ngModelChange)="vm.searchQuery.set($event)"
       />
@@ -46,15 +46,15 @@
   @if (vm.isLoading()) {
     <div class="loading-state">
       <mat-spinner diameter="40"></mat-spinner>
-      <p>Cargando formularios...</p>
+      <p>{{ 'forms.dashboard.loading' | translate }}</p>
     </div>
   } @else if (vm.filteredForms().length === 0) {
     <div class="empty-state">
       <mat-icon>description</mat-icon>
-      <h3>No hay formularios en esta categoria</h3>
-      <p>Cambia de pestana para ver otros estados.</p>
+      <h3>{{ 'forms.dashboard.emptyTitle' | translate }}</h3>
+      <p>{{ 'forms.dashboard.emptySubtitle' | translate }}</p>
       @if (vm.activeTab() === 'DRAFT' && vm.canCreateForms()) {
-        <a routerLink="/admin/forms/builder" class="btn-primary">Crear formulario</a>
+        <a routerLink="/admin/forms/builder" class="btn-primary">{{ 'common.buttons.createForm' | translate }}</a>
       }
     </div>
   } @else {
@@ -67,7 +67,7 @@
             </span>
             <span class="responses-count">
               <mat-icon>inbox</mat-icon>
-              {{ form.responses_count ?? 0 }} respuestas
+              {{ 'forms.dashboard.responsesCount' | translate: { count: form.responses_count ?? 0 } }}
             </span>
           </div>
 
@@ -77,14 +77,14 @@
           }
 
           <div class="form-meta">
-            <span>Actualizado: {{ form.updated_at | date: 'dd/MM/yyyy' }}</span>
+            <span>{{ 'forms.dashboard.updatedAt' | translate: { date: (form.updated_at | date: 'dd/MM/yyyy') } }}</span>
           </div>
 
           <div class="form-actions">
             @if ((form.state === 'DRAFT' || form.state === 'ARCHIVED') && vm.canEditForm(form)) {
               <a [routerLink]="['/admin/forms', form.id, 'edit']" class="btn-action">
                 <mat-icon>edit</mat-icon>
-                Editar
+                {{ 'forms.dashboard.actions.edit' | translate }}
               </a>
             }
 
@@ -96,19 +96,19 @@
                 type="button"
               >
                 <mat-icon>rocket_launch</mat-icon>
-                {{ form.state === 'ARCHIVED' ? 'Volver a implementar' : 'Implementar' }}
+                {{ (form.state === 'ARCHIVED' ? 'common.buttons.redeploy' : 'common.buttons.deploy') | translate }}
               </button>
             }
 
             @if (form.state === 'DEPLOYED') {
               <button class="btn-action" (click)="vm.showPublicLink(form)" type="button">
                 <mat-icon>link</mat-icon>
-                Ver enlace
+                {{ 'forms.dashboard.actions.viewLink' | translate }}
               </button>
               @if (vm.canViewResults()) {
                 <a [routerLink]="['/admin/forms', form.id, 'responses']" class="btn-action">
                   <mat-icon>bar_chart</mat-icon>
-                  Resultados
+                  {{ 'common.buttons.results' | translate }}
                 </a>
               }
               @if (vm.canManageForm(form)) {
@@ -119,7 +119,7 @@
                   type="button"
                 >
                   <mat-icon>archive</mat-icon>
-                  Archivar
+                  {{ 'common.buttons.archive' | translate }}
                 </button>
               }
             }
@@ -127,14 +127,14 @@
             @if (form.state === 'ARCHIVED' && vm.canViewResults()) {
               <a [routerLink]="['/admin/forms', form.id, 'responses']" class="btn-action">
                 <mat-icon>bar_chart</mat-icon>
-                Resultados
+                {{ 'common.buttons.results' | translate }}
               </a>
             }
 
             @if (vm.canManageForm(form)) {
               <button class="btn-action" (click)="vm.openShareModal(form.id)" type="button">
                 <mat-icon>group_add</mat-icon>
-                Compartir
+                {{ 'common.buttons.share' | translate }}
               </button>
             }
 
@@ -159,24 +159,24 @@
   <div class="modal-overlay" (click)="vm.closeShareModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>Compartir formulario</h2>
+        <h2>{{ 'forms.dashboard.shareTitle' | translate }}</h2>
         <button class="modal-close" (click)="vm.closeShareModal()" type="button">x</button>
       </div>
 
-      <p class="modal-subtitle">Asigna permisos a un usuario recolector registrado</p>
+      <p class="modal-subtitle">{{ 'forms.dashboard.shareSubtitle' | translate }}</p>
 
       <div class="share-form">
         <input
           type="email"
-          placeholder="Correo del usuario"
+          [placeholder]="'forms.dashboard.shareEmailPlaceholder' | translate"
           [ngModel]="vm.shareEmail()"
           (ngModelChange)="vm.shareEmail.set($event)"
         />
         <select [ngModel]="vm.shareRole()" (ngModelChange)="vm.shareRole.set($event)">
-          <option value="RECOLECTOR">Recolector</option>
-          <option value="EDITOR">Editor</option>
+          <option value="RECOLECTOR">{{ 'forms.dashboard.roles.RECOLECTOR' | translate }}</option>
+          <option value="EDITOR">{{ 'forms.dashboard.roles.EDITOR' | translate }}</option>
         </select>
-        <button class="btn-primary" (click)="vm.submitShare()" type="button">Invitar</button>
+        <button class="btn-primary" (click)="vm.submitShare()" type="button">{{ 'common.buttons.invite' | translate }}</button>
       </div>
 
       @if (vm.shareError()) {
@@ -185,16 +185,16 @@
 
       @if (vm.shares().length > 0) {
         <div class="shares-list">
-          <h4>Usuarios con acceso</h4>
+          <h4>{{ 'forms.dashboard.sharedUsers' | translate }}</h4>
           @for (share of vm.shares(); track share.id) {
             <div class="share-item">
               <div>
-                <strong>{{ share.user?.name ?? 'Usuario' }}</strong>
+                <strong>{{ share.user?.name ?? ('forms.dashboard.userFallback' | translate) }}</strong>
                 <span>{{ share.user?.email }}</span>
               </div>
               <div class="share-actions">
-                <span class="role-badge">{{ share.role }}</span>
-                <button (click)="vm.removeShare(share.id)" type="button" title="Quitar acceso">x</button>
+                <span class="role-badge">{{ 'forms.dashboard.roles.' + share.role | translate }}</span>
+                <button (click)="vm.removeShare(share.id)" type="button" [title]="'forms.dashboard.removeAccess' | translate">x</button>
               </div>
             </div>
           }
@@ -208,19 +208,19 @@
   <div class="modal-overlay" (click)="vm.closeLinkModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>Enlace de recoleccion</h2>
+        <h2>{{ 'forms.dashboard.publicLinkTitle' | translate }}</h2>
         <button class="modal-close" (click)="vm.closeLinkModal()" type="button">x</button>
       </div>
 
       <p class="modal-subtitle">
-        Usa este enlace en la app movil o navegador para recolectar respuestas (estilo KoboCollect)
+        {{ 'forms.dashboard.publicLinkSubtitle' | translate }}
       </p>
 
       <div class="link-box">
         <input type="text" readonly [value]="vm.linkUrl()" />
         <button class="btn-primary" (click)="copyLink()" type="button">
           <mat-icon>content_copy</mat-icon>
-          Copiar
+          {{ 'common.buttons.copy' | translate }}
         </button>
       </div>
     </div>

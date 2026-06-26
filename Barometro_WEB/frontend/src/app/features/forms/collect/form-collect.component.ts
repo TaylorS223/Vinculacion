@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Form, FormQuestion, FormService } from '@core/services/form.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-form-collect',
@@ -16,13 +17,14 @@ import { Form, FormQuestion, FormService } from '@core/services/form.service';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    TranslateModule,
   ],
   template: `
     <div class="collect-page">
       @if (loading()) {
         <div class="state-box">
           <mat-spinner diameter="40"></mat-spinner>
-          <p>Cargando formulario...</p>
+          <p>{{ 'forms.collect.loading' | translate }}</p>
         </div>
       } @else if (error()) {
         <div class="state-box error">
@@ -32,10 +34,10 @@ import { Form, FormQuestion, FormService } from '@core/services/form.service';
       } @else if (submitted()) {
         <div class="state-box success">
           <mat-icon>check_circle</mat-icon>
-          <h2>Respuesta enviada</h2>
-          <p>Gracias por completar el formulario.</p>
+          <h2>{{ 'forms.collect.submittedTitle' | translate }}</h2>
+          <p>{{ 'forms.collect.submittedText' | translate }}</p>
           <button mat-raised-button color="primary" (click)="resetForm()" type="button">
-            Enviar otra respuesta
+            {{ 'forms.collect.sendAnother' | translate }}
           </button>
         </div>
       } @else if (form()) {
@@ -114,7 +116,7 @@ import { Form, FormQuestion, FormService } from '@core/services/form.service';
                       [ngModel]="answers()[question.id]"
                       (ngModelChange)="setAnswer(question.id, $event)"
                       [required]="question.required"
-                      placeholder="Escribe tu respuesta..."
+                      [placeholder]="'forms.collect.textPlaceholder' | translate"
                     ></textarea>
                   }
                   @case ('NUMBER') {
@@ -140,9 +142,9 @@ import { Form, FormQuestion, FormService } from '@core/services/form.service';
               [disabled]="submitting()"
             >
               @if (submitting()) {
-                Enviando...
+                {{ 'forms.collect.submitting' | translate }}
               } @else {
-                Enviar respuestas
+                {{ 'forms.collect.submit' | translate }}
               }
             </button>
           </form>
@@ -292,6 +294,7 @@ import { Form, FormQuestion, FormService } from '@core/services/form.service';
 export class FormCollectComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private formService = inject(FormService);
+  private translate = inject(TranslateService);
 
   form = signal<Form | null>(null);
   answers = signal<Record<string, unknown>>({});
@@ -305,7 +308,7 @@ export class FormCollectComponent implements OnInit {
   ngOnInit(): void {
     this.linkUuid = this.route.snapshot.paramMap.get('uuid') ?? '';
     if (!this.linkUuid) {
-      this.error.set('Enlace invalido');
+      this.error.set(this.translate.instant('forms.collect.errors.invalidLink'));
       this.loading.set(false);
       return;
     }
@@ -319,7 +322,7 @@ export class FormCollectComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('No se pudo cargar el formulario. Verifica el enlace.');
+        this.error.set(this.translate.instant('forms.collect.errors.load'));
         this.loading.set(false);
       },
     });
@@ -358,7 +361,7 @@ export class FormCollectComponent implements OnInit {
         this.submitting.set(false);
       },
       error: () => {
-        this.error.set('Error al enviar la respuesta. Intenta de nuevo.');
+        this.error.set(this.translate.instant('forms.collect.errors.submit'));
         this.submitting.set(false);
       },
     });

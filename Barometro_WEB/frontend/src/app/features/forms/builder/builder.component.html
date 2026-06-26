@@ -1,17 +1,17 @@
 ﻿<section class="builder-shell">
   <header class="builder-topbar">
     <div>
-      <p class="eyebrow">Form Builder</p>
-      <h1>{{ vm.isEditMode() ? 'Editar formulario' : 'Nuevo formulario' }}</h1>
+      <p class="eyebrow">{{ 'forms.builder.eyebrow' | translate }}</p>
+      <h1>{{ (vm.isEditMode() ? 'forms.builder.editTitle' : 'forms.builder.newTitle') | translate }}</h1>
       <p class="subtitle">
-        Disena el cuestionario, agrega preguntas y guarda el borrador antes de implementarlo.
+        {{ 'forms.builder.subtitle' | translate }}
       </p>
     </div>
 
     <div class="topbar-actions">
       <a class="btn btn-secondary" routerLink="/admin/dashboard">
         <span class="material-icons" aria-hidden="true">arrow_back</span>
-        Mis formularios
+        {{ 'forms.builder.back' | translate }}
       </a>
       <button
         class="btn btn-primary"
@@ -20,7 +20,7 @@
         [disabled]="!vm.isFormValid() || vm.isSaving() || vm.isLoading()"
       >
         <span class="material-icons" aria-hidden="true">save</span>
-        {{ vm.isSaving() ? 'Guardando...' : 'Guardar borrador' }}
+        {{ (vm.isSaving() ? 'common.messages.saving' : 'forms.builder.saveDraft') | translate }}
       </button>
     </div>
   </header>
@@ -35,20 +35,20 @@
 
   @if (vm.state() === 'DEPLOYED') {
     <div class="alert alert-warning">
-      Este formulario ya esta implementado. El backend no permite modificar sus preguntas.
+      {{ 'forms.builder.deployedWarning' | translate }}
     </div>
   }
 
   @if (!vm.isEditMode() && vm.projects().length === 0) {
     <div class="alert alert-warning">
-      No hay proyectos disponibles para crear formularios.
+      {{ 'forms.builder.noProjects' | translate }}
     </div>
   }
 
   @if (vm.isLoading()) {
     <div class="loading-state">
       <span class="material-icons spin" aria-hidden="true">progress_activity</span>
-      Cargando formulario...
+      {{ 'common.messages.loadingForm' | translate }}
     </div>
   } @else {
     <div class="builder-grid">
@@ -56,13 +56,13 @@
         <section class="metadata-section">
           @if (vm.projects().length > 0) {
             <label class="field">
-              <span>Proyecto</span>
+              <span>{{ 'common.labels.project' | translate }}</span>
               <select
                 [ngModel]="vm.projectId()"
                 (ngModelChange)="vm.updateProject($event)"
                 [disabled]="vm.isSaving() || vm.isEditMode() || !vm.canEditQuestions()"
               >
-                <option [ngValue]="null">Selecciona un proyecto</option>
+                <option [ngValue]="null">{{ 'forms.builder.selectProject' | translate }}</option>
                 @for (project of vm.projects(); track project.id) {
                   <option [ngValue]="project.id">{{ project.name }}</option>
                 }
@@ -71,24 +71,24 @@
           }
 
           <label class="field">
-            <span>Titulo del formulario *</span>
+            <span>{{ 'forms.builder.titleLabel' | translate }}</span>
             <input
               type="text"
               [ngModel]="vm.title()"
               (ngModelChange)="vm.updateTitle($event)"
               [disabled]="vm.isSaving() || !vm.canEditQuestions()"
-              placeholder="Ej. Encuesta de satisfaccion comunitaria"
+              [placeholder]="'forms.builder.titlePlaceholder' | translate"
             />
           </label>
 
           <label class="field">
-            <span>Descripcion</span>
+            <span>{{ 'forms.builder.descriptionLabel' | translate }}</span>
             <textarea
               rows="3"
               [ngModel]="vm.description()"
               (ngModelChange)="vm.updateDescription($event)"
               [disabled]="vm.isSaving() || !vm.canEditQuestions()"
-              placeholder="Agrega contexto para quienes responderan el formulario"
+              [placeholder]="'forms.builder.descriptionPlaceholder' | translate"
             ></textarea>
           </label>
         </section>
@@ -96,8 +96,8 @@
         <section class="question-palette">
           <div class="section-heading">
             <div>
-              <h2>Agregar preguntas</h2>
-              <p>{{ vm.questionsCount() }} pregunta(s) en el borrador</p>
+              <h2>{{ 'forms.builder.addQuestions' | translate }}</h2>
+              <p>{{ 'forms.builder.questionCount' | translate: { count: vm.questionsCount() } }}</p>
             </div>
           </div>
 
@@ -110,8 +110,8 @@
                 [disabled]="vm.isSaving() || !vm.canEditQuestions()"
               >
                 <span class="material-icons" aria-hidden="true">{{ type.icon }}</span>
-                <strong>{{ type.label }}</strong>
-                <small>{{ type.hint }}</small>
+                <strong>{{ type.labelKey | translate }}</strong>
+                <small>{{ type.hintKey | translate }}</small>
               </button>
             }
           </div>
@@ -121,7 +121,7 @@
           @if (vm.questions().length === 0) {
             <div class="empty-state">
               <span class="material-icons" aria-hidden="true">playlist_add</span>
-              <p>Agrega una pregunta para empezar a construir el formulario.</p>
+              <p>{{ 'forms.builder.emptyQuestions' | translate }}</p>
             </div>
           }
 
@@ -131,8 +131,8 @@
                 <div class="question-title-row">
                   <span class="question-number">{{ index + 1 }}</span>
                   <div>
-                    <strong>{{ vm.getTypeLabel(question.type) }}</strong>
-                    <small>Orden {{ index + 1 }}</small>
+                    <strong>{{ vm.getTypeLabel(question.type) | translate }}</strong>
+                    <small>{{ 'forms.builder.order' | translate: { order: index + 1 } }}</small>
                   </div>
                 </div>
 
@@ -140,7 +140,7 @@
                   <button
                     class="icon-button"
                     type="button"
-                    title="Subir pregunta"
+                    [title]="'forms.builder.moveUp' | translate"
                     (click)="vm.moveQuestion(question.tempId, -1)"
                     [disabled]="index === 0 || vm.isSaving() || !vm.canEditQuestions()"
                   >
@@ -149,7 +149,7 @@
                   <button
                     class="icon-button"
                     type="button"
-                    title="Bajar pregunta"
+                    [title]="'forms.builder.moveDown' | translate"
                     (click)="vm.moveQuestion(question.tempId, 1)"
                     [disabled]="index === vm.questions().length - 1 || vm.isSaving() || !vm.canEditQuestions()"
                   >
@@ -158,7 +158,7 @@
                   <button
                     class="icon-button danger"
                     type="button"
-                    title="Eliminar pregunta"
+                    [title]="'forms.builder.deleteQuestion' | translate"
                     (click)="vm.removeQuestion(question.tempId)"
                     [disabled]="vm.isSaving() || !vm.canEditQuestions()"
                   >
@@ -168,20 +168,20 @@
               </div>
 
               <label class="field">
-                <span>Pregunta *</span>
+                <span>{{ 'forms.builder.questionLabel' | translate }}</span>
                 <input
                   type="text"
                   [ngModel]="question.label"
                   (ngModelChange)="vm.updateQuestionLabel(question.tempId, $event)"
                   [disabled]="vm.isSaving() || !vm.canEditQuestions()"
-                  placeholder="Escribe la pregunta"
+                  [placeholder]="'forms.builder.questionPlaceholder' | translate"
                 />
               </label>
 
               @if (['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'LIKERT'].includes(question.type)) {
                 <div class="options-block">
                   <div class="options-header">
-                    <span>Opciones *</span>
+                    <span>{{ 'forms.builder.optionsLabel' | translate }}</span>
                     @if (question.type !== 'LIKERT') {
                       <button
                         class="text-button"
@@ -190,7 +190,7 @@
                         [disabled]="vm.isSaving() || !vm.canEditQuestions()"
                       >
                         <span class="material-icons" aria-hidden="true">add</span>
-                        Agregar opcion
+                        {{ 'forms.builder.addOption' | translate }}
                       </button>
                     }
                   </div>
@@ -203,13 +203,13 @@
                           [ngModel]="option"
                           (ngModelChange)="vm.updateOption(question.tempId, optionIndex, $event)"
                           [disabled]="vm.isSaving() || !vm.canEditQuestions() || question.type === 'LIKERT'"
-                          placeholder="Opcion de respuesta"
+                          [placeholder]="'forms.builder.optionPlaceholder' | translate"
                         />
                         @if (question.type !== 'LIKERT') {
                           <button
                             class="icon-button danger"
                             type="button"
-                            title="Eliminar opcion"
+                            [title]="'forms.builder.deleteOption' | translate"
                             (click)="vm.removeOption(question.tempId, optionIndex)"
                             [disabled]="question.options.length <= 1 || vm.isSaving() || !vm.canEditQuestions()"
                           >
@@ -229,7 +229,7 @@
                   (change)="vm.updateQuestionRequired(question.tempId, $any($event.target).checked)"
                   [disabled]="vm.isSaving() || !vm.canEditQuestions()"
                 />
-                <span>Pregunta obligatoria</span>
+                <span>{{ 'forms.builder.required' | translate }}</span>
               </label>
             </article>
           }
@@ -239,34 +239,34 @@
       <aside class="preview-panel">
         <div class="preview-toolbar">
           <div>
-            <h2>Vista previa</h2>
-            <p>Asi se vera para quien responde.</p>
+            <h2>{{ 'forms.builder.previewTitle' | translate }}</h2>
+            <p>{{ 'forms.builder.previewSubtitle' | translate }}</p>
           </div>
           <span class="status-pill">{{ vm.state() }}</span>
         </div>
 
         <div class="mobile-preview">
           <div class="preview-header">
-            <h3>{{ vm.title() || 'Titulo del formulario' }}</h3>
-            <p>{{ vm.description() || 'Descripcion opcional del formulario' }}</p>
+            <h3>{{ vm.title() || ('forms.builder.previewFormTitle' | translate) }}</h3>
+            <p>{{ vm.description() || ('forms.builder.previewDescription' | translate) }}</p>
           </div>
 
           <div class="preview-body">
             @if (vm.questions().length === 0) {
-              <p class="preview-empty">Las preguntas apareceran aqui.</p>
+              <p class="preview-empty">{{ 'forms.builder.previewEmpty' | translate }}</p>
             }
 
             @for (question of vm.questions(); track question.tempId; let index = $index) {
               <div class="preview-question">
                 <p class="preview-label">
-                  <strong>{{ index + 1 }}. {{ question.label || 'Pregunta sin titulo' }}</strong>
+                  <strong>{{ index + 1 }}. {{ question.label || ('forms.builder.untitledQuestion' | translate) }}</strong>
                   @if (question.required) {
                     <span>*</span>
                   }
                 </p>
 
                 @if (question.type === 'TEXT') {
-                  <input type="text" disabled placeholder="Respuesta corta" />
+                  <input type="text" disabled [placeholder]="'forms.builder.shortAnswer' | translate" />
                 } @else if (question.type === 'NUMBER') {
                   <input type="number" disabled placeholder="0" />
                 } @else {
@@ -277,7 +277,7 @@
                           [type]="question.type === 'MULTIPLE_CHOICE' ? 'checkbox' : 'radio'"
                           disabled
                         />
-                        <span>{{ option || 'Opcion sin texto' }}</span>
+                        <span>{{ option || ('forms.builder.emptyOption' | translate) }}</span>
                       </label>
                     }
                   </div>

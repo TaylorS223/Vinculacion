@@ -2,12 +2,12 @@
   <div class="page-header">
     <a routerLink="/admin/dashboard" class="back-link">
       <mat-icon>arrow_back</mat-icon>
-      Volver a formularios
+      {{ 'forms.responses.back' | translate }}
     </a>
     <div class="header-row">
       <div>
-        <h1 class="page-title">{{ vm.formTitle() || 'Respuestas' }}</h1>
-        <p class="page-subtitle">{{ vm.responses().length }} respuesta(s) recibidas</p>
+        <h1 class="page-title">{{ vm.formTitle() || ('forms.responses.title' | translate) }}</h1>
+        <p class="page-subtitle">{{ 'forms.responses.subtitle' | translate: { count: vm.responses().length } }}</p>
       </div>
       <div class="export-actions">
         <button
@@ -17,7 +17,7 @@
           type="button"
         >
           <mat-icon>download</mat-icon>
-          Exportar CSV
+          {{ 'forms.responses.exportCsv' | translate }}
         </button>
         <button
           class="btn-export btn-excel"
@@ -26,7 +26,7 @@
           type="button"
         >
           <mat-icon>table_view</mat-icon>
-          Exportar Excel
+          {{ 'forms.responses.exportExcel' | translate }}
         </button>
       </div>
     </div>
@@ -39,12 +39,12 @@
   @if (vm.isLoading()) {
     <div class="loading-state">
       <mat-spinner diameter="40"></mat-spinner>
-      <p>Cargando respuestas...</p>
+      <p>{{ 'forms.responses.loading' | translate }}</p>
     </div>
   } @else {
     @if (vm.chartableQuestions().length > 0) {
       <section class="charts-section">
-        <h2>Resumen grafico</h2>
+        <h2>{{ 'forms.responses.chartsTitle' | translate }}</h2>
         <div class="charts-grid">
           @for (chart of vm.chartableQuestions(); track chart.questionId) {
             <div class="chart-card">
@@ -70,13 +70,13 @@
     }
 
     <section class="table-section">
-      <h2>Datos recolectados</h2>
+      <h2>{{ 'forms.responses.tableTitle' | translate }}</h2>
 
       @if (vm.responses().length === 0) {
         <div class="empty-state">
           <mat-icon>inbox</mat-icon>
-          <p>Aun no hay respuestas para este formulario.</p>
-          <p class="hint">Comparte el enlace de recoleccion para empezar a recibir datos.</p>
+          <p>{{ 'forms.responses.empty' | translate }}</p>
+          <p class="hint">{{ 'forms.responses.emptyHint' | translate }}</p>
         </div>
       } @else {
         <div class="table-wrapper">

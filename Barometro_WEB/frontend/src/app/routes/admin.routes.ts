@@ -11,38 +11,38 @@ export const ADMIN_ROUTES: Routes = [
     path: 'dashboard',
     loadComponent: () =>
       import('../features/forms/dashboard/dashboard.component').then((m) => m.DashboardComponent),
-    title: 'Mis Formularios',
+    title: 'routes.dashboard',
   },
   {
     path: 'configuracion',
     loadComponent: () =>
       import('../features/profile/profile.component').then((m) => m.ProfileComponent),
-    title: 'Configuracion de cuenta',
+    title: 'routes.accountSettings',
   },
   {
     path: 'forms/builder',
     loadComponent: () =>
       import('../features/forms/builder/builder.component').then((m) => m.BuilderComponent),
     canActivate: [roleGuard('SUPER_ADMIN', 'ADMIN', 'PROJECT_LEADER')],
-    title: 'Nuevo Formulario',
+    title: 'routes.newForm',
   },
   {
     path: 'forms/:id/edit',
     loadComponent: () =>
       import('../features/forms/builder/builder.component').then((m) => m.BuilderComponent),
-    title: 'Editar Formulario',
+    title: 'routes.editForm',
   },
   {
     path: 'forms/:id/responses',
     loadComponent: () =>
       import('../features/forms/responses/responses.component').then((m) => m.ResponsesComponent),
-    title: 'Respuestas de formulario',
+    title: 'routes.formResponses',
   },
   {
     path: 'proyectos',
     loadComponent: () =>
       import('../features/projects/project-list.component').then((m) => m.ProjectListComponent),
-    title: 'Proyectos',
+    title: 'routes.projects',
   },
   // Usuarios (solo admin)
   {
@@ -52,7 +52,7 @@ export const ADMIN_ROUTES: Routes = [
         (m) => m.UsuarioListComponent,
       ),
     canActivate: [roleGuard('SUPER_ADMIN')],
-    title: 'Usuarios',
+    title: 'routes.users',
   },
   {
     path: 'usuarios/nuevo',
@@ -61,7 +61,7 @@ export const ADMIN_ROUTES: Routes = [
         (m) => m.UsuarioFormComponent,
       ),
     canActivate: [roleGuard('SUPER_ADMIN')],
-    title: 'Nuevo Usuario',
+    title: 'routes.newUser',
   },
   {
     path: 'usuarios/:id',
@@ -70,6 +70,6 @@ export const ADMIN_ROUTES: Routes = [
         (m) => m.UsuarioFormComponent,
       ),
     canActivate: [roleGuard('SUPER_ADMIN')],
-    title: 'Editar Usuario',
+    title: 'routes.editUser',
   },
 ];

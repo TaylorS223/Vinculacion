@@ -22,7 +22,7 @@ import { TranslateModule } from '@ngx-translate/core';
   template: `
     <nav class="sidebar">
       <div class="nav-section">
-        <span class="nav-label">Formularios</span>
+        <span class="nav-label">{{ 'layout.sidebar.sectionForms' | translate }}</span>
 
         <a
           class="nav-item"
@@ -34,7 +34,7 @@ import { TranslateModule } from '@ngx-translate/core';
           <div class="nav-icon-wrapper">
             <mat-icon class="nav-icon">list_alt</mat-icon>
           </div>
-          <span class="nav-text">Mis Formularios</span>
+          <span class="nav-text">{{ 'layout.sidebar.myForms' | translate }}</span>
         </a>
 
         @if (canCreateForms()) {
@@ -47,7 +47,7 @@ import { TranslateModule } from '@ngx-translate/core';
             <div class="nav-icon-wrapper">
               <mat-icon class="nav-icon">add_circle</mat-icon>
             </div>
-            <span class="nav-text">Nuevo Formulario</span>
+            <span class="nav-text">{{ 'layout.sidebar.newForm' | translate }}</span>
           </a>
         }
 
@@ -60,7 +60,7 @@ import { TranslateModule } from '@ngx-translate/core';
           <div class="nav-icon-wrapper">
             <mat-icon class="nav-icon">folder_managed</mat-icon>
           </div>
-          <span class="nav-text">Proyectos</span>
+          <span class="nav-text">{{ 'layout.sidebar.projects' | translate }}</span>
         </a>
 
         @if (isSuperAdmin()) {
@@ -73,7 +73,7 @@ import { TranslateModule } from '@ngx-translate/core';
             <div class="nav-icon-wrapper">
               <mat-icon class="nav-icon">people</mat-icon>
             </div>
-            <span class="nav-text">Usuarios</span>
+            <span class="nav-text">{{ 'layout.sidebar.users' | translate }}</span>
           </a>
         }
       </div>
