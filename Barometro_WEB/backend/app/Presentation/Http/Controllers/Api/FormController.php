@@ -55,7 +55,12 @@ class FormController extends Controller
             ->with(['project:id,name'])
             ->withCount('responses')
             ->latest()
-            ->get();
+            ->get()
+            ->map(function (Form $form) use ($user) {
+                $form->setAttribute('access_role', $this->shareRole($form, $user));
+
+                return $form;
+            });
 
         return response()->json([
             'my_forms' => $myForms,
@@ -69,7 +74,7 @@ class FormController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'project_id' => 'nullable|uuid|exists:projects,id',
+            'project_id' => 'required|uuid|exists:projects,id',
         ]);
 
         $projectId = $request->input('project_id');
@@ -79,10 +84,8 @@ class FormController extends Controller
             return response()->json(['message' => 'Los usuarios recolectores no pueden crear formularios'], 403);
         }
 
-        if ($user->isProjectLeader()) {
-            if (!$projectId || !$user->leadsProject($projectId)) {
-                return response()->json(['message' => 'Debes crear formularios dentro de un proyecto asignado'], 403);
-            }
+        if (!$user->isSuperAdmin() && !$user->isAdmin() && !$user->leadsProject($projectId)) {
+            return response()->json(['message' => 'No tienes permisos para crear formularios en este proyecto'], 403);
         }
 
         $form = Form::create([
@@ -142,7 +145,7 @@ class FormController extends Controller
     #[OA\Post(path: '/forms/{id}/deploy', summary: 'Implementar formulario y generar enlace publico', security: [['sanctum' => []]], tags: ['Forms'])]
     public function deploy(Request $request, string $id): JsonResponse
     {
-        $form = $this->findEditableForm($id, $request->user());
+        $form = $this->findLifecycleManageableForm($id, $request->user());
 
         if (!in_array($form->state, ['DRAFT', 'ARCHIVED'], true)) {
             return response()->json(['message' => 'El formulario ya esta implementado'], 422);
@@ -159,7 +162,7 @@ class FormController extends Controller
     #[OA\Post(path: '/forms/{id}/archive', summary: 'Archivar formulario', security: [['sanctum' => []]], tags: ['Forms'])]
     public function archive(Request $request, string $id): JsonResponse
     {
-        $form = $this->findEditableForm($id, $request->user());
+        $form = $this->findLifecycleManageableForm($id, $request->user());
 
         if ($form->state !== 'DEPLOYED') {
             return response()->json(['message' => 'Solo se puede archivar un formulario implementado'], 422);
@@ -412,6 +415,14 @@ class FormController extends Controller
         return $form;
     }
 
+    private function findLifecycleManageableForm(string $id, User $user): Form
+    {
+        $form = Form::findOrFail($id);
+        $this->abortUnlessCanManageLifecycle($form, $user);
+
+        return $form;
+    }
+
     private function abortUnlessCanView(Form $form, User $user): void
     {
         if ($user->isSuperAdmin() || $user->isAdmin() || $user->leadsProject($form->project_id) || (int) $form->user_id === (int) $user->id || $this->shareRole($form, $user) !== null) {
@@ -438,6 +449,15 @@ class FormController extends Controller
         }
 
         abort(response()->json(['message' => 'No tienes permisos para gestionar accesos de este formulario'], 403));
+    }
+
+    private function abortUnlessCanManageLifecycle(Form $form, User $user): void
+    {
+        if ($user->isSuperAdmin() || $user->isAdmin() || $user->leadsProject($form->project_id)) {
+            return;
+        }
+
+        abort(response()->json(['message' => 'No tienes permisos para implementar o archivar este formulario'], 403));
     }
 
     private function canDeleteForm(Form $form, User $user): bool

@@ -61,6 +61,8 @@ export class BuilderComponent implements OnInit {
     const formId = this.route.snapshot.paramMap.get('id');
     if (formId) {
       void this.vm.loadForm(formId);
+    } else {
+      this.vm.updateProject(this.route.snapshot.queryParamMap.get('project_id'));
     }
   }
 }

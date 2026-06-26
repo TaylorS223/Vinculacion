@@ -45,6 +45,7 @@ export class FormBuilderViewModel {
   canEditQuestions = computed(() => this.state() !== 'DEPLOYED');
   isFormValid = computed(() => {
     const hasTitle = this.title().trim().length > 0;
+    const hasProject = Boolean(this.projectId());
     const hasQuestions = this.questions().length > 0;
     const allQuestionsValid = this.questions().every((question) => {
       const hasLabel = question.label.trim().length > 0;
@@ -53,7 +54,7 @@ export class FormBuilderViewModel {
       return hasLabel && (!needsOptions || filledOptions.length > 0);
     });
 
-    return hasTitle && hasQuestions && allQuestionsValid && this.canEditQuestions();
+    return hasTitle && hasProject && hasQuestions && allQuestionsValid && this.canEditQuestions();
   });
 
   async loadForm(id: string): Promise<void> {
@@ -192,7 +193,7 @@ export class FormBuilderViewModel {
 
   async saveForm(): Promise<void> {
     if (!this.isFormValid()) {
-      this.errorMessage.set('Completa el titulo, las preguntas y sus opciones antes de guardar');
+      this.errorMessage.set('Selecciona un proyecto y completa el titulo, las preguntas y sus opciones antes de guardar');
       this.successMessage.set('');
       return;
     }

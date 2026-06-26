@@ -39,6 +39,12 @@
     </div>
   }
 
+  @if (!vm.isEditMode() && vm.projects().length === 0) {
+    <div class="alert alert-warning">
+      No hay proyectos disponibles para crear formularios.
+    </div>
+  }
+
   @if (vm.isLoading()) {
     <div class="loading-state">
       <span class="material-icons spin" aria-hidden="true">progress_activity</span>
@@ -56,7 +62,7 @@
                 (ngModelChange)="vm.updateProject($event)"
                 [disabled]="vm.isSaving() || vm.isEditMode() || !vm.canEditQuestions()"
               >
-                <option [ngValue]="null">Sin proyecto asignado</option>
+                <option [ngValue]="null">Selecciona un proyecto</option>
                 @for (project of vm.projects(); track project.id) {
                   <option [ngValue]="project.id">{{ project.name }}</option>
                 }

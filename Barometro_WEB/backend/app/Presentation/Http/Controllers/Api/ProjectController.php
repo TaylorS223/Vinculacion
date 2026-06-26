@@ -22,13 +22,31 @@ class ProjectController extends Controller
             ->withCount('forms')
             ->latest();
 
-        if ($user->isProjectLeader()) {
+        if ($user->canManageProjects()) {
+            // Admin y Super Admin ven todos los proyectos.
+        } elseif ($user->isProjectLeader()) {
             $query->whereHas('leaders', fn($leaders) => $leaders->where('users.id', $user->id));
-        } elseif (!$user->canManageProjects()) {
-            return response()->json(['message' => 'No tienes permisos para ver proyectos'], 403);
+        } else {
+            $query->whereHas('forms.shares', fn($shares) => $shares->where('user_id', $user->id));
         }
 
         return response()->json($query->get());
+    }
+
+    #[OA\Get(path: '/projects/leaders', summary: 'Listar lideres asignables', security: [['sanctum' => []]], tags: ['Projects'])]
+    public function leaders(Request $request): JsonResponse
+    {
+        if (!$request->user()->canManageProjects()) {
+            return response()->json(['message' => 'No tienes permisos para listar lideres'], 403);
+        }
+
+        return response()->json(
+            User::query()
+                ->where('rol', User::ROLE_PROJECT_LEADER)
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'email', 'rol'])
+        );
     }
 
     #[OA\Post(path: '/projects', summary: 'Crear proyecto', security: [['sanctum' => []]], tags: ['Projects'])]
@@ -59,20 +77,27 @@ class ProjectController extends Controller
             $project->leaders()->sync($data['leader_ids']);
         }
 
-        return response()->json($project->load('leaders:id,name,email,rol'), 201);
+        return response()->json($this->projectPayload($project->load(['leaders:id,name,email,rol', 'forms.shares.user:id,name,email,rol'])), 201);
     }
 
     #[OA\Get(path: '/projects/{id}', summary: 'Ver proyecto', security: [['sanctum' => []]], tags: ['Projects'])]
     public function show(Request $request, string $id): JsonResponse
     {
-        $project = Project::with(['leaders:id,name,email,rol', 'forms.owner:id,name,email,rol'])->findOrFail($id);
+        $project = Project::with(['leaders:id,name,email,rol', 'forms.owner:id,name,email,rol', 'forms.shares.user:id,name,email,rol'])->findOrFail($id);
         $user = $request->user();
 
-        if (!$user->canManageProjects() && !$user->leadsProject($project->id)) {
+        if (!$this->canViewProject($project, $user)) {
             return response()->json(['message' => 'No tienes permisos para ver este proyecto'], 403);
         }
 
-        return response()->json($project);
+        if (!$this->canManageProjectForms($project, $user)) {
+            $project->setRelation(
+                'forms',
+                $project->forms->filter(fn($form) => $form->shares->contains('user_id', $user->id))->values()
+            );
+        }
+
+        return response()->json($this->projectPayload($project));
     }
 
     #[OA\Put(path: '/projects/{id}', summary: 'Actualizar proyecto', security: [['sanctum' => []]], tags: ['Projects'])]
@@ -101,7 +126,7 @@ class ProjectController extends Controller
             $project->leaders()->sync($data['leader_ids']);
         }
 
-        return response()->json($project->load('leaders:id,name,email,rol'));
+        return response()->json($this->projectPayload($project->load(['leaders:id,name,email,rol', 'forms.shares.user:id,name,email,rol'])));
     }
 
     #[OA\Delete(path: '/projects/{id}', summary: 'Eliminar proyecto', security: [['sanctum' => []]], tags: ['Projects'])]
@@ -112,8 +137,71 @@ class ProjectController extends Controller
             return response()->json(['message' => 'Solo el super admin puede eliminar proyectos'], 403);
         }
 
-        Project::findOrFail($id)->delete();
+        $project = Project::withCount('forms')->findOrFail($id);
+        if ($project->forms_count > 0) {
+            return response()->json(['message' => 'No se puede eliminar un proyecto con formularios asociados'], 422);
+        }
+
+        $project->delete();
 
         return response()->json(null, 204);
+    }
+
+    private function canViewProject(Project $project, User $user): bool
+    {
+        return $user->canManageProjects()
+            || $user->leadsProject($project->id)
+            || $project->forms->contains(fn($form) => $form->shares->contains('user_id', $user->id));
+    }
+
+    private function canManageProjectForms(Project $project, User $user): bool
+    {
+        return $user->canManageProjects() || $user->leadsProject($project->id);
+    }
+
+    private function projectPayload(Project $project): array
+    {
+        $payload = $project->toArray();
+        $payload['members'] = $this->buildMembers($project);
+
+        return $payload;
+    }
+
+    private function buildMembers(Project $project): array
+    {
+        $members = [];
+
+        foreach ($project->leaders as $leader) {
+            $members["leader-{$leader->id}"] = [
+                'user_id' => $leader->id,
+                'name' => $leader->name,
+                'email' => $leader->email,
+                'role' => 'PROJECT_LEADER',
+                'scope' => 'Proyecto',
+                'form_id' => null,
+                'form_title' => null,
+            ];
+        }
+
+        foreach ($project->forms as $form) {
+            foreach ($form->shares as $share) {
+                $shareUser = $share->user;
+                if (!$shareUser) {
+                    continue;
+                }
+
+                $members["form-{$form->id}-{$shareUser->id}"] = [
+                    'user_id' => $shareUser->id,
+                    'name' => $shareUser->name,
+                    'email' => $shareUser->email,
+                    'role' => $share->role,
+                    'scope' => 'Formulario',
+                    'form_id' => $form->id,
+                    'form_title' => $form->title,
+                ];
+            }
+        }
+
+        return array_values($members);
     }
 }

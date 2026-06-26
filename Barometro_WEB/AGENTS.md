@@ -80,11 +80,12 @@ El registro publico esta deshabilitado. Los usuarios se crean desde el panel adm
 Roles globales y permisos:
 
 - `SUPER_ADMIN`: control total de usuarios, proyectos, formularios, configuracion y datos.
-- `ADMIN`: gestiona proyectos, asigna lideres de proyecto y crea/gestiona formularios dentro de sus proyectos.
-- `PROJECT_LEADER`: gestiona formularios y permisos dentro de proyectos asignados.
-- `USER`: usuario recolector/editor movil; recolecta datos y solo edita formularios con permiso explicito.
+- `ADMIN`: gestiona proyectos, asigna lideres de proyecto y crea/gestiona formularios dentro de proyectos.
+- `PROJECT_LEADER`: gestiona formularios dentro de proyectos asignados.
+- `USER`: usuario recolector/editor movil; solo ve formularios asignados y recolecta o edita segun permiso.
 
 Los permisos `EDITOR` y `RECOLECTOR` pertenecen a la comparticion de formularios, no al rol global del usuario.
+Todo formulario debe pertenecer a un proyecto. Los usuarios `USER` no acceden al proyecto completo: solo a los formularios que tengan asignados.
 
 ## Convenciones
 

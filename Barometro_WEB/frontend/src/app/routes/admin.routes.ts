@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { adminGuard } from '../core/guards/role.guard';
+import { adminGuard, roleGuard } from '../core/guards/role.guard';
 
 export const ADMIN_ROUTES: Routes = [
   {
@@ -23,6 +23,7 @@ export const ADMIN_ROUTES: Routes = [
     path: 'forms/builder',
     loadComponent: () =>
       import('../features/forms/builder/builder.component').then((m) => m.BuilderComponent),
+    canActivate: [roleGuard('SUPER_ADMIN', 'ADMIN', 'PROJECT_LEADER')],
     title: 'Nuevo Formulario',
   },
   {
@@ -41,7 +42,6 @@ export const ADMIN_ROUTES: Routes = [
     path: 'proyectos',
     loadComponent: () =>
       import('../features/projects/project-list.component').then((m) => m.ProjectListComponent),
-    canActivate: [adminGuard],
     title: 'Proyectos',
   },
   // Usuarios (solo admin)
@@ -51,7 +51,7 @@ export const ADMIN_ROUTES: Routes = [
       import('../features/usuarios/usuario-list/usuario-list.component').then(
         (m) => m.UsuarioListComponent,
       ),
-    canActivate: [adminGuard],
+    canActivate: [roleGuard('SUPER_ADMIN')],
     title: 'Usuarios',
   },
   {
@@ -60,7 +60,7 @@ export const ADMIN_ROUTES: Routes = [
       import('../features/usuarios/usuario-form/usuario-form.component').then(
         (m) => m.UsuarioFormComponent,
       ),
-    canActivate: [adminGuard],
+    canActivate: [roleGuard('SUPER_ADMIN')],
     title: 'Nuevo Usuario',
   },
   {
@@ -69,7 +69,7 @@ export const ADMIN_ROUTES: Routes = [
       import('../features/usuarios/usuario-form/usuario-form.component').then(
         (m) => m.UsuarioFormComponent,
       ),
-    canActivate: [adminGuard],
+    canActivate: [roleGuard('SUPER_ADMIN')],
     title: 'Editar Usuario',
   },
 ];

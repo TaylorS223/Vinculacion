@@ -4,10 +4,12 @@
       <h1 class="page-title">Mis Formularios</h1>
       <p class="page-subtitle">Gestiona tus formularios por estado, como en KoboToolbox</p>
     </div>
-    <a routerLink="/admin/forms/builder" class="btn-primary">
-      <mat-icon>add</mat-icon>
-      Nuevo Formulario
-    </a>
+    @if (vm.canCreateForms()) {
+      <a routerLink="/admin/forms/builder" class="btn-primary">
+        <mat-icon>add</mat-icon>
+        Nuevo Formulario
+      </a>
+    }
   </div>
 
   <div class="toolbar">
@@ -50,8 +52,8 @@
     <div class="empty-state">
       <mat-icon>description</mat-icon>
       <h3>No hay formularios en esta categoria</h3>
-      <p>Crea un nuevo formulario o cambia de pestana para ver otros estados.</p>
-      @if (vm.activeTab() === 'DRAFT') {
+      <p>Cambia de pestana para ver otros estados.</p>
+      @if (vm.activeTab() === 'DRAFT' && vm.canCreateForms()) {
         <a routerLink="/admin/forms/builder" class="btn-primary">Crear formulario</a>
       }
     </div>
@@ -79,14 +81,14 @@
           </div>
 
           <div class="form-actions">
-            @if (form.state === 'DRAFT' || form.state === 'ARCHIVED') {
+            @if ((form.state === 'DRAFT' || form.state === 'ARCHIVED') && vm.canEditForm(form)) {
               <a [routerLink]="['/admin/forms', form.id, 'edit']" class="btn-action">
                 <mat-icon>edit</mat-icon>
                 Editar
               </a>
             }
 
-            @if (form.state === 'DRAFT' || form.state === 'ARCHIVED') {
+            @if ((form.state === 'DRAFT' || form.state === 'ARCHIVED') && vm.canManageForm(form)) {
               <button
                 class="btn-action btn-deploy"
                 (click)="vm.deployForm(form.id)"
@@ -103,34 +105,40 @@
                 <mat-icon>link</mat-icon>
                 Ver enlace
               </button>
+              @if (vm.canViewResults()) {
+                <a [routerLink]="['/admin/forms', form.id, 'responses']" class="btn-action">
+                  <mat-icon>bar_chart</mat-icon>
+                  Resultados
+                </a>
+              }
+              @if (vm.canManageForm(form)) {
+                <button
+                  class="btn-action"
+                  (click)="vm.archiveForm(form.id)"
+                  [disabled]="vm.actionLoading() === form.id"
+                  type="button"
+                >
+                  <mat-icon>archive</mat-icon>
+                  Archivar
+                </button>
+              }
+            }
+
+            @if (form.state === 'ARCHIVED' && vm.canViewResults()) {
               <a [routerLink]="['/admin/forms', form.id, 'responses']" class="btn-action">
                 <mat-icon>bar_chart</mat-icon>
                 Resultados
               </a>
-              <button
-                class="btn-action"
-                (click)="vm.archiveForm(form.id)"
-                [disabled]="vm.actionLoading() === form.id"
-                type="button"
-              >
-                <mat-icon>archive</mat-icon>
-                Archivar
+            }
+
+            @if (vm.canManageForm(form)) {
+              <button class="btn-action" (click)="vm.openShareModal(form.id)" type="button">
+                <mat-icon>group_add</mat-icon>
+                Compartir
               </button>
             }
 
-            @if (form.state === 'ARCHIVED') {
-              <a [routerLink]="['/admin/forms', form.id, 'responses']" class="btn-action">
-                <mat-icon>bar_chart</mat-icon>
-                Resultados
-              </a>
-            }
-
-            <button class="btn-action" (click)="vm.openShareModal(form.id)" type="button">
-              <mat-icon>group_add</mat-icon>
-              Compartir
-            </button>
-
-            @if (form.state === 'DRAFT') {
+            @if (form.state === 'DRAFT' && vm.canManageForm(form)) {
               <button
                 class="btn-action btn-danger"
                 (click)="vm.deleteForm(form.id)"

@@ -25,9 +25,11 @@ Aplicacion full-stack para crear formularios dinamicos, publicarlos mediante enl
 ## Roles
 
 - `SUPER_ADMIN`: control total sobre usuarios, proyectos, formularios, configuracion y datos.
-- `ADMIN`: gestiona proyectos, asigna lideres de proyecto y puede crear/gestionar formularios.
-- `PROJECT_LEADER`: crea y gestiona formularios y permisos dentro de proyectos asignados.
-- `USER`: usuario recolector/editor; recolecta datos y solo edita formularios con permiso explicito `EDITOR`.
+- `ADMIN`: gestiona proyectos, asigna lideres de proyecto y crea/gestiona formularios dentro de proyectos.
+- `PROJECT_LEADER`: crea y gestiona formularios dentro de proyectos asignados.
+- `USER`: usuario recolector/editor; solo accede a formularios asignados y edita si tiene permiso `EDITOR`.
+
+Todo formulario debe pertenecer a un proyecto. El panel de proyectos muestra miembros por rol: lideres de proyecto y usuarios asignados a formularios como `EDITOR` o `RECOLECTOR`.
 
 ## Estructura
 

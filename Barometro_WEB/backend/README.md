@@ -67,11 +67,12 @@ Comandos equivalentes en Bash:
 ## Roles y permisos
 
 - `SUPER_ADMIN`: control total sobre usuarios, proyectos, formularios, configuracion y datos.
-- `ADMIN`: gestiona proyectos, asigna lideres y crea/gestiona formularios.
-- `PROJECT_LEADER`: gestiona formularios y permisos dentro de proyectos asignados.
-- `USER`: recolecta datos y edita formularios solo cuando recibe permiso `EDITOR`.
+- `ADMIN`: gestiona proyectos, asigna lideres y crea/gestiona formularios dentro de proyectos.
+- `PROJECT_LEADER`: gestiona formularios dentro de proyectos asignados.
+- `USER`: ve solo formularios asignados, recolecta datos y edita solo cuando recibe permiso `EDITOR`.
 
 Los permisos de formulario no son roles globales; viven en `form_user_shares` como `EDITOR` o `RECOLECTOR`.
+Todo formulario debe pertenecer a un proyecto. El detalle de proyecto expone un panel de miembros con lideres y usuarios asignados por formulario.
 
 La fuente de verdad es `backend/routes/api.php` y los archivos activos en `backend/routes/modules/`.
 

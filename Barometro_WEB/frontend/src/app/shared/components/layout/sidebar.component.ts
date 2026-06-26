@@ -6,7 +6,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { TranslateModule } from '@ngx-translate/core';
-import { IsAdminDirective } from '../../directives/is-admin.directive';
 
 @Component({
   selector: 'app-sidebar',
@@ -18,7 +17,6 @@ import { IsAdminDirective } from '../../directives/is-admin.directive';
     MatIconModule,
     MatTooltipModule,
     MatBadgeModule,
-    IsAdminDirective,
     TranslateModule,
   ],
   template: `
@@ -39,20 +37,21 @@ import { IsAdminDirective } from '../../directives/is-admin.directive';
           <span class="nav-text">Mis Formularios</span>
         </a>
 
-        <a
-          class="nav-item"
-          routerLink="/admin/forms/builder"
-          routerLinkActive="active"
-          (click)="navigate.emit()"
-        >
-          <div class="nav-icon-wrapper">
-            <mat-icon class="nav-icon">add_circle</mat-icon>
-          </div>
-          <span class="nav-text">Nuevo Formulario</span>
-        </a>
+        @if (canCreateForms()) {
+          <a
+            class="nav-item"
+            routerLink="/admin/forms/builder"
+            routerLinkActive="active"
+            (click)="navigate.emit()"
+          >
+            <div class="nav-icon-wrapper">
+              <mat-icon class="nav-icon">add_circle</mat-icon>
+            </div>
+            <span class="nav-text">Nuevo Formulario</span>
+          </a>
+        }
 
         <a
-          *isAdmin
           class="nav-item"
           routerLink="/admin/proyectos"
           routerLinkActive="active"
@@ -64,18 +63,19 @@ import { IsAdminDirective } from '../../directives/is-admin.directive';
           <span class="nav-text">Proyectos</span>
         </a>
 
-        <a
-          *isAdmin
-          class="nav-item"
-          routerLink="/admin/usuarios"
-          routerLinkActive="active"
-          (click)="navigate.emit()"
-        >
-          <div class="nav-icon-wrapper">
-            <mat-icon class="nav-icon">people</mat-icon>
-          </div>
-          <span class="nav-text">Usuarios</span>
-        </a>
+        @if (isSuperAdmin()) {
+          <a
+            class="nav-item"
+            routerLink="/admin/usuarios"
+            routerLinkActive="active"
+            (click)="navigate.emit()"
+          >
+            <div class="nav-icon-wrapper">
+              <mat-icon class="nav-icon">people</mat-icon>
+            </div>
+            <span class="nav-text">Usuarios</span>
+          </a>
+        }
       </div>
 
       <div class="sidebar-footer"></div>
@@ -186,4 +186,6 @@ export class SidebarComponent {
 
   navigate = output<void>();
   isAdmin = computed(() => this.authService.isAdmin());
+  isSuperAdmin = computed(() => this.authService.isSuperAdmin());
+  canCreateForms = computed(() => this.authService.isAdmin() || this.authService.isProjectLeader());
 }

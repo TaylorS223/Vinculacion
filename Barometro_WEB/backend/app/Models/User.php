@@ -109,7 +109,7 @@ class User extends Authenticatable
 
     public function canManageUsers(): bool
     {
-        return in_array($this->rol, [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN], true);
+        return $this->isSuperAdmin();
     }
 
     public function canManageRole(string $role): bool
@@ -118,7 +118,7 @@ class User extends Authenticatable
             return in_array($role, self::ROLES, true);
         }
 
-        return $this->isAdmin() && in_array($role, [self::ROLE_PROJECT_LEADER, self::ROLE_USER], true);
+        return false;
     }
 
     public function canManageProjects(): bool

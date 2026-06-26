@@ -1,4 +1,5 @@
 ﻿import { Injectable, computed, inject, signal } from '@angular/core';
+import { AuthService } from '@core/services/auth.service';
 import { Form, FormService, FormShare } from '@core/services/form.service';
 import { firstValueFrom } from 'rxjs';
 
@@ -7,6 +8,7 @@ export type FormTab = 'DRAFT' | 'DEPLOYED' | 'ARCHIVED';
 @Injectable()
 export class FormDashboardViewModel {
   private formService = inject(FormService);
+  private authService = inject(AuthService);
 
   activeTab = signal<FormTab>('DRAFT');
   searchQuery = signal('');
@@ -68,6 +70,22 @@ export class FormDashboardViewModel {
 
   setTab(tab: FormTab): void {
     this.activeTab.set(tab);
+  }
+
+  canCreateForms(): boolean {
+    return this.authService.isAdmin() || this.authService.isProjectLeader();
+  }
+
+  canManageForm(_form: Form): boolean {
+    return this.authService.isAdmin() || this.authService.isProjectLeader();
+  }
+
+  canEditForm(form: Form): boolean {
+    return this.canManageForm(form) || (this.authService.isUser() && form.access_role === 'EDITOR');
+  }
+
+  canViewResults(): boolean {
+    return this.authService.isAdmin() || this.authService.isProjectLeader();
   }
 
   async deployForm(id: string): Promise<void> {

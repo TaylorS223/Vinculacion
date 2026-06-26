@@ -12,9 +12,20 @@ export interface Project {
   created_by?: number | null;
   leaders?: Pick<User, 'id' | 'name' | 'email' | 'rol'>[];
   forms?: Form[];
+  members?: ProjectMember[];
   forms_count?: number;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface ProjectMember {
+  user_id: number;
+  name: string;
+  email: string;
+  role: 'PROJECT_LEADER' | 'EDITOR' | 'RECOLECTOR';
+  scope: 'Proyecto' | 'Formulario';
+  form_id?: string | null;
+  form_title?: string | null;
 }
 
 export interface ProjectPayload {
@@ -36,6 +47,10 @@ export class ProjectService {
 
   getProject(id: string): Observable<Project> {
     return this.http.get<Project>(`${this.apiUrl}/${id}`);
+  }
+
+  getProjectLeaders(): Observable<Array<Pick<User, 'id' | 'name' | 'email' | 'rol'>>> {
+    return this.http.get<Array<Pick<User, 'id' | 'name' | 'email' | 'rol'>>>(`${this.apiUrl}/leaders`);
   }
 
   createProject(data: ProjectPayload): Observable<Project> {

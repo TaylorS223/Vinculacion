@@ -16,6 +16,7 @@ export interface Form {
   updated_at: string;
   questions?: FormQuestion[];
   shares?: FormShare[];
+  access_role?: 'EDITOR' | 'RECOLECTOR' | null;
 }
 
 export interface FormQuestion {
