@@ -1,5 +1,5 @@
 ﻿import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { TitleStrategy, provideRouter } from '@angular/router';
@@ -8,11 +8,15 @@ import { provideEchartsCore } from 'ngx-echarts';
 import { routes } from './app.routes';
 import { authInterceptor, retryInterceptor } from './core/interceptors';
 import { provideTranslateBrowserLoader } from './core/loaders/translate-browser.loader';
+import { LanguageService } from './core/services/language.service';
 import { TranslatedTitleStrategy } from './core/services/translated-title.strategy';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideAppInitializer(() => {
+      inject(LanguageService).initialize();
+    }),
     provideRouter(routes),
     { provide: TitleStrategy, useClass: TranslatedTitleStrategy },
     provideClientHydration(withEventReplay()),

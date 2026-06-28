@@ -27,6 +27,11 @@ export class LanguageService {
   currentLang = signal<Language>('es');
 
   constructor() {
+    this.translateService.addLangs(this.availableLanguages.map((language) => language.code));
+    this.translateService.setFallbackLang('es');
+  }
+
+  initialize(): void {
     this.initializeLanguage();
   }
 

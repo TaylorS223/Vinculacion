@@ -1,18 +1,15 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Injector, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 
 @Injectable()
 export class TranslatedTitleStrategy extends TitleStrategy {
+  private readonly injector = inject(Injector);
   private readonly title = inject(Title);
-  private readonly translate = inject(TranslateService);
   private lastSnapshot: RouterStateSnapshot | null = null;
-
-  constructor() {
-    super();
-    this.translate.onLangChange.subscribe(() => this.applyTitle());
-  }
+  private translate: TranslateService | null = null;
+  private listeningToLanguageChanges = false;
 
   override updateTitle(snapshot: RouterStateSnapshot): void {
     this.lastSnapshot = snapshot;
@@ -29,6 +26,17 @@ export class TranslatedTitleStrategy extends TitleStrategy {
       return;
     }
 
-    this.title.setTitle(this.translate.instant(titleKey));
+    this.title.setTitle(this.getTranslate().instant(titleKey));
+  }
+
+  private getTranslate(): TranslateService {
+    this.translate ??= this.injector.get(TranslateService);
+
+    if (!this.listeningToLanguageChanges) {
+      this.listeningToLanguageChanges = true;
+      this.translate.onLangChange.subscribe(() => this.applyTitle());
+    }
+
+    return this.translate;
   }
 }
