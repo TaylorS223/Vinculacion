@@ -23,6 +23,10 @@ export const retryInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
+  if (!environment.production) {
+    return next(req);
+  }
+
   // The health check itself must not re-enter this gate.
   if (req.url.endsWith(HEALTH_SUFFIX)) {
     return next(req);
