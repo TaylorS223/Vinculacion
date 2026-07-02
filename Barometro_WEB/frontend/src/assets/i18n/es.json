@@ -281,6 +281,8 @@
       "descriptionLabel": "Descripcion",
       "descriptionPlaceholder": "Agrega contexto para quienes responderan el formulario",
       "addQuestions": "Agregar preguntas",
+      "addQuestion": "Agregar pregunta",
+      "editMenu": "Edicion",
       "questionCount": "{{count}} pregunta(s) en el borrador",
       "emptyQuestions": "Agrega una pregunta para empezar a construir el formulario.",
       "order": "Orden {{order}}",

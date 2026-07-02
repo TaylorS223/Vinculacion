@@ -281,6 +281,8 @@
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "Add context for respondents",
       "addQuestions": "Add questions",
+      "addQuestion": "Add question",
+      "editMenu": "Editing",
       "questionCount": "{{count}} question(s) in the draft",
       "emptyQuestions": "Add a question to start building the form.",
       "order": "Order {{order}}",

@@ -93,28 +93,42 @@
           </label>
         </section>
 
-        <section class="question-palette">
-          <div class="section-heading">
+        <section class="question-palette" [attr.aria-label]="'forms.builder.editMenu' | translate">
+          <div class="ribbon-summary">
             <div>
-              <h2>{{ 'forms.builder.addQuestions' | translate }}</h2>
+              <h2>{{ 'forms.builder.editMenu' | translate }}</h2>
               <p>{{ 'forms.builder.questionCount' | translate: { count: vm.questionsCount() } }}</p>
             </div>
+
+            <details class="add-question-menu">
+              <summary
+                class="btn btn-primary"
+                [class.disabled]="vm.isSaving() || !vm.canEditQuestions()"
+              >
+                <span class="material-icons" aria-hidden="true">add</span>
+                {{ 'forms.builder.addQuestion' | translate }}
+                <span class="material-icons" aria-hidden="true">expand_more</span>
+              </summary>
+
+              <div class="question-menu-panel">
+                @for (type of questionTypes; track type.value) {
+                  <button
+                    class="question-menu-item"
+                    type="button"
+                    (click)="vm.addQuestion(type.value)"
+                    [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                  >
+                    <span class="material-icons" aria-hidden="true">{{ type.icon }}</span>
+                    <span>
+                      <strong>{{ type.labelKey | translate }}</strong>
+                      <small>{{ type.hintKey | translate }}</small>
+                    </span>
+                  </button>
+                }
+              </div>
+            </details>
           </div>
 
-          <div class="type-grid">
-            @for (type of questionTypes; track type.value) {
-              <button
-                class="type-button"
-                type="button"
-                (click)="vm.addQuestion(type.value)"
-                [disabled]="vm.isSaving() || !vm.canEditQuestions()"
-              >
-                <span class="material-icons" aria-hidden="true">{{ type.icon }}</span>
-                <strong>{{ type.labelKey | translate }}</strong>
-                <small>{{ type.hintKey | translate }}</small>
-              </button>
-            }
-          </div>
         </section>
 
         <section class="questions-section">
