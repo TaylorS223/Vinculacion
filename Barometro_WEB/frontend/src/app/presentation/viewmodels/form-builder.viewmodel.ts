@@ -10,11 +10,13 @@ export interface FormQuestionDraft {
   type: FormQuestion['type'];
   label: string;
   options: string[];
+  likertRows: string[];
+  likertColumns: string[];
   required: boolean;
   order: number;
 }
 
-const SELECT_TYPES: FormQuestion['type'][] = ['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'LIKERT'];
+const SELECT_TYPES: FormQuestion['type'][] = ['SINGLE_CHOICE', 'MULTIPLE_CHOICE'];
 const DEFAULT_LIKERT_OPTIONS = [
   'Totalmente en desacuerdo',
   'En desacuerdo',
@@ -22,6 +24,7 @@ const DEFAULT_LIKERT_OPTIONS = [
   'De acuerdo',
   'Totalmente de acuerdo',
 ];
+const DEFAULT_LIKERT_ROWS = ['Nueva afirmacion'];
 
 @Injectable()
 export class FormBuilderViewModel {
@@ -51,6 +54,12 @@ export class FormBuilderViewModel {
     const hasQuestions = this.questions().length > 0;
     const allQuestionsValid = this.questions().every((question) => {
       const hasLabel = question.label.trim().length > 0;
+      if (question.type === 'LIKERT') {
+        const filledRows = question.likertRows.filter((row) => row.trim().length > 0);
+        const filledColumns = question.likertColumns.filter((column) => column.trim().length > 0);
+        return filledRows.length > 0 && filledColumns.length > 0;
+      }
+
       const needsOptions = SELECT_TYPES.includes(question.type);
       const filledOptions = question.options.filter((option) => option.trim().length > 0);
       return hasLabel && (!needsOptions || filledOptions.length > 0);
@@ -102,6 +111,8 @@ export class FormBuilderViewModel {
       type,
       label: '',
       options: this.getInitialOptions(type),
+      likertRows: type === 'LIKERT' ? [...DEFAULT_LIKERT_ROWS] : [],
+      likertColumns: type === 'LIKERT' ? [...DEFAULT_LIKERT_OPTIONS] : [],
       required: true,
       order: this.questions().length,
     };
@@ -193,6 +204,72 @@ export class FormBuilderViewModel {
     );
   }
 
+  addLikertRow(tempId: string): void {
+    this.questions.update((questions) =>
+      questions.map((question) =>
+        question.tempId === tempId ? { ...question, likertRows: [...question.likertRows, ''] } : question,
+      ),
+    );
+  }
+
+  updateLikertRow(tempId: string, rowIndex: number, value: string): void {
+    this.questions.update((questions) =>
+      questions.map((question) => {
+        if (question.tempId !== tempId) return question;
+
+        const likertRows = [...question.likertRows];
+        likertRows[rowIndex] = value;
+        return { ...question, likertRows };
+      }),
+    );
+  }
+
+  removeLikertRow(tempId: string, rowIndex: number): void {
+    this.questions.update((questions) =>
+      questions.map((question) => {
+        if (question.tempId !== tempId || question.likertRows.length <= 1) return question;
+
+        return {
+          ...question,
+          likertRows: question.likertRows.filter((_, index) => index !== rowIndex),
+        };
+      }),
+    );
+  }
+
+  addLikertColumn(tempId: string): void {
+    this.questions.update((questions) =>
+      questions.map((question) =>
+        question.tempId === tempId ? { ...question, likertColumns: [...question.likertColumns, ''] } : question,
+      ),
+    );
+  }
+
+  updateLikertColumn(tempId: string, columnIndex: number, value: string): void {
+    this.questions.update((questions) =>
+      questions.map((question) => {
+        if (question.tempId !== tempId) return question;
+
+        const likertColumns = [...question.likertColumns];
+        likertColumns[columnIndex] = value;
+        return { ...question, likertColumns };
+      }),
+    );
+  }
+
+  removeLikertColumn(tempId: string, columnIndex: number): void {
+    this.questions.update((questions) =>
+      questions.map((question) => {
+        if (question.tempId !== tempId || question.likertColumns.length <= 1) return question;
+
+        return {
+          ...question,
+          likertColumns: question.likertColumns.filter((_, index) => index !== columnIndex),
+        };
+      }),
+    );
+  }
+
   async saveForm(): Promise<void> {
     if (!this.isFormValid()) {
       this.errorMessage.set(this.translate.instant('forms.builder.messages.invalid'));
@@ -271,6 +348,15 @@ export class FormBuilderViewModel {
     return labels[type];
   }
 
+  getQuestionDisplayLabel(question: FormQuestionDraft): string {
+    const label = question.label.trim();
+    if (label.length > 0) return label;
+
+    return question.type === 'LIKERT'
+      ? this.translate.instant('forms.builder.types.LIKERT')
+      : this.translate.instant('forms.builder.untitledQuestion');
+  }
+
   private toDraft(question: FormQuestion, order: number): FormQuestionDraft {
     return {
       id: question.id,
@@ -278,16 +364,14 @@ export class FormBuilderViewModel {
       type: question.type,
       label: question.label,
       options: this.normalizeOptions(question),
+      likertRows: this.normalizeLikertRows(question),
+      likertColumns: this.normalizeLikertColumns(question),
       required: question.required,
       order,
     };
   }
 
   private normalizeOptions(question: FormQuestion): string[] {
-    if (question.type === 'LIKERT' && (!question.options || question.options.length === 0)) {
-      return [...DEFAULT_LIKERT_OPTIONS];
-    }
-
     if (Array.isArray(question.options) && question.options.length > 0) {
       return question.options.map((option) => String(option));
     }
@@ -295,20 +379,50 @@ export class FormBuilderViewModel {
     return SELECT_TYPES.includes(question.type) ? [''] : [];
   }
 
+  private normalizeLikertRows(question: FormQuestion): string[] {
+    if (question.type !== 'LIKERT') return [];
+
+    if (question.options && !Array.isArray(question.options) && Array.isArray(question.options.rows)) {
+      return question.options.rows.length > 0 ? question.options.rows.map((row) => String(row)) : [...DEFAULT_LIKERT_ROWS];
+    }
+
+    return [question.label || DEFAULT_LIKERT_ROWS[0]];
+  }
+
+  private normalizeLikertColumns(question: FormQuestion): string[] {
+    if (question.type !== 'LIKERT') return [];
+
+    if (question.options && !Array.isArray(question.options) && Array.isArray(question.options.columns)) {
+      return question.options.columns.length > 0
+        ? question.options.columns.map((column) => String(column))
+        : [...DEFAULT_LIKERT_OPTIONS];
+    }
+
+    if (Array.isArray(question.options) && question.options.length > 0) {
+      return question.options.map((option) => String(option));
+    }
+
+    return [...DEFAULT_LIKERT_OPTIONS];
+  }
+
   private getInitialOptions(type: FormQuestion['type']): string[] {
-    if (type === 'LIKERT') return [...DEFAULT_LIKERT_OPTIONS];
     if (SELECT_TYPES.includes(type)) return [''];
     return [];
   }
 
   private toQuestionPayload(question: FormQuestionDraft): Partial<FormQuestion> {
-    const options = SELECT_TYPES.includes(question.type)
-      ? question.options.map((option) => option.trim()).filter(Boolean)
-      : null;
+    const options = question.type === 'LIKERT'
+      ? {
+          rows: question.likertRows.map((row) => row.trim()).filter(Boolean),
+          columns: question.likertColumns.map((column) => column.trim()).filter(Boolean),
+        }
+      : SELECT_TYPES.includes(question.type)
+        ? question.options.map((option) => option.trim()).filter(Boolean)
+        : null;
 
     return {
       type: question.type,
-      label: question.label.trim(),
+      label: question.label.trim() || this.translate.instant('forms.builder.types.LIKERT'),
       required: question.required,
       order: question.order,
       options,

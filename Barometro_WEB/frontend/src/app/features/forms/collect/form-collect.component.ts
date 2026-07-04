@@ -49,9 +49,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             }
           </header>
 
-          <form (ngSubmit)="onSubmit()" class="collect-form">
+          <form (ngSubmit)="onSubmit()" class="collect-form" novalidate>
             @for (question of form()!.questions ?? []; track question.id; let i = $index) {
-              <div class="question-block">
+              <div class="question-block" [class.invalid]="questionError(question.id)">
                 <label class="question-label">
                   {{ i + 1 }}. {{ question.label }}
                   @if (question.required) {
@@ -92,20 +92,31 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     </div>
                   }
                   @case ('LIKERT') {
-                    <div class="likert-row">
-                      @for (opt of question.options ?? []; track $index) {
-                        <label class="likert-option">
-                          <input
-                            type="radio"
-                            [name]="question.id"
-                            [value]="opt"
-                            [ngModel]="answers()[question.id]"
-                            (ngModelChange)="setAnswer(question.id, $event)"
-                            [required]="question.required"
-                          />
-                          <span>{{ opt }}</span>
-                        </label>
-                      }
+                    <div class="likert-table-wrap">
+                      <div
+                        class="likert-table"
+                        [style.grid-template-columns]="'minmax(160px, 1.35fr) repeat(' + getLikertColumns(question).length + ', minmax(96px, 1fr))'"
+                      >
+                        <span></span>
+                        @for (column of getLikertColumns(question); track $index) {
+                          <strong>{{ column }}</strong>
+                        }
+                        @for (row of getLikertRows(question); track row; let rowIndex = $index) {
+                          <span class="likert-row-label">{{ row }}</span>
+                          @for (column of getLikertColumns(question); track column) {
+                            <label class="likert-cell">
+                              <input
+                                type="radio"
+                                [name]="question.id + '-' + rowIndex"
+                                [value]="column"
+                                [ngModel]="getLikertAnswer(question.id, row)"
+                                (ngModelChange)="setLikertAnswer(question.id, row, $event)"
+                                [required]="question.required"
+                              />
+                            </label>
+                          }
+                        }
+                      </div>
                     </div>
                   }
                   @case ('TEXT') {
@@ -130,6 +141,10 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                       placeholder="0"
                     />
                   }
+                }
+
+                @if (questionError(question.id)) {
+                  <p class="question-error">{{ questionError(question.id) }}</p>
                 }
               </div>
             }
@@ -164,7 +179,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
       .collect-card {
         width: 100%;
-        max-width: 640px;
+        max-width: 900px;
         background: var(--card-bg);
         border: 1px solid var(--card-border);
         border-radius: var(--radius-xl);
@@ -199,6 +214,13 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+        border-radius: var(--radius-lg);
+      }
+
+      .question-block.invalid {
+        padding: 0.75rem;
+        border: 1px solid rgba(239, 68, 68, 0.28);
+        background: var(--error-bg);
       }
 
       .question-label {
@@ -209,6 +231,13 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
       .required {
         color: #c8102e;
+      }
+
+      .question-error {
+        margin: 0;
+        color: var(--error-color);
+        font-size: 0.8125rem;
+        font-weight: 600;
       }
 
       .options-list {
@@ -226,21 +255,50 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         cursor: pointer;
       }
 
-      .likert-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
+      .likert-table-wrap {
+        overflow-x: auto;
       }
 
-      .likert-option {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.25rem;
-        font-size: 0.75rem;
+      .likert-table {
+        display: grid;
+        min-width: 100%;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+      }
+
+      .likert-table > * {
+        display: grid;
+        min-height: 46px;
+        place-items: center;
+        border-right: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        padding: 0.55rem;
+        color: var(--text-secondary);
+        font-size: 0.8125rem;
         text-align: center;
-        max-width: 100px;
+      }
+
+      .likert-table strong {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        font-weight: 700;
+      }
+
+      .likert-row-label {
+        justify-items: start;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        font-weight: 600;
+        text-align: left;
+      }
+
+      .likert-cell {
         cursor: pointer;
+
+        input {
+          accent-color: var(--primary-600);
+        }
       }
 
       .text-input,
@@ -298,6 +356,7 @@ export class FormCollectComponent implements OnInit {
 
   form = signal<Form | null>(null);
   answers = signal<Record<string, unknown>>({});
+  validationErrors = signal<Record<string, string>>({});
   loading = signal(true);
   submitting = signal(false);
   submitted = signal(false);
@@ -330,6 +389,7 @@ export class FormCollectComponent implements OnInit {
 
   setAnswer(questionId: string, value: unknown): void {
     this.answers.update((a) => ({ ...a, [questionId]: value }));
+    this.clearQuestionError(questionId);
   }
 
   isSelected(questionId: string, option: string): boolean {
@@ -351,8 +411,49 @@ export class FormCollectComponent implements OnInit {
     this.setAnswer(questionId, selected);
   }
 
+  getLikertRows(question: FormQuestion): string[] {
+    if (question.options && !Array.isArray(question.options) && Array.isArray(question.options.rows)) {
+      return question.options.rows.map((row) => String(row)).filter(Boolean);
+    }
+
+    return [question.label];
+  }
+
+  getLikertColumns(question: FormQuestion): string[] {
+    if (question.options && !Array.isArray(question.options) && Array.isArray(question.options.columns)) {
+      return question.options.columns.map((column) => String(column)).filter(Boolean);
+    }
+
+    if (Array.isArray(question.options)) {
+      return question.options.map((column) => String(column)).filter(Boolean);
+    }
+
+    return [];
+  }
+
+  getLikertAnswer(questionId: string, row: string): unknown {
+    const value = this.answers()[questionId];
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      return (value as Record<string, unknown>)[row];
+    }
+
+    return value;
+  }
+
+  setLikertAnswer(questionId: string, row: string, value: unknown): void {
+    const current = this.answers()[questionId];
+    const matrix = current && typeof current === 'object' && !Array.isArray(current)
+      ? { ...(current as Record<string, unknown>) }
+      : {};
+
+    matrix[row] = value;
+    this.setAnswer(questionId, matrix);
+  }
+
   onSubmit(): void {
     if (this.submitting()) return;
+    if (!this.validateRequiredQuestions()) return;
+
     this.submitting.set(true);
 
     this.formService.submitResponse(this.linkUuid, this.answers()).subscribe({
@@ -369,8 +470,58 @@ export class FormCollectComponent implements OnInit {
 
   resetForm(): void {
     this.answers.set({});
+    this.validationErrors.set({});
     this.submitted.set(false);
     this.error.set('');
+  }
+
+  questionError(questionId: string): string {
+    return this.validationErrors()[questionId] ?? '';
+  }
+
+  private validateRequiredQuestions(): boolean {
+    const form = this.form();
+    if (!form) return false;
+
+    const errors: Record<string, string> = {};
+    for (const question of form.questions ?? []) {
+      if (!question.required || this.hasRequiredAnswer(question)) continue;
+
+      errors[question.id] = question.type === 'LIKERT'
+        ? this.translate.instant('forms.collect.errors.requiredLikert')
+        : this.translate.instant('forms.collect.errors.required');
+    }
+
+    this.validationErrors.set(errors);
+    return Object.keys(errors).length === 0;
+  }
+
+  private hasRequiredAnswer(question: FormQuestion): boolean {
+    const answer = this.answers()[question.id];
+
+    if (question.type === 'MULTIPLE_CHOICE') {
+      return Array.isArray(answer) && answer.length > 0;
+    }
+
+    if (question.type === 'LIKERT') {
+      const rows = this.getLikertRows(question);
+      if (!answer || typeof answer !== 'object' || Array.isArray(answer)) return false;
+
+      const matrix = answer as Record<string, unknown>;
+      return rows.every((row) => matrix[row] !== undefined && matrix[row] !== null && String(matrix[row]).trim() !== '');
+    }
+
+    return answer !== undefined && answer !== null && String(answer).trim() !== '';
+  }
+
+  private clearQuestionError(questionId: string): void {
+    if (!this.validationErrors()[questionId]) return;
+
+    this.validationErrors.update((errors) => {
+      const next = { ...errors };
+      delete next[questionId];
+      return next;
+    });
   }
 }
 

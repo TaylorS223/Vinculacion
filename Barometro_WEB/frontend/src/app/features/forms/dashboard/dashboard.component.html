@@ -76,6 +76,23 @@
             <p class="form-description">{{ form.description }}</p>
           }
 
+          <div class="form-context">
+            <span class="context-item">
+              <mat-icon>folder</mat-icon>
+              <span class="context-copy">
+                <span class="context-label">{{ 'common.labels.project' | translate }}</span>
+                <strong class="context-value">{{ form.project?.name ?? ('forms.dashboard.noProject' | translate) }}</strong>
+              </span>
+            </span>
+            <span class="context-item">
+              <mat-icon>person</mat-icon>
+              <span class="context-copy">
+                <span class="context-label">{{ 'forms.dashboard.createdBy' | translate }}</span>
+                <strong class="context-value">{{ form.owner?.name ?? ('forms.dashboard.noOwner' | translate) }}</strong>
+              </span>
+            </span>
+          </div>
+
           <div class="form-meta">
             <span>{{ 'forms.dashboard.updatedAt' | translate: { date: (form.updated_at | date: 'dd/MM/yyyy') } }}</span>
           </div>
@@ -138,14 +155,15 @@
               </button>
             }
 
-            @if (form.state === 'DRAFT' && vm.canManageForm(form)) {
+            @if ((form.state === 'DRAFT' || form.state === 'ARCHIVED') && vm.canManageForm(form)) {
               <button
                 class="btn-action btn-danger"
-                (click)="vm.deleteForm(form.id)"
+                (click)="vm.deleteForm(form)"
                 [disabled]="vm.actionLoading() === form.id"
                 type="button"
               >
                 <mat-icon>delete</mat-icon>
+                {{ 'common.buttons.delete' | translate }}
               </button>
             }
           </div>

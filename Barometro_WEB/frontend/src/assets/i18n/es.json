@@ -234,6 +234,10 @@
       "emptySubtitle": "Cambia de pestana para ver otros estados.",
       "loading": "Cargando formularios...",
       "responsesCount": "{{count}} respuestas",
+      "createdBy": "Creado por",
+      "noProject": "Sin proyecto",
+      "noOwner": "Sin creador",
+      "deletePermanentWarning": "Vas a eliminar permanentemente \"{{title}}\". Se borrara el formulario junto con sus preguntas, datos y respuestas. Esta accion no se puede deshacer.",
       "updatedAt": "Actualizado: {{date}}",
       "publicLinkTitle": "Enlace de recoleccion",
       "publicLinkSubtitle": "Usa este enlace en la app movil o navegador para recolectar respuestas.",
@@ -295,6 +299,19 @@
       "addOption": "Agregar opcion",
       "optionPlaceholder": "Opcion de respuesta",
       "deleteOption": "Eliminar opcion",
+      "likert": {
+        "titleLabel": "Titulo de la escala",
+        "titlePlaceholder": "Ej. Nivel de satisfaccion",
+        "matrixLabel": "Matriz Likert *",
+        "rowsLabel": "Preguntas",
+        "addRow": "Agregar fila",
+        "addColumn": "Agregar columna",
+        "rowPlaceholder": "Pregunta o afirmacion",
+        "columnPlaceholder": "Respuesta",
+        "deleteRow": "Eliminar fila",
+        "deleteColumn": "Eliminar columna",
+        "emptyRow": "Fila sin texto"
+      },
       "required": "Pregunta obligatoria",
       "previewTitle": "Vista previa",
       "previewSubtitle": "Asi se vera para quien responde.",
@@ -335,6 +352,21 @@
       "exportExcel": "Exportar Excel",
       "loading": "Cargando respuestas...",
       "chartsTitle": "Resumen grafico",
+      "distribution": "Distribucion",
+      "chartTypes": {
+        "SINGLE_CHOICE": "Seleccion unica",
+        "MULTIPLE_CHOICE": "Seleccion multiple",
+        "LIKERT": "Escala Likert",
+        "TEXT": "Texto",
+        "NUMBER": "Numero"
+      },
+      "chart": {
+        "noData": "Sin datos para graficar",
+        "totalSelections": "Total de selecciones",
+        "mainAnswer": "Respuesta principal",
+        "responses": "respuestas",
+        "topFrequency": "Mayor frecuencia"
+      },
       "tableTitle": "Datos recolectados",
       "empty": "Aun no hay respuestas para este formulario.",
       "emptyHint": "Comparte el enlace de recoleccion para empezar a recibir datos.",
@@ -357,7 +389,9 @@
       "errors": {
         "invalidLink": "Enlace invalido",
         "load": "No se pudo cargar el formulario. Verifica el enlace.",
-        "submit": "Error al enviar la respuesta. Intenta de nuevo."
+        "submit": "Error al enviar la respuesta. Intenta de nuevo.",
+        "required": "Esta pregunta es obligatoria.",
+        "requiredLikert": "Responde todas las filas de esta escala."
       }
     }
   },

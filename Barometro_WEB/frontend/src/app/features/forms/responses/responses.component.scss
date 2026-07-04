@@ -138,23 +138,61 @@
 
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 1.1rem;
 }
 
 .chart-card {
+  position: relative;
+  overflow: hidden;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-xl);
-  padding: 1rem;
+  padding: 1.1rem;
+  box-shadow: var(--shadow-sm);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-600), #10b981);
+  }
+}
+
+.chart-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  span {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: var(--text-tertiary);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
 
   h3 {
-    margin: 0 0 0.75rem;
-    font-size: 0.9375rem;
-    font-weight: 600;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
     color: var(--text-primary);
     line-height: 1.4;
   }
+}
+
+.chart-type {
+  flex: 0 0 auto;
+  border-radius: var(--radius-full);
+  background: var(--primary-50);
+  color: var(--primary-600);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  padding: 0.3rem 0.55rem;
 }
 
 .table-wrapper {

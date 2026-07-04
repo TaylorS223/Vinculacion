@@ -48,7 +48,13 @@
         <div class="charts-grid">
           @for (chart of vm.chartableQuestions(); track chart.questionId) {
             <div class="chart-card">
-              <h3>{{ chart.label }}</h3>
+              <div class="chart-card-header">
+                <div>
+                  <span>{{ 'forms.responses.distribution' | translate }}</span>
+                  <h3>{{ chart.label }}</h3>
+                </div>
+                <strong class="chart-type">{{ 'forms.responses.chartTypes.' + chart.type | translate }}</strong>
+              </div>
               @if (chart.type === 'MULTIPLE_CHOICE') {
                 <app-bar-chart
                   [categories]="chart.categories"

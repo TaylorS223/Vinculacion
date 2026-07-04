@@ -9,6 +9,7 @@ export interface Form {
   description?: string;
   project_id?: string | null;
   project?: { id: string; name: string };
+  owner?: { id: string; name: string; email: string; rol?: string };
   state: 'DRAFT' | 'DEPLOYED' | 'ARCHIVED';
   link_uuid?: string;
   responses_count?: number;
@@ -24,9 +25,14 @@ export interface FormQuestion {
   form_id: string;
   type: 'MULTIPLE_CHOICE' | 'SINGLE_CHOICE' | 'LIKERT' | 'TEXT' | 'NUMBER';
   label: string;
-  options?: string[] | null;
+  options?: string[] | LikertOptions | null;
   required: boolean;
   order: number;
+}
+
+export interface LikertOptions {
+  rows: string[];
+  columns: string[];
 }
 
 export interface FormShare {

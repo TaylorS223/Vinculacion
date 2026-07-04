@@ -46,13 +46,13 @@ class FormController extends Controller
                     }
                 });
             }, fn($query) => $query->where('user_id', $user->id))
-            ->with(['project:id,name'])
+            ->with(['owner:id,name,email,rol', 'project:id,name'])
             ->withCount('responses')
             ->latest()
             ->get();
 
         $sharedForms = Form::whereHas('shares', fn($q) => $q->where('user_id', $user->id))
-            ->with(['project:id,name'])
+            ->with(['owner:id,name,email,rol', 'project:id,name'])
             ->withCount('responses')
             ->latest()
             ->get()
@@ -103,7 +103,7 @@ class FormController extends Controller
     public function show(Request $request, string $id): JsonResponse
     {
         $form = $this->findViewableForm($id, $request->user());
-        $form->load(['project:id,name', 'questions' => fn($q) => $q->orderBy('order'), 'shares.user:id,name,email,rol']);
+        $form->load(['owner:id,name,email,rol', 'project:id,name', 'questions' => fn($q) => $q->orderBy('order'), 'shares.user:id,name,email,rol']);
 
         return response()->json($form);
     }
@@ -135,6 +135,10 @@ class FormController extends Controller
 
         if (!$this->canDeleteForm($form, $user)) {
             return response()->json(['message' => 'No tienes permisos para eliminar este formulario'], 403);
+        }
+
+        if ($form->state === 'DEPLOYED') {
+            return response()->json(['message' => 'Archiva el formulario antes de eliminarlo permanentemente'], 422);
         }
 
         $form->delete();
@@ -296,11 +300,24 @@ class FormController extends Controller
     #[OA\Post(path: '/forms/submit/{link_uuid}', summary: 'Enviar respuesta publica', tags: ['Forms'])]
     public function submitResponse(Request $request, string $link_uuid): JsonResponse
     {
-        $form = Form::where('link_uuid', $link_uuid)->where('state', 'DEPLOYED')->firstOrFail();
+        $form = Form::where('link_uuid', $link_uuid)
+            ->where('state', 'DEPLOYED')
+            ->with(['questions' => fn($q) => $q->orderBy('order')])
+            ->firstOrFail();
+
+        $data = $request->data ?? [];
+        $missing = $this->missingRequiredQuestions($form, is_array($data) ? $data : []);
+
+        if (!empty($missing)) {
+            return response()->json([
+                'message' => 'Completa las preguntas obligatorias antes de enviar',
+                'missing' => $missing,
+            ], 422);
+        }
 
         $response = FormResponse::create([
             'form_id' => $form->id,
-            'data' => $request->data ?? [],
+            'data' => $data,
         ]);
 
         return response()->json(['message' => 'Respuesta guardada', 'id' => $response->id], 201);
@@ -330,7 +347,7 @@ class FormController extends Controller
                 continue;
             }
 
-            $counts = [];
+            $counts = array_fill_keys($this->chartOptionsForQuestion($q), 0);
             foreach ($form->responses as $r) {
                 $answer = $r->data[$q->id] ?? null;
                 foreach ((array) $answer as $value) {
@@ -485,6 +502,11 @@ class FormController extends Controller
                     $headers[] = "{$question->label}/{$option}";
                     $columnMap[] = ['type' => 'multi_option', 'question_id' => $question->id, 'option' => $option];
                 }
+            } elseif ($question->type === 'LIKERT' && is_array($question->options) && isset($question->options['rows']) && is_array($question->options['rows'])) {
+                foreach ($question->options['rows'] as $rowLabel) {
+                    $headers[] = "{$question->label}/{$rowLabel}";
+                    $columnMap[] = ['type' => 'likert_row', 'question_id' => $question->id, 'row' => $rowLabel];
+                }
             } else {
                 $headers[] = $question->label;
                 $columnMap[] = ['type' => 'simple', 'question_id' => $question->id];
@@ -515,8 +537,10 @@ class FormController extends Controller
                 if ($col['type'] === 'multi_option') {
                     $selected = is_array($answer) ? $answer : ($answer ? [$answer] : []);
                     $row[] = in_array($col['option'], $selected, true) ? 1 : 0;
+                } elseif ($col['type'] === 'likert_row') {
+                    $row[] = is_array($answer) ? ($answer[$col['row']] ?? '') : '';
                 } elseif (is_array($answer)) {
-                    $row[] = implode(' ', $answer);
+                    $row[] = implode(' ', array_map(fn($value) => is_scalar($value) ? (string) $value : json_encode($value), $answer));
                 } else {
                     $row[] = $answer ?? '';
                 }
@@ -540,5 +564,66 @@ class FormController extends Controller
         }
 
         return ['headers' => $headers, 'rows' => $rows];
+    }
+
+    private function missingRequiredQuestions(Form $form, array $data): array
+    {
+        $missing = [];
+
+        foreach ($form->questions as $question) {
+            if (!$question->required) {
+                continue;
+            }
+
+            $answer = $data[$question->id] ?? null;
+            if (!$this->hasRequiredAnswer($question, $answer)) {
+                $missing[] = [
+                    'id' => $question->id,
+                    'label' => $question->label,
+                ];
+            }
+        }
+
+        return $missing;
+    }
+
+    private function hasRequiredAnswer(FormQuestion $question, mixed $answer): bool
+    {
+        if ($question->type === 'MULTIPLE_CHOICE') {
+            return is_array($answer) && count(array_filter($answer, fn($value) => $value !== null && $value !== '')) > 0;
+        }
+
+        if ($question->type === 'LIKERT') {
+            $rows = is_array($question->options) && isset($question->options['rows']) && is_array($question->options['rows'])
+                ? $question->options['rows']
+                : [$question->label];
+
+            if (!is_array($answer)) {
+                return false;
+            }
+
+            foreach ($rows as $row) {
+                if (!isset($answer[$row]) || $answer[$row] === null || $answer[$row] === '') {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return $answer !== null && trim((string) $answer) !== '';
+    }
+
+    private function chartOptionsForQuestion(FormQuestion $question): array
+    {
+        if (!is_array($question->options)) {
+            return [];
+        }
+
+        if ($question->type === 'LIKERT' && isset($question->options['columns']) && is_array($question->options['columns'])) {
+            return array_values(array_filter($question->options['columns'], fn($option) => $option !== null && $option !== ''));
+        }
+
+        return array_values(array_filter($question->options, fn($option) => is_scalar($option) && $option !== ''));
     }
 }

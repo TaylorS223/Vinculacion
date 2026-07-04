@@ -40,13 +40,14 @@ export class FormResponsesViewModel {
       .filter((q) => ['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'LIKERT'].includes(q.type))
       .map((q) => {
         const counts = statsData[q.id] ?? {};
-        const categories = Object.keys(counts);
+        const configuredCategories = this.getChartCategories(q);
+        const categories = configuredCategories.length > 0 ? configuredCategories : Object.keys(counts);
         return {
           questionId: q.id,
           label: q.label,
           type: q.type,
           categories,
-          values: categories.map((c) => counts[c]),
+          values: categories.map((c) => counts[c] ?? 0),
         };
       })
       .filter((c) => c.categories.length > 0);
@@ -128,12 +129,30 @@ export class FormResponsesViewModel {
         result[q.id] = '';
       } else if (Array.isArray(value)) {
         result[q.id] = value.join(', ');
+      } else if (typeof value === 'object') {
+        result[q.id] = Object.entries(value as Record<string, unknown>)
+          .map(([row, answer]) => `${row}: ${String(answer ?? '')}`)
+          .join(' | ');
       } else {
         result[q.id] = String(value);
       }
     }
 
     return result;
+  }
+
+  private getChartCategories(question: FormQuestion): string[] {
+    if (!question.options) return [];
+
+    if (question.type === 'LIKERT' && !Array.isArray(question.options) && Array.isArray(question.options.columns)) {
+      return question.options.columns.map((option) => String(option)).filter(Boolean);
+    }
+
+    if (Array.isArray(question.options)) {
+      return question.options.map((option) => String(option)).filter(Boolean);
+    }
+
+    return [];
   }
 }
 

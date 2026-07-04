@@ -114,10 +114,18 @@ export class FormDashboardViewModel {
     }
   }
 
-  async deleteForm(id: string): Promise<void> {
-    this.actionLoading.set(id);
+  async deleteForm(form: Form): Promise<void> {
+    const confirmed = typeof window === 'undefined'
+      ? true
+      : window.confirm(this.translate.instant('forms.dashboard.deletePermanentWarning', { title: form.title }));
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.actionLoading.set(form.id);
     try {
-      await firstValueFrom(this.formService.deleteForm(id));
+      await firstValueFrom(this.formService.deleteForm(form.id));
       await this.loadForms();
     } catch (error: any) {
       this.errorMessage.set(error?.error?.message || this.translate.instant('forms.dashboard.errors.delete'));

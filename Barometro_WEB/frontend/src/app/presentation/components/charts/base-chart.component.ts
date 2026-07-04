@@ -29,9 +29,9 @@ export abstract class BaseChartComponent {
   protected _values = signal<number[]>([]);
   protected _title = signal('');
 
-  protected formatNumber(value: number): string {
+  formatNumber(value: number): string {
     if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
     if (value >= 1000) return (value / 1000).toFixed(1) + 'K';
-    return value.toFixed(2);
+    return Number.isInteger(value) ? String(value) : value.toFixed(2);
   }
 }

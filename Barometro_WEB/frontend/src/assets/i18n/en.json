@@ -234,6 +234,10 @@
       "emptySubtitle": "Switch tabs to view other statuses.",
       "loading": "Loading forms...",
       "responsesCount": "{{count}} responses",
+      "createdBy": "Created by",
+      "noProject": "No project",
+      "noOwner": "No creator",
+      "deletePermanentWarning": "You are about to permanently delete \"{{title}}\". The form, its questions, data, and responses will be deleted. This action cannot be undone.",
       "updatedAt": "Updated: {{date}}",
       "publicLinkTitle": "Collection link",
       "publicLinkSubtitle": "Use this link in the mobile app or browser to collect responses.",
@@ -295,6 +299,19 @@
       "addOption": "Add option",
       "optionPlaceholder": "Answer option",
       "deleteOption": "Delete option",
+      "likert": {
+        "titleLabel": "Scale title",
+        "titlePlaceholder": "E.g. Satisfaction level",
+        "matrixLabel": "Likert matrix *",
+        "rowsLabel": "Questions",
+        "addRow": "Add row",
+        "addColumn": "Add column",
+        "rowPlaceholder": "Question or statement",
+        "columnPlaceholder": "Answer",
+        "deleteRow": "Delete row",
+        "deleteColumn": "Delete column",
+        "emptyRow": "Empty row"
+      },
       "required": "Required question",
       "previewTitle": "Preview",
       "previewSubtitle": "This is how respondents will see it.",
@@ -335,6 +352,21 @@
       "exportExcel": "Export Excel",
       "loading": "Loading responses...",
       "chartsTitle": "Graphic summary",
+      "distribution": "Distribution",
+      "chartTypes": {
+        "SINGLE_CHOICE": "Single choice",
+        "MULTIPLE_CHOICE": "Multiple choice",
+        "LIKERT": "Likert scale",
+        "TEXT": "Text",
+        "NUMBER": "Number"
+      },
+      "chart": {
+        "noData": "No data to chart",
+        "totalSelections": "Total selections",
+        "mainAnswer": "Main answer",
+        "responses": "responses",
+        "topFrequency": "Top frequency"
+      },
       "tableTitle": "Collected data",
       "empty": "There are no responses for this form yet.",
       "emptyHint": "Share the collection link to start receiving data.",
@@ -357,7 +389,9 @@
       "errors": {
         "invalidLink": "Invalid link",
         "load": "Could not load the form. Check the link.",
-        "submit": "Failed to submit the response. Try again."
+        "submit": "Failed to submit the response. Try again.",
+        "required": "This question is required.",
+        "requiredLikert": "Answer every row in this scale."
       }
     }
   },
