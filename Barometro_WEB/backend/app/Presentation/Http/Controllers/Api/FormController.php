@@ -75,6 +75,7 @@ class FormController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'project_id' => 'required|uuid|exists:projects,id',
+            'step_by_step' => 'sometimes|boolean',
         ]);
 
         $projectId = $request->input('project_id');
@@ -94,6 +95,7 @@ class FormController extends Controller
             'user_id' => $user->id,
             'project_id' => $projectId,
             'state' => 'DRAFT',
+            'step_by_step' => $request->boolean('step_by_step'),
         ]);
 
         return response()->json($form, 201);
@@ -120,9 +122,10 @@ class FormController extends Controller
         $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
+            'step_by_step' => 'sometimes|boolean',
         ]);
 
-        $form->update($request->only(['title', 'description']));
+        $form->update($request->only(['title', 'description', 'step_by_step']));
 
         return response()->json($form);
     }
@@ -200,9 +203,20 @@ class FormController extends Controller
             'order' => 'integer',
             'required' => 'boolean',
             'options' => 'nullable|array',
+            'branch_rules' => 'nullable|array',
+            'branch_rules.*.option_index' => 'required_with:branch_rules|integer|min:0',
+            'branch_rules.*.action' => 'nullable|in:CONTINUE,GO_TO,END_FORM',
+            'branch_rules.*.next_question_id' => 'nullable|uuid',
         ]);
 
-        $question = $form->questions()->create($request->all());
+        $question = $form->questions()->create($request->only([
+            'type',
+            'label',
+            'order',
+            'required',
+            'options',
+            'branch_rules',
+        ]));
 
         return response()->json($question, 201);
     }
@@ -217,7 +231,26 @@ class FormController extends Controller
             return response()->json(['message' => 'No se puede cambiar preguntas de un formulario implementado'], 403);
         }
 
-        $question->update($request->all());
+        $request->validate([
+            'type' => 'sometimes|in:MULTIPLE_CHOICE,SINGLE_CHOICE,LIKERT,TEXT,NUMBER',
+            'label' => 'sometimes|string',
+            'order' => 'sometimes|integer',
+            'required' => 'sometimes|boolean',
+            'options' => 'sometimes|nullable|array',
+            'branch_rules' => 'sometimes|nullable|array',
+            'branch_rules.*.option_index' => 'required_with:branch_rules|integer|min:0',
+            'branch_rules.*.action' => 'nullable|in:CONTINUE,GO_TO,END_FORM',
+            'branch_rules.*.next_question_id' => 'nullable|uuid',
+        ]);
+
+        $question->update($request->only([
+            'type',
+            'label',
+            'order',
+            'required',
+            'options',
+            'branch_rules',
+        ]));
 
         return response()->json($question);
     }
@@ -495,16 +528,30 @@ class FormController extends Controller
         $columnMap = [];
 
         foreach ($form->questions as $question) {
-            if ($question->type === 'MULTIPLE_CHOICE' && is_array($question->options)) {
+            $questionLabel = trim((string) $question->label);
+            $choiceOptions = $this->normalizeChoiceOptions($question->options);
+
+            if (in_array($question->type, ['SINGLE_CHOICE', 'MULTIPLE_CHOICE'], true) && $choiceOptions !== []) {
+                $isMultiChoice = $question->type === 'MULTIPLE_CHOICE';
                 $headers[] = $question->label;
-                $columnMap[] = ['type' => 'multi_summary', 'question_id' => $question->id];
-                foreach ($question->options as $option) {
-                    $headers[] = "{$question->label}/{$option}";
-                    $columnMap[] = ['type' => 'multi_option', 'question_id' => $question->id, 'option' => $option];
+                $columnMap[] = [
+                    'type' => 'choice_summary',
+                    'question_id' => $question->id,
+                    'is_multi' => $isMultiChoice,
+                ];
+
+                foreach ($choiceOptions as $option) {
+                    $headers[] = "{$questionLabel}/{$option}";
+                    $columnMap[] = [
+                        'type' => 'choice_option',
+                        'question_id' => $question->id,
+                        'option' => $option,
+                        'is_multi' => $isMultiChoice,
+                    ];
                 }
             } elseif ($question->type === 'LIKERT' && is_array($question->options) && isset($question->options['rows']) && is_array($question->options['rows'])) {
                 foreach ($question->options['rows'] as $rowLabel) {
-                    $headers[] = "{$question->label}/{$rowLabel}";
+                    $headers[] = "{$questionLabel}/{$rowLabel}";
                     $columnMap[] = ['type' => 'likert_row', 'question_id' => $question->id, 'row' => $rowLabel];
                 }
             } else {
@@ -528,33 +575,42 @@ class FormController extends Controller
         ]);
 
         $rows = [];
+        $versionToken = $this->exportVersionToken($form);
+
         foreach ($form->responses as $index => $response) {
-            $submittedAt = $response->created_at?->toDateTimeString() ?? '';
+            $submittedAt = $this->toExcelSerialDate($response->created_at);
             $row = [$submittedAt, $submittedAt];
 
             foreach ($columnMap as $col) {
                 $answer = $response->data[$col['question_id']] ?? null;
-                if ($col['type'] === 'multi_option') {
-                    $selected = is_array($answer) ? $answer : ($answer ? [$answer] : []);
-                    $row[] = in_array($col['option'], $selected, true) ? 1 : 0;
-                } elseif ($col['type'] === 'likert_row') {
-                    $row[] = is_array($answer) ? ($answer[$col['row']] ?? '') : '';
-                } elseif (is_array($answer)) {
-                    $row[] = implode(' ', array_map(fn($value) => is_scalar($value) ? (string) $value : json_encode($value), $answer));
-                } else {
-                    $row[] = $answer ?? '';
+
+                if ($col['type'] === 'choice_summary') {
+                    $row[] = $this->stringifyAnswer($answer);
+                    continue;
                 }
+
+                if ($col['type'] === 'choice_option') {
+                    $row[] = $this->isOptionSelected($answer, (string) $col['option'], (bool) ($col['is_multi'] ?? false)) ? 1 : 0;
+                    continue;
+                }
+
+                if ($col['type'] === 'likert_row') {
+                    $row[] = is_array($answer) ? ($answer[$col['row']] ?? '') : '';
+                    continue;
+                }
+
+                $row[] = $this->stringifyAnswer($answer);
             }
 
             $row = array_merge($row, [
-                $response->id,
+                $this->legacyNumericResponseId($response, $index),
                 $response->id,
                 $submittedAt,
                 '',
                 '',
                 'submitted_via_web',
                 '',
-                (string) ($form->updated_at?->timestamp ?? ''),
+                $versionToken,
                 '',
                 "uuid:{$response->id}",
                 $index + 1,
@@ -566,11 +622,109 @@ class FormController extends Controller
         return ['headers' => $headers, 'rows' => $rows];
     }
 
+    /**
+     * @param mixed $options
+     * @return array<int, string>
+     */
+    private function normalizeChoiceOptions(mixed $options): array
+    {
+        if (!is_array($options)) {
+            return [];
+        }
+
+        return array_values(array_map(
+            fn($option) => trim((string) $option),
+            array_filter($options, fn($option) => is_scalar($option) && trim((string) $option) !== ''),
+        ));
+    }
+
+    private function stringifyAnswer(mixed $answer): string
+    {
+        if ($answer === null) {
+            return '';
+        }
+
+        if (is_scalar($answer)) {
+            return trim((string) $answer);
+        }
+
+        if (!is_array($answer)) {
+            return '';
+        }
+
+        return implode(' ', array_values(array_filter(array_map(function ($value) {
+            if (is_scalar($value)) {
+                return trim((string) $value);
+            }
+
+            if (is_array($value)) {
+                return implode(' ', array_values(array_filter(array_map(
+                    fn($inner) => is_scalar($inner) ? trim((string) $inner) : '',
+                    $value,
+                ), fn($inner) => $inner !== '')));
+            }
+
+            return '';
+        }, $answer), fn($value) => $value !== '')));
+    }
+
+    private function isOptionSelected(mixed $answer, string $option, bool $isMultiChoice): bool
+    {
+        $normalizedOption = trim($option);
+        if ($normalizedOption === '') {
+            return false;
+        }
+
+        if ($isMultiChoice) {
+            $selected = is_array($answer) ? $answer : ($answer !== null && $answer !== '' ? [$answer] : []);
+
+            foreach ($selected as $value) {
+                if (is_scalar($value) && trim((string) $value) === $normalizedOption) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return is_scalar($answer) && trim((string) $answer) === $normalizedOption;
+    }
+
+    private function toExcelSerialDate(mixed $date): string
+    {
+        if (!$date instanceof \DateTimeInterface) {
+            return '';
+        }
+
+        $seconds = (float) $date->format('U');
+        $microseconds = ((float) $date->format('u')) / 1000000;
+        $serial = ($seconds + $microseconds) / 86400 + 25569;
+
+        return rtrim(rtrim(number_format($serial, 15, '.', ''), '0'), '.');
+    }
+
+    private function exportVersionToken(Form $form): string
+    {
+        $source = "{$form->id}|{$form->updated_at?->timestamp}|{$form->questions()->count()}";
+
+        return 'vv' . substr(hash('sha256', $source), 0, 16);
+    }
+
+    private function legacyNumericResponseId(FormResponse $response, int $index): int
+    {
+        $hash = abs((int) crc32((string) $response->id));
+        if ($hash > 0) {
+            return $hash;
+        }
+
+        return $index + 1;
+    }
+
     private function missingRequiredQuestions(Form $form, array $data): array
     {
         $missing = [];
 
-        foreach ($form->questions as $question) {
+        foreach ($this->questionsInSubmissionFlow($form, $data) as $question) {
             if (!$question->required) {
                 continue;
             }
@@ -585,6 +739,169 @@ class FormController extends Controller
         }
 
         return $missing;
+    }
+
+    /**
+     * @return array<int, FormQuestion>
+     */
+    private function questionsInSubmissionFlow(Form $form, array $data): array
+    {
+        $questions = $form->questions()->orderBy('order')->get()->values();
+
+        if (!$form->step_by_step) {
+            return $questions->all();
+        }
+
+        $questionIndexes = $questions->pluck('id')->flip()->all();
+        $conditionalTargetIds = $this->conditionalTargetIds($questions->all());
+        $flow = [];
+        $currentIndex = 0;
+        $visited = [];
+
+        while ($currentIndex < $questions->count()) {
+            /** @var FormQuestion $question */
+            $question = $questions[$currentIndex];
+
+            if (isset($visited[$question->id])) {
+                break;
+            }
+
+            $visited[$question->id] = true;
+            $flow[] = $question;
+
+            $nextIndex = $this->nextSequentialIndex($questions->all(), $currentIndex, $conditionalTargetIds);
+
+            if ($question->type === 'SINGLE_CHOICE') {
+                $selectedIndex = $this->selectedOptionIndex($question, $data[$question->id] ?? null);
+                $branchDecision = $this->branchDecisionForQuestion($question, $selectedIndex);
+
+                if (($branchDecision['action'] ?? 'CONTINUE') === 'END_FORM') {
+                    $nextIndex = $questions->count();
+                } else {
+                    $branchTarget = $branchDecision['target'] ?? null;
+                    if ($branchTarget !== null && isset($questionIndexes[$branchTarget]) && $questionIndexes[$branchTarget] > $currentIndex) {
+                        $nextIndex = $questionIndexes[$branchTarget];
+                    }
+                }
+            }
+
+            if ($nextIndex <= $currentIndex) {
+                break;
+            }
+
+            $currentIndex = $nextIndex;
+        }
+
+        return $flow;
+    }
+
+    /**
+     * @param array<int, FormQuestion> $questions
+     * @return array<string, bool>
+     */
+    private function conditionalTargetIds(array $questions): array
+    {
+        $targets = [];
+
+        foreach ($questions as $question) {
+            if ($question->type !== 'SINGLE_CHOICE' || !is_array($question->branch_rules)) {
+                continue;
+            }
+
+            foreach ($question->branch_rules as $rule) {
+                if (!is_array($rule)) {
+                    continue;
+                }
+
+                $action = $rule['action'] ?? ((isset($rule['next_question_id']) && is_string($rule['next_question_id']) && $rule['next_question_id'] !== '') ? 'GO_TO' : 'CONTINUE');
+                $target = $rule['next_question_id'] ?? null;
+
+                if ($action === 'GO_TO' && is_string($target) && $target !== '') {
+                    $targets[$target] = true;
+                }
+            }
+        }
+
+        return $targets;
+    }
+
+    /**
+     * @param array<int, FormQuestion> $questions
+     * @param array<string, bool> $conditionalTargetIds
+     */
+    private function nextSequentialIndex(array $questions, int $currentIndex, array $conditionalTargetIds): int
+    {
+        $nextIndex = $currentIndex + 1;
+
+        while ($nextIndex < count($questions)) {
+            $candidate = $questions[$nextIndex] ?? null;
+            if (!$candidate || !isset($conditionalTargetIds[$candidate->id])) {
+                break;
+            }
+
+            $nextIndex++;
+        }
+
+        return $nextIndex;
+    }
+
+    private function selectedOptionIndex(FormQuestion $question, mixed $answer): ?int
+    {
+        if (!is_array($question->options)) {
+            return null;
+        }
+
+        $options = array_values(array_filter($question->options, fn($option) => is_scalar($option) && $option !== ''));
+        $answerValue = is_scalar($answer) ? trim((string) $answer) : '';
+
+        if ($answerValue === '') {
+            return null;
+        }
+
+        foreach ($options as $index => $option) {
+            if ((string) $option === $answerValue) {
+                return $index;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{action: string, target: ?string}
+     */
+    private function branchDecisionForQuestion(FormQuestion $question, ?int $selectedIndex): array
+    {
+        if ($selectedIndex === null || !is_array($question->branch_rules)) {
+            return ['action' => 'CONTINUE', 'target' => null];
+        }
+
+        foreach ($question->branch_rules as $rule) {
+            if (!is_array($rule)) {
+                continue;
+            }
+
+            $optionIndex = $rule['option_index'] ?? $rule['optionIndex'] ?? null;
+            if ((int) $optionIndex !== $selectedIndex) {
+                continue;
+            }
+
+            $action = $rule['action'] ?? 'CONTINUE';
+            if (!in_array($action, ['CONTINUE', 'GO_TO', 'END_FORM'], true)) {
+                $action = 'CONTINUE';
+            }
+
+            $target = $rule['next_question_id'] ?? $rule['nextQuestionId'] ?? null;
+            $resolvedTarget = is_string($target) && $target !== '' ? $target : null;
+
+            if ($action !== 'GO_TO') {
+                $resolvedTarget = null;
+            }
+
+            return ['action' => $action, 'target' => $resolvedTarget];
+        }
+
+        return ['action' => 'CONTINUE', 'target' => null];
     }
 
     private function hasRequiredAnswer(FormQuestion $question, mixed $answer): bool

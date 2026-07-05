@@ -1,5 +1,5 @@
 ﻿import { Injectable, computed, inject, signal } from '@angular/core';
-import { Form, FormQuestion, FormService } from '@core/services/form.service';
+import { Form, FormQuestion, FormQuestionBranchRule, FormService } from '@core/services/form.service';
 import { Project, ProjectService } from '@core/services/project.service';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
@@ -12,11 +12,19 @@ export interface FormQuestionDraft {
   options: string[];
   likertRows: string[];
   likertColumns: string[];
+  branchRules: FormQuestionBranchRuleDraft[];
   required: boolean;
   order: number;
 }
 
+export interface FormQuestionBranchRuleDraft {
+  optionIndex: number;
+  action: 'CONTINUE' | 'GO_TO' | 'END_FORM';
+  nextQuestionTempId: string | null;
+}
+
 const SELECT_TYPES: FormQuestion['type'][] = ['SINGLE_CHOICE', 'MULTIPLE_CHOICE'];
+const BRANCHABLE_TYPES: FormQuestion['type'][] = ['SINGLE_CHOICE'];
 const DEFAULT_LIKERT_OPTIONS = [
   'Totalmente en desacuerdo',
   'En desacuerdo',
@@ -38,6 +46,7 @@ export class FormBuilderViewModel {
   title = signal('');
   description = signal('');
   state = signal<Form['state']>('DRAFT');
+  stepByStep = signal(false);
   questions = signal<FormQuestionDraft[]>([]);
   deletedQuestionIds = signal<string[]>([]);
   isLoading = signal(false);
@@ -62,7 +71,15 @@ export class FormBuilderViewModel {
 
       const needsOptions = SELECT_TYPES.includes(question.type);
       const filledOptions = question.options.filter((option) => option.trim().length > 0);
-      return hasLabel && (!needsOptions || filledOptions.length > 0);
+      const branchingIsValid = !BRANCHABLE_TYPES.includes(question.type) || (
+        question.branchRules.length === question.options.length
+        && question.branchRules.every((rule) =>
+          rule.action !== 'GO_TO'
+          || (typeof rule.nextQuestionTempId === 'string' && rule.nextQuestionTempId.length > 0),
+        )
+      );
+
+      return hasLabel && (!needsOptions || filledOptions.length > 0) && branchingIsValid;
     });
 
     return hasTitle && hasProject && hasQuestions && allQuestionsValid && this.canEditQuestions();
@@ -80,6 +97,7 @@ export class FormBuilderViewModel {
       this.title.set(form.title);
       this.description.set(form.description ?? '');
       this.state.set(form.state);
+      this.stepByStep.set(Boolean(form.step_by_step));
       this.deletedQuestionIds.set([]);
       this.questions.set(
         (form.questions ?? [])
@@ -113,6 +131,7 @@ export class FormBuilderViewModel {
       options: this.getInitialOptions(type),
       likertRows: type === 'LIKERT' ? [...DEFAULT_LIKERT_ROWS] : [],
       likertColumns: type === 'LIKERT' ? [...DEFAULT_LIKERT_OPTIONS] : [],
+      branchRules: this.getInitialBranchRules(type),
       required: true,
       order: this.questions().length,
     };
@@ -131,6 +150,12 @@ export class FormBuilderViewModel {
     this.questions.update((questions) =>
       questions
         .filter((question) => question.tempId !== tempId)
+        .map((question) => ({
+          ...question,
+          branchRules: question.branchRules.map((rule) =>
+            rule.nextQuestionTempId === tempId ? { ...rule, nextQuestionTempId: null } : rule,
+          ),
+        }))
         .map((question, index) => ({ ...question, order: index })),
     );
   }
@@ -158,6 +183,11 @@ export class FormBuilderViewModel {
     this.clearMessages();
   }
 
+  updateStepByStep(value: boolean): void {
+    this.stepByStep.set(value);
+    this.clearMessages();
+  }
+
   updateProject(projectId: string | null): void {
     this.projectId.set(projectId || null);
     this.clearMessages();
@@ -171,10 +201,60 @@ export class FormBuilderViewModel {
     this.patchQuestion(tempId, { required });
   }
 
+  updateBranchTarget(tempId: string, optionIndex: number, nextQuestionTempId: string | null): void {
+    this.questions.update((questions) =>
+      questions.map((question) => {
+        if (question.tempId !== tempId) return question;
+
+        const branchRules = [...question.branchRules];
+        const currentRule = branchRules[optionIndex];
+        branchRules[optionIndex] = {
+          optionIndex,
+          action: currentRule?.action ?? 'CONTINUE',
+          nextQuestionTempId: nextQuestionTempId || null,
+        };
+
+        return { ...question, branchRules };
+      }),
+    );
+  }
+
+  updateBranchAction(tempId: string, optionIndex: number, action: 'CONTINUE' | 'GO_TO' | 'END_FORM'): void {
+    this.questions.update((questions) =>
+      questions.map((question) => {
+        if (question.tempId !== tempId) return question;
+
+        const branchRules = [...question.branchRules];
+        const currentRule = branchRules[optionIndex] ?? {
+          optionIndex,
+          action: 'CONTINUE' as const,
+          nextQuestionTempId: null,
+        };
+
+        branchRules[optionIndex] = {
+          ...currentRule,
+          optionIndex,
+          action,
+          nextQuestionTempId: action === 'GO_TO' ? currentRule.nextQuestionTempId : null,
+        };
+
+        return { ...question, branchRules };
+      }),
+    );
+  }
+
   addOption(tempId: string): void {
     this.questions.update((questions) =>
       questions.map((question) =>
-        question.tempId === tempId ? { ...question, options: [...question.options, ''] } : question,
+        question.tempId === tempId
+          ? {
+              ...question,
+              options: [...question.options, ''],
+              branchRules: this.supportsBranching(question.type)
+                ? [...question.branchRules, { optionIndex: question.options.length, action: 'CONTINUE', nextQuestionTempId: null }]
+                : question.branchRules,
+            }
+          : question,
       ),
     );
   }
@@ -199,6 +279,11 @@ export class FormBuilderViewModel {
         return {
           ...question,
           options: question.options.filter((_, index) => index !== optionIndex),
+          branchRules: this.supportsBranching(question.type)
+            ? question.branchRules
+                .filter((_, index) => index !== optionIndex)
+                .map((rule, index) => ({ ...rule, optionIndex: index }))
+            : question.branchRules,
         };
       }),
     );
@@ -283,11 +368,19 @@ export class FormBuilderViewModel {
 
     try {
       const formId = this.formId();
+      const hasConditionalRules = this.questions().some(
+        (question) =>
+          this.supportsBranching(question.type)
+          && question.branchRules.some((rule) => rule.action !== 'CONTINUE'),
+      );
+      const resolvedStepByStep = this.stepByStep() || hasConditionalRules;
+
       const savedForm = formId
         ? await firstValueFrom(
             this.formService.updateForm(formId, {
               title: this.title().trim(),
               description: this.description().trim(),
+              step_by_step: resolvedStepByStep,
             }),
           )
         : await firstValueFrom(
@@ -295,11 +388,15 @@ export class FormBuilderViewModel {
               title: this.title().trim(),
               description: this.description().trim(),
               project_id: this.projectId(),
+              step_by_step: resolvedStepByStep,
             }),
           );
 
       this.formId.set(savedForm.id);
       this.state.set(savedForm.state);
+      this.stepByStep.set(Boolean(savedForm.step_by_step));
+
+      const savedQuestionIds = new Map<string, string>();
 
       for (const questionId of this.deletedQuestionIds()) {
         await firstValueFrom(this.formService.deleteQuestion(questionId));
@@ -310,9 +407,30 @@ export class FormBuilderViewModel {
 
         if (question.id) {
           await firstValueFrom(this.formService.updateQuestion(question.id, payload));
+          savedQuestionIds.set(question.tempId, question.id);
         } else {
           const created = await firstValueFrom(this.formService.createQuestion(savedForm.id, payload));
+          savedQuestionIds.set(question.tempId, created.id);
           this.patchQuestion(question.tempId, { id: created.id, tempId: created.id });
+        }
+      }
+
+      for (const question of this.questions()) {
+        if (!this.supportsBranching(question.type) || question.branchRules.length === 0) {
+          continue;
+        }
+
+        const resolvedRules = question.branchRules.map((rule) => ({
+          option_index: rule.optionIndex,
+          action: rule.action,
+          next_question_id: rule.action === 'GO_TO' && rule.nextQuestionTempId
+            ? (savedQuestionIds.get(rule.nextQuestionTempId) ?? rule.nextQuestionTempId)
+            : null,
+        }));
+
+        const questionId = savedQuestionIds.get(question.tempId) ?? question.id;
+        if (questionId) {
+          await firstValueFrom(this.formService.updateQuestion(questionId, { branch_rules: resolvedRules }));
         }
       }
 
@@ -331,6 +449,7 @@ export class FormBuilderViewModel {
     this.title.set('');
     this.description.set('');
     this.state.set('DRAFT');
+    this.stepByStep.set(false);
     this.questions.set([]);
     this.deletedQuestionIds.set([]);
     this.clearMessages();
@@ -366,6 +485,7 @@ export class FormBuilderViewModel {
       options: this.normalizeOptions(question),
       likertRows: this.normalizeLikertRows(question),
       likertColumns: this.normalizeLikertColumns(question),
+      branchRules: this.normalizeBranchRules(question),
       required: question.required,
       order,
     };
@@ -405,9 +525,41 @@ export class FormBuilderViewModel {
     return [...DEFAULT_LIKERT_OPTIONS];
   }
 
+  private normalizeBranchRules(question: FormQuestion): FormQuestionBranchRuleDraft[] {
+    if (!this.supportsBranching(question.type)) {
+      return [];
+    }
+
+    const rules = Array.isArray(question.branch_rules) ? question.branch_rules : [];
+
+    if (rules.length > 0) {
+      return rules.map((rule, index) => ({
+        optionIndex: Number(rule?.option_index ?? index),
+        action: this.normalizeBranchAction(rule?.action),
+        nextQuestionTempId: typeof rule?.next_question_id === 'string' ? rule.next_question_id : null,
+      }));
+    }
+
+    const optionCount = Array.isArray(question.options) ? question.options.length : 0;
+
+    return Array.from({ length: optionCount }, (_, index) => ({
+      optionIndex: index,
+      action: 'CONTINUE',
+      nextQuestionTempId: null,
+    }));
+  }
+
   private getInitialOptions(type: FormQuestion['type']): string[] {
     if (SELECT_TYPES.includes(type)) return [''];
     return [];
+  }
+
+  private getInitialBranchRules(type: FormQuestion['type']): FormQuestionBranchRuleDraft[] {
+    if (!this.supportsBranching(type)) {
+      return [];
+    }
+
+    return [{ optionIndex: 0, action: 'CONTINUE', nextQuestionTempId: null }];
   }
 
   private toQuestionPayload(question: FormQuestionDraft): Partial<FormQuestion> {
@@ -429,13 +581,68 @@ export class FormBuilderViewModel {
     };
   }
 
+  getBranchTargetOptions(tempId: string): Array<{ value: string | null; label: string }> {
+    const questions = this.questions();
+    const currentIndex = questions.findIndex((question) => question.tempId === tempId);
+
+    return [
+      { value: null, label: this.translate.instant('forms.builder.branch.selectTarget') },
+      ...questions.slice(currentIndex + 1).map((question) => ({
+        value: question.tempId,
+        label: `${question.order + 1}. ${this.getQuestionDisplayLabel(question)}`,
+      })),
+    ];
+  }
+
+  canConfigureBranching(type: FormQuestion['type']): boolean {
+    return this.supportsBranching(type);
+  }
+
+  getBranchRuleValue(question: FormQuestionDraft, optionIndex: number): string | null {
+    return question.branchRules.find((rule) => rule.optionIndex === optionIndex)?.nextQuestionTempId ?? null;
+  }
+
+  getBranchRuleAction(question: FormQuestionDraft, optionIndex: number): 'CONTINUE' | 'GO_TO' | 'END_FORM' {
+    return question.branchRules.find((rule) => rule.optionIndex === optionIndex)?.action ?? 'CONTINUE';
+  }
+
   private patchQuestion(tempId: string, patch: Partial<FormQuestionDraft>): void {
+    const nextTempId = patch.tempId && patch.tempId !== tempId ? patch.tempId : null;
+
     this.questions.update((questions) =>
       questions.map((question) =>
         question.tempId === tempId ? { ...question, ...patch } : question,
       ),
     );
+
+    if (nextTempId) {
+      this.remapBranchTargets(tempId, nextTempId);
+    }
+
     this.clearMessages();
+  }
+
+  private remapBranchTargets(oldTempId: string, newTempId: string): void {
+    this.questions.update((questions) =>
+      questions.map((question) => ({
+        ...question,
+        branchRules: question.branchRules.map((rule) =>
+          rule.nextQuestionTempId === oldTempId ? { ...rule, nextQuestionTempId: newTempId } : rule,
+        ),
+      })),
+    );
+  }
+
+  private supportsBranching(type: FormQuestion['type']): boolean {
+    return BRANCHABLE_TYPES.includes(type);
+  }
+
+  private normalizeBranchAction(value: unknown): 'CONTINUE' | 'GO_TO' | 'END_FORM' {
+    if (value === 'GO_TO' || value === 'END_FORM') {
+      return value;
+    }
+
+    return 'CONTINUE';
   }
 
   private createTempId(): string {

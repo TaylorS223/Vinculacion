@@ -16,7 +16,12 @@ class Form extends Model
         'user_id',
         'project_id',
         'state',
-        'link_uuid'
+        'link_uuid',
+        'step_by_step'
+    ];
+
+    protected $casts = [
+        'step_by_step' => 'boolean',
     ];
 
     public function owner()

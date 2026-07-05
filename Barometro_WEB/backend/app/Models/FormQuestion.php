@@ -15,12 +15,14 @@ class FormQuestion extends Model
         'type',
         'label',
         'options',
+        'branch_rules',
         'required',
         'order'
     ];
 
     protected $casts = [
         'options' => 'array',
+        'branch_rules' => 'array',
         'required' => 'boolean'
     ];
 

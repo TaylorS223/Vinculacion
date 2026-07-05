@@ -91,6 +91,19 @@
               [placeholder]="'forms.builder.descriptionPlaceholder' | translate"
             ></textarea>
           </label>
+
+          <label class="toggle-row flow-toggle">
+            <input
+              type="checkbox"
+              [checked]="vm.stepByStep()"
+              (change)="vm.updateStepByStep($any($event.target).checked)"
+              [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+            />
+            <span>
+              <strong>{{ 'forms.builder.flowModeLabel' | translate }}</strong>
+              <small>{{ 'forms.builder.flowModeDescription' | translate }}</small>
+            </span>
+          </label>
         </section>
 
         <section class="question-palette" [attr.aria-label]="'forms.builder.editMenu' | translate">
@@ -310,6 +323,54 @@
                           <span></span>
                         </div>
                       }
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (vm.canConfigureBranching(question.type)) {
+                <div class="branch-builder">
+                  <div class="options-header">
+                    <span>{{ 'forms.builder.branchingTitle' | translate }}</span>
+                    <small>{{ 'forms.builder.branchingHelp' | translate }}</small>
+                  </div>
+
+                  @if (!vm.stepByStep()) {
+                    <p class="branch-warning">
+                      {{ 'forms.builder.branchingStepHint' | translate }}
+                    </p>
+                  }
+
+                  <div class="branch-list">
+                    @for (option of question.options; track $index; let optionIndex = $index) {
+                      <label class="branch-row">
+                        <span>
+                          {{ option || ('forms.builder.emptyOption' | translate) }}
+                        </span>
+                        <div class="branch-controls">
+                          <select
+                            [ngModel]="vm.getBranchRuleAction(question, optionIndex)"
+                            (ngModelChange)="vm.updateBranchAction(question.tempId, optionIndex, $event)"
+                            [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                          >
+                            <option value="CONTINUE">{{ 'forms.builder.branch.actions.CONTINUE' | translate }}</option>
+                            <option value="GO_TO">{{ 'forms.builder.branch.actions.GO_TO' | translate }}</option>
+                            <option value="END_FORM">{{ 'forms.builder.branch.actions.END_FORM' | translate }}</option>
+                          </select>
+
+                          @if (vm.getBranchRuleAction(question, optionIndex) === 'GO_TO') {
+                            <select
+                              [ngModel]="vm.getBranchRuleValue(question, optionIndex)"
+                              (ngModelChange)="vm.updateBranchTarget(question.tempId, optionIndex, $event)"
+                              [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                            >
+                              @for (target of vm.getBranchTargetOptions(question.tempId); track target.value ?? 'end') {
+                                <option [ngValue]="target.value">{{ target.label }}</option>
+                              }
+                            </select>
+                          }
+                        </div>
+                      </label>
                     }
                   </div>
                 </div>

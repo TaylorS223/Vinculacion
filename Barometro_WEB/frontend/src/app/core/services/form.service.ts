@@ -12,6 +12,7 @@ export interface Form {
   owner?: { id: string; name: string; email: string; rol?: string };
   state: 'DRAFT' | 'DEPLOYED' | 'ARCHIVED';
   link_uuid?: string;
+  step_by_step?: boolean;
   responses_count?: number;
   created_at: string;
   updated_at: string;
@@ -26,8 +27,15 @@ export interface FormQuestion {
   type: 'MULTIPLE_CHOICE' | 'SINGLE_CHOICE' | 'LIKERT' | 'TEXT' | 'NUMBER';
   label: string;
   options?: string[] | LikertOptions | null;
+  branch_rules?: FormQuestionBranchRule[] | null;
   required: boolean;
   order: number;
+}
+
+export interface FormQuestionBranchRule {
+  option_index: number;
+  action?: 'CONTINUE' | 'GO_TO' | 'END_FORM';
+  next_question_id: string | null;
 }
 
 export interface LikertOptions {
@@ -58,7 +66,12 @@ export class FormService {
     return this.http.get<Form>(`${this.apiUrl}/${id}`);
   }
 
-  createForm(data: { title: string; description?: string; project_id?: string | null }): Observable<Form> {
+  createForm(data: {
+    title: string;
+    description?: string;
+    project_id?: string | null;
+    step_by_step?: boolean;
+  }): Observable<Form> {
     return this.http.post<Form>(this.apiUrl, data);
   }
 

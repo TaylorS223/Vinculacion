@@ -284,6 +284,8 @@
       "titlePlaceholder": "E.g. Community satisfaction survey",
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "Add context for respondents",
+      "flowModeLabel": "Step-by-step mode",
+      "flowModeDescription": "Show one question at a time and allow conditional jumps between paths.",
       "addQuestions": "Add questions",
       "addQuestion": "Add question",
       "editMenu": "Editing",
@@ -299,6 +301,18 @@
       "addOption": "Add option",
       "optionPlaceholder": "Answer option",
       "deleteOption": "Delete option",
+      "branchingTitle": "Conditional branches",
+      "branchingHelp": "Define what should happen for each answer.",
+      "branchingStepHint": "Enable step-by-step mode to apply these rules during collection.",
+      "branch": {
+        "end": "Continue with the next question",
+        "selectTarget": "Select a target question",
+        "actions": {
+          "CONTINUE": "Continue to the next question",
+          "GO_TO": "Go to a specific question",
+          "END_FORM": "Finish form"
+        }
+      },
       "likert": {
         "titleLabel": "Scale title",
         "titlePlaceholder": "E.g. Satisfaction level",
@@ -380,6 +394,10 @@
     },
     "collect": {
       "loading": "Loading form...",
+      "stepMode": "Complete the current question to continue.",
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish",
       "submittedTitle": "Response sent",
       "submittedText": "Thank you for completing the form.",
       "sendAnother": "Send another response",
