@@ -1,0 +1,128 @@
+<div class="formulario-container">
+  <div class="form-header">
+    <a routerLink="/lista" class="btn-cancelar">✕ {{ 'cancel' | translate }}</a>
+    <h2>{{ formulario ? formulario.title : ('loading' | translate) }}</h2>
+  </div>
+
+  @if (cargando) {
+    <p style="text-align:center;padding:2rem;">Cargando formulario...</p>
+  } @else if (errorCarga) {
+    <p style="text-align:center;padding:2rem;color:#c62828;">{{ errorCarga }}</p>
+  } @else if (formulario) {
+    <div class="meta-info">
+      <p><strong>Cuestionario:</strong> {{ formulario.title }}</p>
+      <p><small>ID: #{{ formulario.id | slice:0:8 }} • Inició: {{ tiempoInicioFormato }}</small></p>
+    </div>
+
+    <form (ngSubmit)="guardarFormulario()" class="form-body">
+      @for (q of formulario.questions; track trackByQuestionId($index, q)) {
+        <div class="pregunta-box">
+          <label class="pregunta-label">
+            {{ q.order + 1 }}. {{ q.label }}
+            @if (q.required) { <span style="color:#c62828;">*</span> }
+          </label>
+
+          @if (q.type === 'TEXT') {
+            <input
+              type="text"
+              [name]="q.id"
+              [(ngModel)]="respuestas[q.id]"
+              placeholder="Escriba aquí..."
+              class="form-input"
+            />
+          }
+
+          @if (q.type === 'NUMBER') {
+            <input
+              type="number"
+              [name]="q.id"
+              [(ngModel)]="respuestas[q.id]"
+              placeholder="Ej. 25"
+              min="0"
+              class="form-input"
+            />
+          }
+
+          @if (q.type === 'SINGLE_CHOICE') {
+            @for (opcion of q.options; track opcion) {
+              <label class="radio-option">
+                <input
+                  type="radio"
+                  [name]="q.id"
+                  [value]="opcion"
+                  [(ngModel)]="respuestas[q.id]"
+                />
+                <span class="radio-text">{{ opcion }}</span>
+              </label>
+            }
+          }
+
+          @if (q.type === 'MULTIPLE_CHOICE') {
+            @for (opcion of q.options; track opcion) {
+              <label class="radio-option">
+                <input
+                  type="checkbox"
+                  [name]="q.id + '-' + opcion"
+                  [value]="opcion"
+                  (change)="onCheckboxChange(q.id, opcion, $event)"
+                />
+                <span class="radio-text">{{ opcion }}</span>
+              </label>
+            }
+          }
+
+          @if (q.type === 'LIKERT') {
+            <div class="likert-table" style="overflow-x:auto;margin-top:8px;">
+              <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+                <thead>
+                  <tr>
+                    <th style="text-align:left;padding:6px 8px;"></th>
+                    @for (col of q.likert_columns; track col) {
+                      <th style="text-align:center;padding:6px 8px;font-weight:500;">{{ col }}</th>
+                    }
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of q.likert_rows; track trackByRow($index, row)) {
+                    <tr>
+                      <td style="padding:6px 8px;">{{ row }}</td>
+                      @for (col of q.likert_columns; track col) {
+                        <td style="text-align:center;padding:4px;">
+                          <input
+                            type="radio"
+                            [name]="q.id + '-' + row"
+                            [value]="col"
+                            [(ngModel)]="respuestas[q.id][row]"
+                          />
+                        </td>
+                      }
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button
+          type="button"
+          class="btn-guardar"
+          style="background-color:#757575;"
+          (click)="guardarBorrador()"
+        >
+          💾 {{ 'save_draft' | translate }}
+        </button>
+        <button
+          type="submit"
+          [disabled]="!formValido()"
+          class="btn-guardar"
+          style="background-color:var(--primary);"
+        >
+          ✅ {{ 'save_send' | translate }}
+        </button>
+      </div>
+    </form>
+  }
+</div>
