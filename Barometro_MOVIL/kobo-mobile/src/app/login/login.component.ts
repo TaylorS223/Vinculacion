@@ -22,8 +22,6 @@ export class LoginComponent {
   cargando: boolean = false;
   errorLogin: string = '';
 
-  urlPlataformaWeb = 'https://barometro-web.example.com';
-
   async iniciarSesion() {
     this.errorLogin = '';
 
@@ -47,14 +45,5 @@ export class LoginComponent {
       this.cargando = false;
       this.errorLogin = 'No se pudo iniciar sesión. Verifica tus datos y la URL del servidor.';
     }
-  }
-
-  entrarModoDemo() {
-    this.auth.entrarModoDemo();
-    this.router.navigate(['/']);
-  }
-
-  irAPlataformaWeb() {
-    alert('La plataforma web (Barometro_WEB) todavía no está disponible. Próximamente podrás crear tu cuenta desde ahí.');
   }
 }
