@@ -95,7 +95,7 @@ Vinculacion-main/
 
 | Herramienta | Versión | Propósito |
 |------------|---------|-----------|
-| Docker Desktop | última | PostgreSQL + backend Laravel |
+| Docker | última | PostgreSQL + backend Laravel |
 | Bun | 1.2.18+ | Frontend web |
 | Node.js | 20+ | App móvil |
 | npm | 10+ | App móvil |
@@ -104,13 +104,13 @@ Vinculacion-main/
 
 ## Cómo iniciar todo
 
-> **IMPORTANTE sobre Docker**: PostgreSQL y el backend Laravel corren **cada uno en su propio contenedor**. Deben estar en la **misma red de Docker** para comunicarse. Si usas `docker run` sin especificar `--network`, no se verán entre sí y fallará la conexión a la base de datos.
+> **IMPORTANTE sobre Docker**: PostgreSQL y el backend Laravel corren **cada uno en su propio contenedor**. Deben estar en la **misma red de Docker** para comunicarse. La red se crea automáticamente al levantar PostgreSQL con `docker compose`.
 
 ### Paso 1 — PostgreSQL
 
-```powershell
-# Desde Vinculacion-main/Barometro_WEB/
-docker-compose up -d
+```bash
+cd Barometro_WEB
+docker compose up -d
 ```
 
 Esto crea:
@@ -123,24 +123,35 @@ Esto crea:
 
 ### Paso 2 — Backend (Laravel API)
 
-#### 2a. Construir la imagen (solo la primera vez)
+#### 2a. Configurar `.env`
 
-```powershell
+```bash
 cd Barometro_WEB/backend
+cp .env.example .env
+```
+
+Asegúrate de que el `.env` tenga estos valores para conexión con PostgreSQL **dentro de Docker**:
+
+```
+DB_HOST=observatorio_db
+DB_PORT=5432
+DB_DATABASE=observatorio_uleam
+DB_USERNAME=postgres
+DB_PASSWORD=secret123
+```
+
+#### 2b. Construir la imagen (solo la primera vez)
+
+```bash
 docker build -t observatorio-backend .
 ```
 
-#### 2b. Iniciar el contenedor
+#### 2c. Iniciar el contenedor
 
-El backend necesita dos cosas para funcionar:
-1. **Estar en la misma red que PostgreSQL** (`--network backend_observatorio-network`)
-2. **Tener acceso al archivo `.env`** (porque el entrypoint escribe la `APP_KEY` ahí)
-
-```powershell
-# Desde Barometro_WEB/backend/
-docker run -d --name observatorio-backend -p 8000:8000 `
-  --network backend_observatorio-network `
-  -v "${PWD}/.env:/var/www/html/.env" `
+```bash
+docker run -d --name observatorio-backend -p 8000:8000 \
+  --network barometro_web_default \
+  -v "$(pwd)/.env:/var/www/html/.env" \
   observatorio-backend
 ```
 
@@ -148,34 +159,46 @@ docker run -d --name observatorio-backend -p 8000:8000 `
 | Flag | Por qué |
 |------|---------|
 | `-p 8000:8000` | Expone la API en tu `localhost:8000` |
-| `--network backend_observatorio-network` | Conecta el backend a la misma red que PostgreSQL para que se vean |
-| `-v "${PWD}/.env:/var/www/html/.env"` | Monta el `.env` dentro del contenedor (necesario para que Laravel genere la `APP_KEY`) |
+| `--network barometro_web_default` | Conecta el backend a la misma red que PostgreSQL |
+| `-v "$(pwd)/.env:/var/www/html/.env"` | Monta el `.env` dentro del contenedor |
 
-#### 2c. Verificar que funciona
+#### 2d. Verificar que funciona
 
-```powershell
-# Ver logs
-docker logs observatorio-backend
-
-# Probar la API
+```bash
 curl http://localhost:8000/api/forms
 ```
 
-Si ves algo como `"message": "Unauthenticated."` es normal — significa que la API responde.
+Si ves `{"message":"No autenticado."}` es normal — significa que la API responde correctamente.
 
-#### 2d. Volver a encender el backend después de apagar
+#### 2e. Migraciones y Super Admin
 
-```powershell
+Las migraciones se ejecutan automáticamente al iniciar el contenedor. Si necesitas ejecutarlas manualmente:
+
+```bash
+docker exec observatorio-backend php artisan migrate --force
+```
+
+Para crear el Super Admin:
+
+```bash
+docker exec observatorio-backend php artisan db:seed --class=AdminUserSeeder
+```
+
+**Credenciales**: `admin@uleam.edu.ec` / `Admin123456!`
+
+#### 2f. Volver a encender el backend después de apagar
+
+```bash
 docker start observatorio-backend
 ```
 
-#### 2e. Si cambias el `.env` y necesitas reiniciar
+#### 2g. Si cambias el `.env` y necesitas reiniciar
 
-```powershell
+```bash
 docker rm -f observatorio-backend
-docker run -d --name observatorio-backend -p 8000:8000 `
-  --network backend_observatorio-network `
-  -v "${PWD}/.env:/var/www/html/.env" `
+docker run -d --name observatorio-backend -p 8000:8000 \
+  --network barometro_web_default \
+  -v "$(pwd)/.env:/var/www/html/.env" \
   observatorio-backend
 ```
 
@@ -183,8 +206,8 @@ docker run -d --name observatorio-backend -p 8000:8000 `
 
 ### Paso 3 — Frontend Web (Angular 21)
 
-```powershell
-# Desde Barometro_WEB/frontend/
+```bash
+cd Barometro_WEB/frontend
 bun install
 bun run start
 # Abre en: http://localhost:4200
@@ -196,8 +219,8 @@ bun run start
 
 ### Paso 4 — App Móvil (Angular 21 + PWA)
 
-```powershell
-# Desde Barometro_MOVIL/kobo-mobile/
+```bash
+cd Barometro_MOVIL/kobo-mobile
 npm install
 npx ng serve
 # Abre en: http://localhost:4201
@@ -210,10 +233,10 @@ npx ng serve
 ### Resumen: orden de arranque
 
 ```
-1. docker-compose up -d          → PostgreSQL (puerto 5433)
-2. docker run ... observatorio-backend  → Backend API (puerto 8000)
-3. bun run start (frontend/)     → Frontend web (puerto 4200)
-4. npx ng serve (kobo-mobile/)   → App móvil (puerto 4201)
+1. docker compose up -d                → PostgreSQL (puerto 5433)
+2. docker run ... observatorio-backend → Backend API (puerto 8000)
+3. bun run start (frontend/)           → Frontend web (puerto 4200)
+4. npx ng serve (kobo-mobile/)         → App móvil (puerto 4201)
 ```
 
 ---
@@ -221,43 +244,36 @@ npx ng serve
 ## Solución de problemas comunes
 
 ### "Connection refused" en `localhost:8000/api/forms`
-→ El backend no está corriendo o no conecta con PostgreSQL.
+→ El backend no conecta con PostgreSQL.
 
 Verifica:
-```powershell
-docker ps                       # ¿está el contenedor vivo?
-docker logs observatorio-backend  # ¿hay errores de conexión?
-docker network ls               # ¿existe la red backend_observatorio-network?
+```bash
+docker ps                              # ¿están los contenedores vivos?
+docker logs observatorio-backend       # ¿hay errores de conexión?
+```
+
+Si ves `Connection refused` a `127.0.0.1:5433`, asegúrate de que en `backend/.env` tengas:
+```
+DB_HOST=observatorio_db
+DB_PORT=5432
 ```
 
 ### "port 4200 is already in use"
-→ Otro proceso ocupa ese puerto (ej: la app móvil arrancó antes sin configuración de puerto).
+→ Otro proceso ocupa ese puerto.
 
-Solución:
-```powershell
-# Encontrar qué proceso
-netstat -ano | findstr :4200
-# Matarlo (reemplazar <PID> con el número)
-taskkill /pid <PID> /f
-```
-
-O simplemente reinicia tu PC si es más rápido.
-
-### "No se puede cargar el archivo .ps1" (error de firma)
-→ PowerShell bloquea la ejecución de scripts.
-
-Solución (una sola vez):
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
+Solución en Linux:
+```bash
+sudo lsof -i :4200  # encontrar el proceso
+kill -9 <PID>       # matarlo
 ```
 
 ### El backend inicia pero responde vacío (ERR_EMPTY_RESPONSE)
-→ Casi siempre es porque el `.env` no está montado como volumen y la `APP_KEY` no se generó.
+→ El `.env` no está montado o la `APP_KEY` no se generó.
 
 Solución: borra y recrea el contenedor montando el `.env`:
-```powershell
+```bash
 docker rm -f observatorio-backend
-# usar el comando del paso 2b con -v
+# usar el comando del paso 2c con -v
 ```
 
 ---
