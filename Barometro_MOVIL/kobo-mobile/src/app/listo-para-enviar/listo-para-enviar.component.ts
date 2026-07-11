@@ -6,6 +6,7 @@ import { SyncService } from '../sync.service';
 import { AuthService } from '../auth.service';
 import { SavedResponse } from '../db.service';
 import { ThemeService } from '../theme.service';
+import { ToastService } from '../toast.service';
 import { TranslatePipe } from '../translate.pipe';
 
 @Component({
@@ -20,6 +21,7 @@ export class ListoParaEnviarComponent implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private toast = inject(ToastService);
   theme = inject(ThemeService);
 
   formularios: SavedResponse[] = [];
@@ -62,7 +64,7 @@ export class ListoParaEnviarComponent implements OnInit {
 
   async enviarSeleccionados() {
     if (this.seleccionados.size === 0) {
-      alert('Selecciona al menos un formulario para enviar.');
+      this.toast.show('Selecciona al menos un formulario para enviar.', 'info');
       return;
     }
 
@@ -85,12 +87,12 @@ export class ListoParaEnviarComponent implements OnInit {
 
       this.seleccionados.clear();
       this.sending = false;
-      alert(`Se enviaron ${this.sentCount} formulario(s) correctamente.`);
+      this.toast.show(`${this.sentCount} formulario(s) enviados.`);
       return;
     }
 
     if (!this.isOnline) {
-      alert('No hay conexión a internet. Los datos se enviarán cuando tengas conexión.');
+      this.toast.show('No hay conexión. Los datos se enviarán cuando tengas conexión.', 'info');
       return;
     }
 
@@ -112,10 +114,38 @@ export class ListoParaEnviarComponent implements OnInit {
     this.cdr.detectChanges();
 
     if (fallos > 0) {
-      alert(`Se enviaron ${enviados} formulario(s). ${fallos} fallaron.`);
+      this.toast.show(`Enviados: ${enviados}. Fallaron: ${fallos}.`, 'error');
     } else {
-      alert(`Se enviaron ${enviados} formulario(s) correctamente.`);
+      this.toast.show(`${enviados} formulario(s) enviados correctamente.`);
     }
+  }
+
+  async eliminarSeleccionados() {
+    if (this.seleccionados.size === 0) {
+      this.toast.show('Selecciona al menos un formulario para eliminar.', 'info');
+      return;
+    }
+
+    const ids = Array.from(this.seleccionados);
+    for (const id of ids) {
+      await this.storage.eliminarFormulario(id);
+    }
+
+    this.formularios = (await this.storage.obtenerFormularios())
+      .filter(f => f.estado === 'listo-para-enviar');
+    this.seleccionados.clear();
+    this.cdr.detectChanges();
+    this.toast.show(`${ids.length} formulario(s) eliminados.`);
+  }
+
+  async eliminarUno(form: SavedResponse) {
+    if (form.id === undefined) return;
+    await this.storage.eliminarFormulario(form.id);
+    this.formularios = (await this.storage.obtenerFormularios())
+      .filter(f => f.estado === 'listo-para-enviar');
+    this.seleccionados.delete(form.id);
+    this.cdr.detectChanges();
+    this.toast.show('Formulario eliminado.');
   }
 
   volver() {

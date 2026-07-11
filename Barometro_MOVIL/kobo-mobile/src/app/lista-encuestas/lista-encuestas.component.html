@@ -15,15 +15,30 @@
 
     <div class="encuestas-list">
       @for (form of formularios; track trackById($index, form)) {
-        <div class="encuesta-card">
+        <div class="encuesta-card" [class.completed]="form.completado">
           <div class="encuesta-info">
-            <span class="encuesta-icon">📊</span>
+            <span class="encuesta-icon">{{ form.completado ? '✅' : '📊' }}</span>
             <div class="encuesta-detalles">
               <h3>{{ form.title }}</h3>
               <p>Preguntas: {{ form.questions.length }} | {{ form.description }}</p>
+              @if (form.target_responses && form.target_responses > 0) {
+                <div class="target-progress">
+                  <div class="progress-bar">
+                    <div class="progress-fill" [class.full]="form.completado" [style.width.%]="form.enviadosCount / form.target_responses * 100"></div>
+                  </div>
+                  <span class="progress-text">{{ form.enviadosCount }} / {{ form.target_responses }} respuestas</span>
+                </div>
+              }
+              @if (form.completado) {
+                <p class="completed-text">Límite alcanzado. Espera reactivación del administrador.</p>
+              }
             </div>
           </div>
-          <button class="btn-llenar" (click)="irALlenar(form.id)">{{ 'fill_form' | translate }}</button>
+          @if (form.completado) {
+            <button class="btn-llenar disabled" disabled>{{ 'fill_form' | translate }}</button>
+          } @else {
+            <button class="btn-llenar" (click)="irALlenar(form.id)">{{ 'fill_form' | translate }}</button>
+          }
         </div>
       }
     </div>

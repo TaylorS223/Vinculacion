@@ -16,8 +16,8 @@ export class StorageService {
     return this.db.responses.toArray();
   }
 
-  async agregarFormulario(formulario: SavedResponse): Promise<void> {
-    await this.db.responses.add(formulario);
+  async agregarFormulario(formulario: SavedResponse): Promise<number> {
+    return this.db.responses.add(formulario);
   }
 
   async limpiarFormularios(): Promise<void> {

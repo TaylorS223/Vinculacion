@@ -30,7 +30,7 @@ export class BorradoresComponent implements OnInit {
   }
 
   continuar(form: SavedResponse) {
-    this.router.navigate(['/llenar', form.formId]);
+    this.router.navigate(['/llenar', form.formId], { queryParams: { continue: 'true' } });
   }
 
   async eliminar(id: number | undefined) {

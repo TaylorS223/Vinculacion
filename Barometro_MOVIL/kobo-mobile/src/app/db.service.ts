@@ -8,6 +8,8 @@ export interface FormDefinition {
   link_uuid: string;
   questions: FormQuestion[];
   downloadedAt: number;
+  target_responses?: number;
+  responses_count?: number;
 }
 
 export interface FormQuestion {

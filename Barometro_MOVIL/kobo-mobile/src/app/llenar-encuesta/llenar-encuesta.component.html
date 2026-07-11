@@ -6,6 +6,13 @@
 
   @if (cargando) {
     <p style="text-align:center;padding:2rem;">Cargando formulario...</p>
+  } @else if (targetAlcanzado) {
+    <div style="text-align:center;padding:3rem 1.5rem;">
+      <p style="font-size:2rem;margin-bottom:1rem;">✅</p>
+      <h3 style="margin-bottom:0.5rem;">Límite de respuestas alcanzado</h3>
+      <p style="color:var(--text-secondary);margin-bottom:1.5rem;">Has completado todas las respuestas asignadas para este formulario. Espera a que el administrador lo reactive.</p>
+      <a routerLink="/lista" class="btn-cancelar" style="display:inline-block;padding:10px 20px;">Volver a la lista</a>
+    </div>
   } @else if (errorCarga) {
     <p style="text-align:center;padding:2rem;color:#c62828;">{{ errorCarga }}</p>
   } @else if (formulario) {

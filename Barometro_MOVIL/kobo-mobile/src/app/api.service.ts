@@ -16,6 +16,8 @@ export interface BackendForm {
   link_uuid: string;
   state: string;
   questions: BackendQuestion[];
+  target_responses?: number;
+  responses_count?: number;
 }
 
 export interface BackendQuestion {
@@ -87,6 +89,13 @@ export class ApiService {
     const url = this.buildUrl(servidor, 'logout');
     return lastValueFrom(
       this.http.post<void>(url, {}, { headers: this.getAuthHeaders() })
+    );
+  }
+
+  updateProfile(servidor: string, data: { name: string; telefono?: string; cargo?: string; bio?: string }): Promise<any> {
+    const url = this.buildUrl(servidor, 'profile');
+    return lastValueFrom(
+      this.http.put(url, data, { headers: this.getAuthHeaders() })
     );
   }
 }

@@ -3,51 +3,42 @@
     <p class="server-label">{{ urlServidor }}</p>
   </div>
   
-  <!-- Acciones rápidas -->
   <div class="header-actions">
-    <!-- Toggle idioma -->
     <button class="header-action-btn" (click)="theme.toggleLang()" [title]="theme.lang() === 'es' ? 'Switch to English' : 'Cambiar a español'">
       {{ theme.lang() === 'es' ? 'ES' : 'EN' }}
     </button>
-
-    <!-- Toggle modo oscuro -->
     <button class="header-action-btn" (click)="theme.toggleTheme()" [title]="theme.darkMode() ? 'Modo claro' : 'Modo oscuro'">
       {{ theme.darkMode() ? '☀️' : '🌙' }}
     </button>
   </div>
 
-  <!-- Avatar del usuario -->
   <div class="avatar-container">
     <button class="avatar-btn" (click)="toggleMenuPerfil()" title="Menú de perfil">
       {{ inicialUsuario }}
     </button>
     
-    <!-- Menú desplegable -->
     @if (mostrarMenuPerfil) {
       <div class="menu-perfil">
         <div class="menu-header">
           <h3>{{ nombreUsuario }}</h3>
           <button class="close-menu" (click)="cerrarMenuPerfil()">✕</button>
         </div>
-        
         <div class="menu-opciones">
+          <button class="menu-item" (click)="cerrarMenuPerfil(); irPerfil()">
+            <span class="icon">👤</span> Perfil
+          </button>
           <button class="menu-item" (click)="cerrarMenuPerfil(); irAjustes()">
             <span class="icon">⚙️</span> {{ 'settings' | translate }}
           </button>
-          
           <button class="menu-item" (click)="cerrarMenuPerfil(); verAcercaDe()">
             <span class="icon">ℹ️</span> {{ 'about' | translate }}
           </button>
-          
           <hr style="margin: 8px 0; border: none; border-top: 1px solid var(--border);">
-          
           <button class="menu-item logout" (click)="cerrarMenuPerfil(); cerrarSesion()">
             <span class="icon">🚪</span> {{ 'logout' | translate }}
           </button>
         </div>
       </div>
-      
-      <!-- Overlay para cerrar menú al hacer click afuera -->
       <div class="menu-overlay" (click)="cerrarMenuPerfil()"></div>
     }
   </div>
@@ -76,11 +67,17 @@
     <button type="button" class="opcion-item" (click)="abrirSeccion('Borradores')">
       <span class="opcion-icono">✏️</span>
       <span class="opcion-texto">{{ 'drafts' | translate }}</span>
+      @if (cantidadBorradores > 0) {
+        <span class="badge-count">{{ cantidadBorradores }}</span>
+      }
     </button>
 
     <button type="button" class="opcion-item" (click)="abrirSeccion('Listo para enviar')">
       <span class="opcion-icono">📨</span>
-      <span class="opcion-texto">{{ 'ready_to_send' | translate }} ({{ cantidadListos }})</span>
+      <span class="opcion-texto">{{ 'ready_to_send' | translate }}</span>
+      @if (cantidadListos > 0) {
+        <span class="badge-count">{{ cantidadListos }}</span>
+      }
     </button>
 
     <button type="button" class="opcion-item" (click)="abrirSeccion('Enviado')">
@@ -88,31 +85,26 @@
       <span class="opcion-texto">{{ 'sent' | translate }}</span>
     </button>
 
-    <button type="button" class="opcion-item" (click)="iniciarDescarga()">
+    <button type="button" class="opcion-item" (click)="iniciarDescarga()" [disabled]="descargandoSeleccion">
       <span class="opcion-icono">⬇️</span>
       <span class="opcion-texto">{{ 'download_form' | translate }}</span>
+      @if (cantidadDescargados > 0) {
+        <span class="badge-count">{{ cantidadDescargados }}</span>
+      }
     </button>
 
-    <button type="button" class="opcion-item peligro" (click)="abrirSeccion('Borrar formulario')">
+    <button type="button" class="opcion-item peligro" (click)="abrirSeccion('Borrar formulario')" [disabled]="borrandoSeleccion">
       <span class="opcion-icono">🗑️</span>
       <span class="opcion-texto">{{ 'delete_form' | translate }}</span>
+      @if (cantidadDescargados > 0) {
+        <span class="badge-count danger">{{ cantidadDescargados }}</span>
+      }
     </button>
 
   </div>
 
   <p class="version-app">{{ 'app_title' | translate }} {{ 'version' | translate }}</p>
 </div>
-
-@if (cargando && !mostrarSelectorDescarga) {
-  <div class="modal-overlay">
-    <div class="modal-box">
-      <span class="close-modal" (click)="cargando = false">✕</span>
-      <div class="spinner"></div>
-      <h3>{{ 'loading' | translate }}</h3>
-      <p>Obteniendo lista de formularios disponibles.</p>
-    </div>
-  </div>
-}
 
 @if (mostrarSelectorDescarga) {
   <div class="modal-overlay" style="display:flex;align-items:center;justify-content:center;">
@@ -196,7 +188,7 @@
     <div class="modal-box">
       <div class="spinner"></div>
       <h3>{{ 'loading' | translate }}</h3>
-      <p>Guardando plantillas seleccionadas en el dispositivo.</p>
+      <p>Guardando plantillas en el dispositivo...</p>
     </div>
   </div>
 }
@@ -214,21 +206,9 @@
 @if (enviando) {
   <div class="modal-overlay">
     <div class="modal-box">
-      <span class="close-modal" (click)="enviando = false">✕</span>
       <div class="spinner" style="border-top-color: var(--primary);"></div>
       <h3 style="color: var(--primary);">Subiendo datos...</h3>
       <p>Enviando al servidor central.</p>
-    </div>
-  </div>
-}
-
-@if (mensajeExito) {
-  <div class="modal-overlay">
-    <div class="modal-box">
-      <span class="close-modal" (click)="mensajeExito = false">✕</span>
-      <div class="success-icon">✔</div>
-      <h3>¡Acción Exitosa!</h3>
-      <p>{{ textoExito }}</p>
     </div>
   </div>
 }

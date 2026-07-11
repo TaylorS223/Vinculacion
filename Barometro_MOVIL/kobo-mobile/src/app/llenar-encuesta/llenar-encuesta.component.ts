@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { DbService, FormDefinition, FormQuestion } from '../db.service';
 import { StorageService } from '../storage.service';
 import { ThemeService } from '../theme.service';
+import { ToastService } from '../toast.service';
 import { TranslatePipe } from '../translate.pipe';
 
 @Component({
@@ -19,12 +20,15 @@ export class LlenarEncuestaComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
+  private toast = inject(ToastService);
   theme = inject(ThemeService);
 
   formulario: FormDefinition | null = null;
   respuestas: Record<string, any> = {};
   cargando = true;
   errorCarga = '';
+  draftId: number | null = null;
+  targetAlcanzado = false;
 
   tiempoInicio: Date = new Date();
   tiempoInicioFormato = '';
@@ -32,6 +36,7 @@ export class LlenarEncuestaComponent implements OnInit, OnDestroy {
   duracionTexto = '00:00';
   timerInterval: any = null;
   likertRespondidos: Record<string, boolean> = {};
+  guardando = false;
 
   async ngOnInit() {
     try {
@@ -50,12 +55,31 @@ export class LlenarEncuestaComponent implements OnInit, OnDestroy {
       }
       this.formulario = form;
 
-      // Cargar borrador previo si existe
-      const draft = await this.db.responses
-        .where({ formId: formId, estado: 'borrador' })
-        .first();
-      if (draft && draft.answers) {
-        this.respuestas = draft.answers;
+      if (form.target_responses != null && form.target_responses > 0) {
+        const serverCount = form.responses_count ?? 0;
+        const pendingLocal = await this.db.responses
+          .where({ formId: formId, estado: 'listo-para-enviar' })
+          .count();
+        if (serverCount + pendingLocal >= form.target_responses) {
+          this.targetAlcanzado = true;
+          this.cargando = false;
+          this.cdr.detectChanges();
+          return;
+        }
+      }
+
+      // Solo cargar borrador si viene de "Continuar" (?continue=true)
+      const continuar = this.route.snapshot.queryParamMap.get('continue');
+      if (continuar === 'true') {
+        const draft = await this.db.responses
+          .where({ formId: formId, estado: 'borrador' })
+          .first();
+        if (draft && draft.answers) {
+          this.respuestas = draft.answers;
+          this.draftId = draft.id ?? null;
+        } else {
+          this.inicializarRespuestas();
+        }
       } else {
         this.inicializarRespuestas();
       }
@@ -83,6 +107,35 @@ export class LlenarEncuestaComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
+    }
+    this.autoGuardarBorrador();
+  }
+
+  private autoGuardarBorrador() {
+    if (!this.formulario || this.guardando) return;
+    const tieneRespuestas = Object.values(this.respuestas).some(v => {
+      if (Array.isArray(v)) return v.length > 0;
+      if (typeof v === 'object' && v !== null) return Object.values(v).some(sub => !!sub);
+      return !!v && v !== '';
+    });
+    if (!tieneRespuestas) return;
+
+    const form = {
+      formId: this.formulario.id,
+      link_uuid: this.formulario.link_uuid,
+      formTitle: this.formulario.title,
+      answers: { ...this.respuestas },
+      estado: 'borrador' as const,
+      createdAt: this.tiempoInicioFormato,
+      duration: this.duracionTexto
+    };
+
+    if (this.draftId) {
+      this.db.responses.update(this.draftId, form);
+    } else {
+      this.storage.agregarFormulario(form as any).then(id => {
+        this.draftId = id;
+      });
     }
   }
 
@@ -146,14 +199,7 @@ export class LlenarEncuestaComponent implements OnInit, OnDestroy {
 
   private async guardarConEstado(estado: 'borrador' | 'listo-para-enviar') {
     if (!this.formulario) return;
-
-    // Eliminar borrador previo si existe (para reemplazarlo)
-    const previo = await this.db.responses
-      .where({ formId: this.formulario.id, estado: 'borrador' })
-      .first();
-    if (previo?.id) {
-      await this.db.responses.delete(previo.id);
-    }
+    this.guardando = true;
 
     const form = {
       formId: this.formulario.id,
@@ -165,18 +211,29 @@ export class LlenarEncuestaComponent implements OnInit, OnDestroy {
       duration: this.duracionTexto
     };
 
-    await this.storage.agregarFormulario(form as any);
+    if (estado === 'borrador' && this.draftId) {
+      await this.db.responses.update(this.draftId, form);
+    } else {
+      if (this.draftId) {
+        await this.db.responses.delete(this.draftId);
+        this.draftId = null;
+      }
+      const newId = await this.storage.agregarFormulario(form as any);
+      if (estado === 'borrador') {
+        this.draftId = newId;
+      }
+    }
   }
 
   async guardarBorrador() {
     await this.guardarConEstado('borrador');
-    alert('Borrador guardado. Puedes continuar después desde "Borradores".');
+    this.toast.show('Borrador guardado.');
     this.router.navigate(['/']);
   }
 
   async guardarFormulario() {
     await this.guardarConEstado('listo-para-enviar');
-    alert('Formulario guardado con éxito en la memoria local!');
+    this.toast.show('Formulario guardado.');
     this.router.navigate(['/']);
   }
 

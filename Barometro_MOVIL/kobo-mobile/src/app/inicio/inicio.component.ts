@@ -5,6 +5,7 @@ import { DbService } from '../db.service';
 import { AuthService } from '../auth.service';
 import { SyncService } from '../sync.service';
 import { ThemeService } from '../theme.service';
+import { ToastService } from '../toast.service';
 import { TranslatePipe } from '../translate.pipe';
 
 @Component({
@@ -19,32 +20,31 @@ export class InicioComponent implements OnInit, OnDestroy {
   private sync = inject(SyncService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private toast = inject(ToastService);
   theme = inject(ThemeService);
 
   cargando = false;
-  mensajeExito = false;
-  textoExito = '';
   enviando = false;
   cantidadListos = 0;
+  cantidadBorradores = 0;
+  cantidadDescargados = 0;
   isOnline = true;
   urlServidor: string | null = null;
   nombreUsuario: string | null = null;
   mostrarMenuPerfil = false;
 
-  // Selector de descarga
   mostrarSelectorDescarga = false;
   formulariosDisponibles: { id: string; title: string }[] = [];
   seleccionDescarga = new Set<string>();
   descargandoSeleccion = false;
 
-  // Selector de borrar
   mostrarSelectorBorrar = false;
   formulariosLocales: { id: string; title: string; downloadedAt: number }[] = [];
   seleccionBorrar = new Set<string>();
   borrandoSeleccion = false;
 
   async ngOnInit() {
-    this.cantidadListos = await this.sync.cantidadPendientes();
+    await this.cargarContadores();
     this.urlServidor = this.auth.obtenerUrlServidor();
     this.nombreUsuario = this.auth.obtenerUsuario();
     this.isOnline = navigator.onLine;
@@ -58,8 +58,15 @@ export class InicioComponent implements OnInit, OnDestroy {
     window.removeEventListener('offline', this.actualizarEstadoRed);
   }
 
+  async cargarContadores() {
+    this.cantidadListos = await this.sync.cantidadPendientes();
+    this.cantidadBorradores = await this.db.responses.where('estado').equals('borrador').count();
+    this.cantidadDescargados = await this.db.forms.count();
+  }
+
   actualizarEstadoRed = () => {
     this.isOnline = navigator.onLine;
+    this.cdr.detectChanges();
   };
 
   toggleMenuPerfil() {
@@ -74,10 +81,6 @@ export class InicioComponent implements OnInit, OnDestroy {
     return this.nombreUsuario?.charAt(0).toUpperCase() ?? 'U';
   }
 
-  mostrarAviso(mensaje: string) {
-    alert(mensaje);
-  }
-
   abrirSeccion(nombre: string) {
     if (nombre === 'Listo para enviar') {
       this.router.navigate(['/listo-para-enviar']);
@@ -87,24 +90,29 @@ export class InicioComponent implements OnInit, OnDestroy {
       this.router.navigate(['/enviados']);
     } else if (nombre === 'Borrar formulario') {
       this.iniciarBorrar();
-    } else {
-      this.mostrarAviso(`Sección "${nombre}" — próximamente disponible.`);
     }
   }
 
   async iniciarBorrar() {
+    if (this.borrandoSeleccion) return;
+    this.borrandoSeleccion = true;
+    this.cdr.detectChanges();
+
     this.formulariosLocales = (await this.db.forms.toArray()).map(f => ({
       id: f.id,
       title: f.title,
       downloadedAt: f.downloadedAt
     }));
 
+    this.borrandoSeleccion = false;
+
     if (this.formulariosLocales.length === 0) {
-      alert('No hay formularios descargados para borrar.');
+      this.toast.show('No hay formularios descargados para borrar.', 'info');
       return;
     }
 
     this.mostrarSelectorBorrar = true;
+    this.cdr.detectChanges();
   }
 
   toggleSeleccionBorrar(id: string) {
@@ -125,7 +133,7 @@ export class InicioComponent implements OnInit, OnDestroy {
 
   async confirmarBorrar() {
     if (this.seleccionBorrar.size === 0) {
-      alert('Selecciona al menos un formulario para borrar.');
+      this.toast.show('Selecciona al menos un formulario para borrar.', 'info');
       return;
     }
 
@@ -138,8 +146,8 @@ export class InicioComponent implements OnInit, OnDestroy {
     this.seleccionBorrar.clear();
     this.borrandoSeleccion = false;
 
-    this.textoExito = `Se eliminaron ${ids.length} formulario(s) del dispositivo.`;
-    this.mensajeExito = true;
+    await this.cargarContadores();
+    this.toast.show(`Se eliminaron ${ids.length} formulario(s) del dispositivo.`);
     this.cdr.detectChanges();
   }
 
@@ -152,32 +160,40 @@ export class InicioComponent implements OnInit, OnDestroy {
     this.router.navigate(['/ajustes']);
   }
 
+  irPerfil() {
+    this.router.navigate(['/perfil']);
+  }
+
   verAcercaDe() {
-    alert('ULEAM ' + this.theme.t('version'));
+    this.toast.show('ULEAM ' + this.theme.t('version'), 'info', 4000);
   }
 
   async iniciarDescarga() {
+    if (this.descargandoSeleccion) return;
     if (!this.isOnline) {
-      alert('No puedes descargar formularios nuevos sin conexión a internet.');
+      this.toast.show('No puedes descargar sin conexión a internet.', 'error');
       return;
     }
 
+    this.descargandoSeleccion = true;
+    this.cdr.detectChanges();
+
     try {
-      this.cargando = true;
       this.formulariosDisponibles = await this.sync.obtenerFormulariosDisponibles();
-      this.cargando = false;
-      this.cdr.detectChanges();
+      this.descargandoSeleccion = false;
 
       if (this.formulariosDisponibles.length === 0) {
-        alert('No hay formularios disponibles para descargar en el servidor.');
+        this.toast.show('No hay formularios disponibles en el servidor.', 'info');
         return;
       }
 
       this.mostrarSelectorDescarga = true;
     } catch {
-      this.cargando = false;
-      alert('Error al conectar con el servidor. Verifica tu conexión.');
+      this.descargandoSeleccion = false;
+      this.toast.show('Error al conectar con el servidor.', 'error');
     }
+
+    this.cdr.detectChanges();
   }
 
   toggleSeleccionDescarga(id: string) {
@@ -198,7 +214,7 @@ export class InicioComponent implements OnInit, OnDestroy {
 
   async confirmarDescarga() {
     if (this.seleccionDescarga.size === 0) {
-      alert('Selecciona al menos un formulario para descargar.');
+      this.toast.show('Selecciona al menos un formulario.', 'info');
       return;
     }
 
@@ -212,14 +228,14 @@ export class InicioComponent implements OnInit, OnDestroy {
       this.descargandoSeleccion = false;
       this.seleccionDescarga.clear();
 
+      await this.cargarContadores();
       const msgs: string[] = [];
-      if (descargados > 0) msgs.push(`Se descargaron ${descargados} formulario(s).`);
-      if (errores > 0) msgs.push(`${errores} formulario(s) tuvieron errores.`);
-      this.textoExito = msgs.length > 0 ? msgs.join(' ') : 'No se descargó ningún formulario.';
-      this.mensajeExito = true;
+      if (descargados > 0) msgs.push(`${descargados} formulario(s) descargados.`);
+      if (errores > 0) msgs.push(`${errores} con errores.`);
+      this.toast.show(msgs.length > 0 ? msgs.join(' ') : 'No se descargó ningún formulario.');
     } catch {
       this.descargandoSeleccion = false;
-      alert('Error al descargar formularios.');
+      this.toast.show('Error al descargar formularios.', 'error');
     }
 
     this.cdr.detectChanges();
@@ -235,26 +251,28 @@ export class InicioComponent implements OnInit, OnDestroy {
     if (this.cantidadListos === 0) return;
 
     if (!this.isOnline) {
-      alert('Estás offline! Los datos se mantendrán seguros en tu dispositivo hasta que recuperes conexión.');
+      this.toast.show('Estás offline! Los datos se enviarán cuando recuperes conexión.', 'info');
       return;
     }
 
     this.enviando = true;
+    this.cdr.detectChanges();
 
     try {
       const { enviados, fallos } = await this.sync.enviarPendientes();
       this.enviando = false;
-      this.cantidadListos = await this.sync.cantidadPendientes();
+      await this.cargarContadores();
 
       const msgs: string[] = [];
-      if (enviados > 0) msgs.push(`${enviados} formulario(s) subidos al servidor.`);
-      if (fallos > 0) msgs.push(`${fallos} formulario(s) fallaron.`);
-      this.textoExito = msgs.join(' ');
-      this.mensajeExito = true;
+      if (enviados > 0) msgs.push(`${enviados} formulario(s) subidos.`);
+      if (fallos > 0) msgs.push(`${fallos} fallaron.`);
+      this.toast.show(msgs.join(' '));
     } catch {
       this.enviando = false;
-      alert('Error al enviar formularios. Verifica tu conexión.');
+      this.toast.show('Error al enviar formularios.', 'error');
     }
+
+    this.cdr.detectChanges();
   }
 
   cerrarSesion() {

@@ -46,7 +46,9 @@ export class SyncService {
             likert_rows: q.likert_rows,
             likert_columns: q.likert_columns
           })),
-          downloadedAt: Date.now()
+          downloadedAt: Date.now(),
+          target_responses: detalle.target_responses,
+          responses_count: detalle.responses_count,
         });
         descargados++;
       } catch {
@@ -77,8 +79,17 @@ export class SyncService {
       try {
         await this.api.submitResponse(servidor, resp.link_uuid, resp.answers);
         await this.db.responses.update(resp.id!, { estado: 'enviado' });
+
+        const form = await this.db.forms.get(resp.formId);
+        if (form) {
+          await this.db.forms.update(resp.formId, {
+            responses_count: (form.responses_count ?? 0) + 1,
+          });
+        }
+
         enviados++;
-      } catch {
+      } catch (error: any) {
+        console.error('[Sync] Error enviando respuesta:', error?.status, error?.message || error);
         fallos++;
       }
     }

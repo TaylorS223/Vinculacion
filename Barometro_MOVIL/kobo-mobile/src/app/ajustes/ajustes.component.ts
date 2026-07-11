@@ -4,6 +4,7 @@ import { Location } from '@angular/common';
 import { AuthService } from '../auth.service';
 import { StorageService } from '../storage.service';
 import { ThemeService } from '../theme.service';
+import { ToastService } from '../toast.service';
 import { TranslatePipe } from '../translate.pipe';
 
 @Component({
@@ -16,6 +17,7 @@ export class AjustesComponent {
   private location = inject(Location);
   private auth = inject(AuthService);
   private storage = inject(StorageService);
+  private toast = inject(ToastService);
   theme = inject(ThemeService);
 
   regresarAtras() {
@@ -29,18 +31,18 @@ export class AjustesComponent {
     );
     if (nuevoServidor && nuevoServidor.trim().length > 0) {
       localStorage.setItem('kobo_server_url', nuevoServidor);
-      alert(this.theme.t('server_url') + ' actualizado.');
+      this.toast.show(this.theme.t('server_url') + ' actualizado.');
     }
   }
 
   async limpiarDatos() {
     if (confirm(this.theme.t('delete_confirm'))) {
       await this.storage.limpiarFormularios();
-      alert('Datos locales eliminados.');
+      this.toast.show('Datos locales eliminados.');
     }
   }
 
   verAcercaDe() {
-    alert('ULEAM ' + this.theme.t('version'));
+    this.toast.show('ULEAM ' + this.theme.t('version'), 'info', 4000);
   }
 }

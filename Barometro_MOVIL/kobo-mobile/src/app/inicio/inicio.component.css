@@ -285,6 +285,26 @@
   flex: 1;
 }
 
+.badge-count {
+  background: var(--primary);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  min-width: 22px;
+  text-align: center;
+}
+
+.badge-count.danger {
+  background: var(--danger);
+}
+
+.opcion-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .version-app {
   text-align: center;
   font-size: 0.75rem;

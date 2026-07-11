@@ -41,6 +41,12 @@
   margin-bottom: 14px;
 }
 
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .guardados-header h2 {
   margin: 0;
   font-size: 1.1rem;
@@ -124,6 +130,62 @@
   justify-content: space-between;
   gap: 16px;
   align-items: flex-start;
+}
+
+.form-guardado-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-eliminar {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-eliminar:active {
+  background: #ef4444;
+  color: #fff;
+  transform: scale(0.92);
+}
+
+.btn-eliminar:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.btn-eliminar-sel {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-eliminar-sel:active {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-eliminar-sel:disabled {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .form-guardado-top h3 {

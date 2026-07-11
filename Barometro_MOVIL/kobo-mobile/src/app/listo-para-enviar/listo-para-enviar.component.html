@@ -7,9 +7,14 @@
   <section class="guardados-section">
     <div class="guardados-header" *ngIf="formularios.length > 0">
       <h2>{{ 'ready_to_send' | translate }}</h2>
-      <button class="btn-seleccionar" (click)="seleccionarTodo()">
-        {{ seleccionados.size === formularios.length ? ('deselect_all' | translate) : ('select_all' | translate) }}
-      </button>
+      <div class="header-actions">
+        <button class="btn-seleccionar" (click)="seleccionarTodo()">
+          {{ seleccionados.size === formularios.length ? ('deselect_all' | translate) : ('select_all' | translate) }}
+        </button>
+        <button class="btn-eliminar-sel" *ngIf="seleccionados.size > 0" (click)="eliminarSeleccionados()" [disabled]="sending">
+          🗑 Elimar ({{ seleccionados.size }})
+        </button>
+      </div>
     </div>
 
     <p *ngIf="formularios.length === 0" class="empty-state">
@@ -36,7 +41,10 @@
               <h3>{{ form.formTitle }}</h3>
               <p class="subtexto">Finalizado: {{ form.createdAt }}</p>
             </div>
-            <span class="badge">{{ form.duration }}</span>
+            <div class="form-guardado-actions">
+              <span class="badge">{{ form.duration }}</span>
+              <button class="btn-eliminar" (click)="eliminarUno(form)" [disabled]="sending" title="Eliminar">✕</button>
+            </div>
           </div>
           <p class="subtexto">ID {{ form.id }}</p>
         </div>

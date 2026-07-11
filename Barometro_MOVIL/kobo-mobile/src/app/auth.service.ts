@@ -57,4 +57,12 @@ export class AuthService {
   obtenerUrlServidor(): string | null {
     return localStorage.getItem(SERVER_KEY);
   }
+
+  obtenerEmail(): string | null {
+    return localStorage.getItem(USER_EMAIL_KEY);
+  }
+
+  actualizarUsuario(nombre: string): void {
+    localStorage.setItem(USER_KEY, nombre);
+  }
 }

@@ -15,3 +15,11 @@
     <p>{{ 'app_footer' | translate }}</p>
   </footer>
 </div>
+
+<div class="toast-container">
+  @for (t of toast.toasts(); track t.id) {
+    <div class="toast" [class]="'toast toast-' + t.type" (click)="toast.dismiss(t.id)">
+      {{ t.message }}
+    </div>
+  }
+</div>
