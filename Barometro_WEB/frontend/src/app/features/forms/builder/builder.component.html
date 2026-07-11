@@ -13,6 +13,12 @@
         <span class="material-icons" aria-hidden="true">arrow_back</span>
         {{ 'forms.builder.back' | translate }}
       </a>
+      @if (vm.isEditMode() && authService.isAdmin()) {
+        <button class="btn btn-primary" type="button" style="background:#ff9800;border-color:#ff9800;" (click)="openShareModal()">
+          <span class="material-icons" aria-hidden="true">share</span>
+          Compartir
+        </button>
+      }
       <button
         class="btn btn-primary"
         type="button"
@@ -50,7 +56,9 @@
       <span class="material-icons spin" aria-hidden="true">progress_activity</span>
       {{ 'common.messages.loadingForm' | translate }}
     </div>
-  } @else {
+  }
+
+  @if (!vm.isLoading()) {
     <div class="builder-grid">
       <article class="editor-panel">
         <section class="metadata-section">
@@ -403,3 +411,145 @@
     </div>
   }
 </section>
+
+@if (shareModalOpen) {
+  <div class="modal-backdrop" (click)="closeShareModal()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Compartir formulario</h3>
+        <button type="button" class="modal-close" (click)="closeShareModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        @if (shareError) {
+          <div class="alert alert-error">{{ shareError }}</div>
+        }
+
+        <form class="share-form" (ngSubmit)="submitShare()">
+          <label class="field">
+            <span>Correo del usuario</span>
+            <input
+              type="email"
+              [(ngModel)]="shareEmail"
+              name="email"
+              placeholder="correo@uleam.edu.ec"
+              required
+              (ngModelChange)="lookupUser()"
+            />
+          </label>
+          @if (lookingUpUser) {
+            <p class="lookup-hint">Buscando usuario...</p>
+          } @else if (matchedUser) {
+            <div class="user-preview">
+              <div class="user-preview-avatar">{{ matchedUser.name?.charAt(0)?.toUpperCase() || 'U' }}</div>
+              <div class="user-preview-info">
+                <strong>{{ matchedUser.name }}</strong>
+                <span>{{ matchedUser.email }}</span>
+                <span class="user-preview-role">{{ matchedUser.rol }}</span>
+              </div>
+            </div>
+          } @else if (shareEmail.trim().length >= 3) {
+            <p class="lookup-hint">No se encontró usuario con ese correo.</p>
+          }
+          <div class="share-row">
+            <label class="field">
+              <span>Rol</span>
+              <select [(ngModel)]="shareRole" name="role">
+                <option value="RECOLECTOR">Recolector</option>
+                <option value="EDITOR">Editor</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Respuestas objetivo</span>
+              <input
+                type="number"
+                [(ngModel)]="shareTarget"
+                name="target"
+                placeholder="Ej: 10"
+                min="1"
+              />
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary" [disabled]="addingShare || !shareEmail.trim()">
+            {{ addingShare ? 'Agregando...' : 'Asignar usuario' }}
+          </button>
+        </form>
+
+        <hr class="modal-divider" />
+
+        <h4>Usuarios asignados</h4>
+
+        @if (loadingShares) {
+          <p>Cargando...</p>
+        } @else if (shares().length === 0) {
+          <p class="empty-state-text">No hay usuarios asignados a este formulario.</p>
+        } @else {
+          <table class="shares-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Progreso</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (share of shares(); track share.id) {
+                <tr [class.completed-row]="share.target_responses && share.target_responses > 0 && (share.responses_count ?? 0) >= share.target_responses">
+                  <td>
+                    <div class="user-cell">
+                      <span class="user-cell-avatar">{{ (share.user_name || '?')?.charAt(0)?.toUpperCase() }}</span>
+                      <span>{{ share.user_name || 'Sin nombre' }}</span>
+                    </div>
+                  </td>
+                  <td>{{ share.user_email || '—' }}</td>
+                  <td>
+                    <span class="role-pill role-{{ share.role?.toLowerCase() }}">{{ share.role === 'EDITOR' ? 'Editor' : 'Recolector' }}</span>
+                  </td>
+                  <td>
+                    @if (editingShareId === share.id) {
+                      <div class="inline-edit">
+                        <input
+                          type="number"
+                          [ngModel]="editTargetValue"
+                          (ngModelChange)="editTargetValue = $event === '' ? null : +$event"
+                          min="1"
+                          placeholder="Sin límite"
+                          class="target-input"
+                        />
+                        <button type="button" class="btn btn-primary btn-sm" (click)="saveEditTarget(share.id)" [disabled]="savingTarget">
+                          {{ savingTarget ? '...' : 'Guardar' }}
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm" (click)="cancelEditTarget()">Cancelar</button>
+                      </div>
+                    } @else {
+                      @if (share.target_responses && share.target_responses > 0) {
+                        <div class="progress-bar">
+                          <div class="progress-fill" [class.full]="(share.responses_count ?? 0) >= share.target_responses" [style.width.%]="progressPercent(share)"></div>
+                        </div>
+                        <span class="progress-text">{{ share.responses_count ?? 0 }} / {{ share.target_responses }}</span>
+                        @if ((share.responses_count ?? 0) >= share.target_responses) {
+                          <span class="completed-badge">Completado</span>
+                          <button type="button" class="btn-reactivate" (click)="startEditTarget(share)">Reactivar</button>
+                        } @else {
+                          <button type="button" class="btn-edit-target" (click)="startEditTarget(share)">Editar</button>
+                        }
+                      } @else {
+                        <span class="progress-text">{{ share.responses_count ?? 0 }} respuestas</span>
+                        <button type="button" class="btn-edit-target" (click)="startEditTarget(share)">Definir límite</button>
+                      }
+                    }
+                  </td>
+                  <td>
+                    <button type="button" class="btn-danger-sm" (click)="removeShare(share.id)">Retirar</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  </div>
+}

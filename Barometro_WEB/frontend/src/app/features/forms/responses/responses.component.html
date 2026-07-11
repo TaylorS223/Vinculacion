@@ -42,6 +42,32 @@
       <p>{{ 'forms.responses.loading' | translate }}</p>
     </div>
   } @else {
+    @if (vm.shareProgress().length > 0) {
+      <section class="shares-counter">
+        <h2>Respuestas por asignación</h2>
+        <div class="shares-grid">
+          @for (share of vm.shareProgress(); track share.id) {
+            <div class="share-counter-card">
+              <div class="share-counter-header">
+                <span class="share-name">{{ share.user_name || share.user_email || 'Usuario' }}</span>
+                <span class="share-role">{{ share.role }}</span>
+              </div>
+              @if (share.target_responses) {
+                <div class="share-progress">
+                  <div class="progress-bar">
+                    <div class="progress-fill" [class.full]="(share.responses_count ?? 0) >= share.target_responses!" [style.width.%]="share.progress"></div>
+                  </div>
+                  <span class="progress-text">{{ share.responses_count ?? 0 }} / {{ share.target_responses }} respuestas</span>
+                </div>
+              } @else {
+                <span class="share-count">{{ share.responses_count ?? 0 }} respuestas</span>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+
     @if (vm.chartableQuestions().length > 0) {
       <section class="charts-section">
         <h2>{{ 'forms.responses.chartsTitle' | translate }}</h2>

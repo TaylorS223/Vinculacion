@@ -40,6 +40,11 @@ export interface FormShare {
   form_id: string;
   user_id: string;
   role: 'EDITOR' | 'RECOLECTOR';
+  target_responses?: number | null;
+  responses_count?: number;
+  user_name?: string;
+  user_email?: string;
+  user_rol?: string;
   user?: { id: string; name: string; email: string };
 }
 
@@ -94,8 +99,12 @@ export class FormService {
     return this.http.get<FormShare[]>(`${this.apiUrl}/${formId}/shares`);
   }
 
-  createShare(formId: string, data: { email: string; role: 'EDITOR' | 'RECOLECTOR' }): Observable<FormShare> {
+  createShare(formId: string, data: { email: string; role: 'EDITOR' | 'RECOLECTOR'; target_responses?: number | null }): Observable<FormShare> {
     return this.http.post<FormShare>(`${this.apiUrl}/${formId}/shares`, data);
+  }
+
+  updateShareTarget(formId: string, shareId: string, target_responses: number | null): Observable<FormShare> {
+    return this.http.patch<FormShare>(`${this.apiUrl}/${formId}/shares/${shareId}`, { target_responses });
   }
 
   deleteShare(formId: string, shareId: string): Observable<void> {

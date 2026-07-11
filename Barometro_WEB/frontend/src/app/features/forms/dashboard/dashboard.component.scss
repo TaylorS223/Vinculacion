@@ -448,16 +448,36 @@
   justify-content: space-between;
   padding: 0.625rem 0;
   border-bottom: 1px solid var(--border-color);
+}
+
+.share-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 
   strong {
     display: block;
     font-size: 0.875rem;
   }
 
-  span {
+  span:not(.share-avatar) {
     font-size: 0.75rem;
     color: var(--text-tertiary);
   }
+}
+
+.share-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-600);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
 }
 
 .share-actions {

@@ -1,5 +1,5 @@
 ﻿import { Injectable, computed, inject, signal } from '@angular/core';
-import { FormQuestion, FormService } from '@core/services/form.service';
+import { FormQuestion, FormService, FormShare } from '@core/services/form.service';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -28,9 +28,19 @@ export class FormResponsesViewModel {
   questions = signal<FormQuestion[]>([]);
   responses = signal<FormResponseRow[]>([]);
   stats = signal<Record<string, Record<string, number>>>({});
+  shares = signal<FormShare[]>([]);
   isLoading = signal(false);
   errorMessage = signal('');
   isExporting = signal(false);
+
+  totalResponses = computed(() => this.responses().length);
+
+  shareProgress = computed(() =>
+    this.shares().map((s) => ({
+      ...s,
+      progress: s.target_responses ? Math.min(100, Math.round(((s.responses_count ?? 0) / s.target_responses) * 100)) : null,
+    })),
+  );
 
   chartableQuestions = computed<QuestionChart[]>(() => {
     const statsData = this.stats();
@@ -67,15 +77,17 @@ export class FormResponsesViewModel {
     this.errorMessage.set('');
 
     try {
-      const [form, responseData, statsData] = await Promise.all([
+      const [form, responseData, statsData, sharesData] = await Promise.all([
         firstValueFrom(this.formService.getForm(formId)),
         firstValueFrom(this.formService.getResponses(formId)),
         firstValueFrom(this.formService.getStats(formId)),
+        firstValueFrom(this.formService.getShares(formId)),
       ]);
 
       this.formTitle.set(form.title);
       this.questions.set(responseData.questions ?? form.questions ?? []);
       this.stats.set(statsData);
+      this.shares.set(sharesData);
 
       const rows: FormResponseRow[] = (responseData.responses ?? []).map((r: any) => ({
         id: r.id,

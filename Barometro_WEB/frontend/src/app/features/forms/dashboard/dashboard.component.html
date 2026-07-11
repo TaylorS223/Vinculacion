@@ -206,12 +206,15 @@
           <h4>{{ 'forms.dashboard.sharedUsers' | translate }}</h4>
           @for (share of vm.shares(); track share.id) {
             <div class="share-item">
-              <div>
-                <strong>{{ share.user?.name ?? ('forms.dashboard.userFallback' | translate) }}</strong>
-                <span>{{ share.user?.email }}</span>
+              <div class="share-user-info">
+                <span class="share-avatar">{{ (share.user_name || '?')?.charAt(0)?.toUpperCase() }}</span>
+                <div>
+                  <strong>{{ share.user_name || 'Sin nombre' }}</strong>
+                  <span>{{ share.user_email || '—' }}</span>
+                </div>
               </div>
               <div class="share-actions">
-                <span class="role-badge">{{ 'forms.dashboard.roles.' + share.role | translate }}</span>
+                <span class="role-badge">{{ share.role === 'EDITOR' ? 'Editor' : 'Recolector' }}</span>
                 <button (click)="vm.removeShare(share.id)" type="button" [title]="'forms.dashboard.removeAccess' | translate">x</button>
               </div>
             </div>
