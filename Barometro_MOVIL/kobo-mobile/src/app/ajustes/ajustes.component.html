@@ -1,0 +1,40 @@
+<div class="ajustes-page">
+  <div class="header-ajustes">
+    <button class="btn-regreso" (click)="regresarAtras()" title="Atrás">← Atrás</button>
+    <h2>Ajustes</h2>
+  </div>
+
+  <div class="contenido-ajustes">
+    <div class="ajuste-item" (click)="cambiarServidor()">
+      <div class="icono">☁️</div>
+      <div>
+        <p class="titulo">Servidor</p>
+        <p class="subtitulo">Cambiar URL de conexión</p>
+      </div>
+    </div>
+
+    <div class="ajuste-item" (click)="cambiarIdioma()">
+      <div class="icono">🌐</div>
+      <div>
+        <p class="titulo">Idioma</p>
+        <p class="subtitulo">Español / English</p>
+      </div>
+    </div>
+
+    <div class="ajuste-item" (click)="limpiarDatos()">
+      <div class="icono">🗑️</div>
+      <div>
+        <p class="titulo">Limpiar datos locales</p>
+        <p class="subtitulo">Eliminar formularios guardados</p>
+      </div>
+    </div>
+
+    <div class="ajuste-item" (click)="verAcercaDe()">
+      <div class="icono">ℹ️</div>
+      <div>
+        <p class="titulo">Acerca de</p>
+        <p class="subtitulo">Versión y detalles</p>
+      </div>
+    </div>
+  </div>
+</div>

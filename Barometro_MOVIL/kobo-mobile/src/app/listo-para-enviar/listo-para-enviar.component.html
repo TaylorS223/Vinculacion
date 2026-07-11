@@ -1,0 +1,49 @@
+<div class="lista-container">
+  <div class="top-bar">
+    <button class="btn-back" (click)="volver()">⬅ Volver</button>
+    <h2>Listo para enviar</h2>
+  </div>
+
+  <section class="guardados-section">
+    <div class="guardados-header" *ngIf="formularios.length > 0">
+      <h2>Formularios listos</h2>
+      <button class="btn-seleccionar" (click)="seleccionarTodo()">
+        {{ seleccionados.size === formularios.length ? 'Deseleccionar todo' : 'Seleccionar todo' }}
+      </button>
+    </div>
+
+    <p *ngIf="formularios.length === 0" class="empty-state">
+      No hay formularios guardados todavía. Completa una encuesta y vuelve aquí.
+    </p>
+
+    <div *ngIf="formularios.length > 0" class="formularios-guardados">
+      <div *ngIf="sending" class="send-progress">
+        <p>Enviando {{ sentCount }} / {{ totalToSend }}...</p>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="progressPercent"></div>
+        </div>
+      </div>
+      <div *ngFor="let form of formularios" class="form-guardado-card" [class.selected]="isSeleccionado(form)">
+        <label class="guardar-checkbox">
+          <input type="checkbox" [checked]="isSeleccionado(form)" (change)="toggleSeleccion(form)">
+          <span class="custom-checkbox"></span>
+        </label>
+
+        <div class="form-guardado-body">
+          <div class="form-guardado-top">
+            <div>
+              <h3>{{ form.tipo }}</h3>
+              <p class="subtexto">Finalizado: {{ form.fechaInicio }}</p>
+            </div>
+            <span class="badge">{{ form.duracionTexto }}</span>
+          </div>
+          <p class="subtexto">ID {{ form.id }}</p>
+        </div>
+      </div>
+
+      <button class="btn-enviar" (click)="enviarSeleccionados()" [disabled]="sending">
+        {{ sending ? 'Enviando...' : ( 'Enviar seleccionado' + (seleccionados.size === 1 ? '' : 's') ) }}
+      </button>
+    </div>
+  </section>
+</div>
