@@ -77,6 +77,8 @@ export class BuilderComponent implements OnInit {
   savingTarget = false;
   matchedUser: User | null = null;
   lookingUpUser = false;
+  private usersCache: User[] | null = null;
+  private lookupTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     void this.vm.loadProjects();
@@ -97,7 +99,6 @@ export class BuilderComponent implements OnInit {
     }
     this.shareModalOpen = true;
     this.shareError = '';
-    this.loadUsers();
     this.loadShares(formId);
   }
 
@@ -105,21 +106,37 @@ export class BuilderComponent implements OnInit {
     this.shareModalOpen = false;
     this.shareError = '';
     this.matchedUser = null;
+    this.clearLookupTimer();
+  }
+
+  setShareRole(role: 'EDITOR' | 'RECOLECTOR'): void {
+    this.shareRole = role;
+    if (role === 'EDITOR') {
+      this.shareTarget = null;
+    }
   }
 
   lookupUser(): void {
     const email = this.shareEmail.trim().toLowerCase();
+    this.clearLookupTimer();
+
     if (!email || email.length < 3) {
       this.matchedUser = null;
+      this.lookingUpUser = false;
       return;
     }
+
     this.lookingUpUser = true;
-    this.userService.getUsers(100, 1).subscribe({
-      next: (res) => {
-        this.matchedUser = res.data.find(u => u.email.toLowerCase() === email) || null;
-        this.lookingUpUser = false;
-      },
-      error: () => { this.lookingUpUser = false; },
+    this.lookupTimer = setTimeout(() => this.resolveUserLookup(email), 250);
+  }
+
+  private resolveUserLookup(email: string): void {
+    this.getCachedUsers().then((users) => {
+      this.matchedUser = users.find((user) => user.email.toLowerCase() === email) || null;
+    }).catch(() => {
+      this.matchedUser = null;
+    }).finally(() => {
+      this.lookingUpUser = false;
     });
   }
 
@@ -136,7 +153,7 @@ export class BuilderComponent implements OnInit {
     this.formService.createShare(formId, {
       email: this.shareEmail.trim(),
       role: this.shareRole,
-      target_responses: this.shareTarget,
+      target_responses: this.shareRole === 'RECOLECTOR' ? this.shareTarget : null,
     }).subscribe({
       next: () => {
         this.shareEmail = '';
@@ -164,6 +181,7 @@ export class BuilderComponent implements OnInit {
   }
 
   startEditTarget(share: FormShare): void {
+    if (share.role !== 'RECOLECTOR') return;
     this.editingShareId = share.id;
     this.editTargetValue = share.target_responses ?? null;
   }
@@ -202,11 +220,12 @@ export class BuilderComponent implements OnInit {
     return Math.min(100, Math.round(((share.responses_count ?? 0) / share.target_responses) * 100));
   }
 
-  private loadUsers(): void {
-    this.userService.getUsers(100, 1).subscribe({
-      next: (res) => this.users.set(res.data),
-      error: () => { this.users.set([]); },
-    });
+  private async getCachedUsers(): Promise<User[]> {
+    if (this.usersCache) return this.usersCache;
+
+    const response = await this.userService.getUsers(100, 1).toPromise();
+    this.usersCache = response?.data ?? [];
+    return this.usersCache;
   }
 
   private loadShares(formId: string): void {
@@ -215,5 +234,11 @@ export class BuilderComponent implements OnInit {
       next: (shares) => { this.shares.set(shares); this.loadingShares = false; },
       error: () => { this.shares.set([]); this.loadingShares = false; },
     });
+  }
+
+  private clearLookupTimer(): void {
+    if (!this.lookupTimer) return;
+    clearTimeout(this.lookupTimer);
+    this.lookupTimer = null;
   }
 }

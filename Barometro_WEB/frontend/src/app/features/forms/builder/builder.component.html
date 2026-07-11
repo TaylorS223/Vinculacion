@@ -441,7 +441,7 @@
             <p class="lookup-hint">Buscando usuario...</p>
           } @else if (matchedUser) {
             <div class="user-preview">
-              <div class="user-preview-avatar">{{ matchedUser.name?.charAt(0)?.toUpperCase() || 'U' }}</div>
+              <div class="user-preview-avatar">{{ matchedUser.name.charAt(0).toUpperCase() || 'U' }}</div>
               <div class="user-preview-info">
                 <strong>{{ matchedUser.name }}</strong>
                 <span>{{ matchedUser.email }}</span>
@@ -454,21 +454,23 @@
           <div class="share-row">
             <label class="field">
               <span>Rol</span>
-              <select [(ngModel)]="shareRole" name="role">
+              <select [ngModel]="shareRole" (ngModelChange)="setShareRole($event)" name="role">
                 <option value="RECOLECTOR">Recolector</option>
                 <option value="EDITOR">Editor</option>
               </select>
             </label>
-            <label class="field">
-              <span>Respuestas objetivo</span>
-              <input
-                type="number"
-                [(ngModel)]="shareTarget"
-                name="target"
-                placeholder="Ej: 10"
-                min="1"
-              />
-            </label>
+            @if (shareRole === 'RECOLECTOR') {
+              <label class="field">
+                <span>Respuestas objetivo</span>
+                <input
+                  type="number"
+                  [(ngModel)]="shareTarget"
+                  name="target"
+                  placeholder="Ej: 10"
+                  min="1"
+                />
+              </label>
+            }
           </div>
           <button type="submit" class="btn btn-primary" [disabled]="addingShare || !shareEmail.trim()">
             {{ addingShare ? 'Agregando...' : 'Asignar usuario' }}
@@ -505,10 +507,12 @@
                   </td>
                   <td>{{ share.user_email || '—' }}</td>
                   <td>
-                    <span class="role-pill role-{{ share.role?.toLowerCase() }}">{{ share.role === 'EDITOR' ? 'Editor' : 'Recolector' }}</span>
+                    <span class="role-pill role-{{ share.role.toLowerCase() }}">{{ share.role === 'EDITOR' ? 'Editor' : 'Recolector' }}</span>
                   </td>
                   <td>
-                    @if (editingShareId === share.id) {
+                    @if (share.role === 'EDITOR') {
+                      <span class="progress-text">Permiso de edicion</span>
+                    } @else if (editingShareId === share.id) {
                       <div class="inline-edit">
                         <input
                           type="number"

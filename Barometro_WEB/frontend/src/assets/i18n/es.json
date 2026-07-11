@@ -12,6 +12,7 @@
       "export": "Exportar",
       "copy": "Copiar",
       "share": "Compartir",
+      "clone": "Clonar",
       "invite": "Invitar",
       "archive": "Archivar",
       "deploy": "Implementar",
@@ -247,6 +248,27 @@
       "sharedUsers": "Usuarios con acceso",
       "removeAccess": "Quitar acceso",
       "userFallback": "Usuario",
+      "share": {
+        "emailLabel": "Correo del usuario",
+        "roleLabel": "Rol",
+        "targetLabel": "Respuestas objetivo",
+        "targetPlaceholder": "Ej: 10",
+        "searchingUser": "Buscando usuario...",
+        "userNotFound": "No se encontro usuario con ese correo.",
+        "assign": "Asignar usuario",
+        "adding": "Agregando...",
+        "noAssignedUsers": "No hay usuarios asignados a este formulario.",
+        "nameColumn": "Nombre",
+        "emailColumn": "Correo",
+        "roleColumn": "Rol",
+        "progressColumn": "Progreso",
+        "editorPermission": "Permiso de edicion",
+        "noLimit": "Sin limite",
+        "saving": "...",
+        "completed": "Completado",
+        "reactivate": "Reactivar",
+        "defineLimit": "Definir limite"
+      },
       "tabs": {
         "DRAFT": "Borrador",
         "DEPLOYED": "Implementado",
@@ -254,6 +276,7 @@
       },
       "actions": {
         "edit": "Editar",
+        "more": "Mas opciones",
         "viewLink": "Ver enlace"
       },
       "roles": {
@@ -265,8 +288,10 @@
         "deploy": "Error al implementar formulario",
         "archive": "Error al archivar formulario",
         "delete": "Error al eliminar formulario",
+        "clone": "Error al clonar formulario",
         "shareEmail": "Ingresa un correo valido",
         "share": "Error al compartir formulario",
+        "updateShare": "Error al actualizar el objetivo",
         "removeShare": "Error al eliminar acceso"
       }
     },

@@ -75,6 +75,10 @@ export class FormService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
+  cloneForm(id: string): Observable<Form> {
+    return this.http.post<Form>(`${this.apiUrl}/${id}/clone`, {});
+  }
+
   deployForm(id: string): Observable<Form> {
     return this.http.post<Form>(`${this.apiUrl}/${id}/deploy`, {});
   }

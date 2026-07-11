@@ -12,6 +12,7 @@
       "export": "Export",
       "copy": "Copy",
       "share": "Share",
+      "clone": "Clone",
       "invite": "Invite",
       "archive": "Archive",
       "deploy": "Deploy",
@@ -247,6 +248,27 @@
       "sharedUsers": "Users with access",
       "removeAccess": "Remove access",
       "userFallback": "User",
+      "share": {
+        "emailLabel": "User email",
+        "roleLabel": "Role",
+        "targetLabel": "Target responses",
+        "targetPlaceholder": "Ex: 10",
+        "searchingUser": "Searching user...",
+        "userNotFound": "No user found with that email.",
+        "assign": "Assign user",
+        "adding": "Adding...",
+        "noAssignedUsers": "There are no users assigned to this form.",
+        "nameColumn": "Name",
+        "emailColumn": "Email",
+        "roleColumn": "Role",
+        "progressColumn": "Progress",
+        "editorPermission": "Edit permission",
+        "noLimit": "No limit",
+        "saving": "...",
+        "completed": "Completed",
+        "reactivate": "Reactivate",
+        "defineLimit": "Set limit"
+      },
       "tabs": {
         "DRAFT": "Draft",
         "DEPLOYED": "Deployed",
@@ -254,6 +276,7 @@
       },
       "actions": {
         "edit": "Edit",
+        "more": "More options",
         "viewLink": "View link"
       },
       "roles": {
@@ -265,8 +288,10 @@
         "deploy": "Failed to deploy form",
         "archive": "Failed to archive form",
         "delete": "Failed to delete form",
+        "clone": "Failed to clone form",
         "shareEmail": "Enter a valid email",
         "share": "Failed to share form",
+        "updateShare": "Failed to update target",
         "removeShare": "Failed to remove access"
       }
     },

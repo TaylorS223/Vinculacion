@@ -34,12 +34,15 @@ Todo formulario debe pertenecer a un proyecto. El panel de proyectos muestra mie
 ## Estructura
 
 ```text
-backend/   Laravel API
-frontend/  Angular SPA/SSR
+backend/   Laravel API activa
+frontend/  Angular SPA/SSR web activo
 scripts/   Wrappers de desarrollo para PowerShell, Bash y CMD
 docs/      Documentacion operativa y tecnica
+docs/legacy-root-angular/  Angular legado archivado; no ejecutar como frontend activo
 docker-compose.yml  PostgreSQL local
 ```
+
+El frontend que se debe ejecutar y compilar es siempre `frontend/`. La carpeta `docs/legacy-root-angular/` solo conserva archivos antiguos que antes estaban en la raiz.
 
 ## Inicio rapido
 

@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -185,6 +186,41 @@ class FormController extends Controller
         return response()->json(null, 204);
     }
 
+    #[OA\Post(path: '/forms/{id}/clone', summary: 'Clonar formulario en borrador', security: [['sanctum' => []]], tags: ['Forms'])]
+    public function cloneForm(Request $request, string $id): JsonResponse
+    {
+        $source = $this->findShareManageableForm($id, $request->user());
+        $source->load(['questions' => fn($q) => $q->orderBy('order')]);
+
+        $copy = DB::transaction(function () use ($source, $request) {
+            $copy = Form::create([
+                'title' => $source->title . ' (copia)',
+                'description' => $source->description,
+                'user_id' => $request->user()->id,
+                'project_id' => $source->project_id,
+                'state' => 'DRAFT',
+                'link_uuid' => null,
+            ]);
+
+            foreach ($source->questions as $question) {
+                $copy->questions()->create([
+                    'type' => $question->type,
+                    'label' => $question->label,
+                    'options' => $question->options,
+                    'required' => $question->required,
+                    'order' => $question->order,
+                ]);
+            }
+
+            return $copy;
+        });
+
+        $copy->load(['owner:id,name,email,rol', 'project:id,name']);
+        $copy->loadCount('responses');
+
+        return response()->json($copy, 201);
+    }
+
     #[OA\Post(path: '/forms/{id}/deploy', summary: 'Implementar formulario y generar enlace publico', security: [['sanctum' => []]], tags: ['Forms'])]
     public function deploy(Request $request, string $id): JsonResponse
     {
@@ -293,7 +329,7 @@ class FormController extends Controller
                 'user_email' => $share->user->email ?? '',
                 'user_rol' => $share->user->rol ?? '',
                 'role' => $share->role,
-                'target_responses' => $share->target_responses,
+                'target_responses' => $share->role === 'RECOLECTOR' ? $share->target_responses : null,
                 'responses_count' => $responsesCount,
             ];
         });
@@ -327,10 +363,10 @@ class FormController extends Controller
 
         $share = FormUserShare::updateOrCreate(
             ['form_id' => $form->id, 'user_id' => $user->id],
-            array_filter([
+            [
                 'role' => $request->role,
-                'target_responses' => $request->target_responses,
-            ], fn($v) => $v !== null)
+                'target_responses' => $request->role === 'RECOLECTOR' ? $request->target_responses : null,
+            ]
         );
 
         return response()->json($share->load('user:id,name,email,rol'), 201);
@@ -356,6 +392,10 @@ class FormController extends Controller
         ]);
 
         $share = FormUserShare::where('form_id', $form->id)->findOrFail($share_id);
+        if ($share->role !== 'RECOLECTOR') {
+            return response()->json(['message' => 'Solo los recolectores pueden tener respuestas objetivo'], 422);
+        }
+
         $share->update(['target_responses' => $request->target_responses]);
 
         return response()->json($share->load('user:id,name,email,rol'));

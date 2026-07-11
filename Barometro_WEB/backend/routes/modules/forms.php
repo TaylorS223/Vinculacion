@@ -15,6 +15,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/{id}', [FormController::class, 'show']); // view form details
     Route::put('/{id}', [FormController::class, 'update']); // update form (only if DRAFT/ARCHIVED)
     Route::delete('/{id}', [FormController::class, 'destroy']);
+    Route::post('/{id}/clone', [FormController::class, 'cloneForm']);
     Route::post('/{id}/deploy', [FormController::class, 'deploy']); // change to DEPLOYED
     Route::post('/{id}/archive', [FormController::class, 'archive']); // change to ARCHIVED
 
