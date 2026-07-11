@@ -10,7 +10,7 @@ export class FormStatusPipe implements PipeTransform {
       return 'Borrador';
     }
 
-    if (value === 'IMPLEMENTED') {
+    if (value === 'DEPLOYED') {
       return 'Implementado';
     }
 

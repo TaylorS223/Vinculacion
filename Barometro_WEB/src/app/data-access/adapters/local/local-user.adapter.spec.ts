@@ -9,13 +9,13 @@ describe('LocalUserAdapter', () => {
       adapter.create({
         name: 'Usuario Test',
         email: 'test@universidad.edu',
-        role: 'VIEWER',
+        role: 'USER',
         isActive: true,
       }),
     );
 
-    const updated = await firstValueFrom(adapter.update(created.id, { role: 'ANALYST' }));
-    expect(updated.role).toBe('ANALYST');
+    const updated = await firstValueFrom(adapter.update(created.id, { role: 'PROJECT_LEADER' }));
+    expect(updated.role).toBe('PROJECT_LEADER');
 
     await firstValueFrom(adapter.delete(created.id));
     const found = await firstValueFrom(adapter.findById(created.id));

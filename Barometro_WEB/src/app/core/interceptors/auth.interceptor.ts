@@ -6,13 +6,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authSession = inject(AuthSessionService);
   const session = authSession.session();
 
-  if (!session?.tokenMock) {
+  if (!session?.token) {
     return next(req);
   }
 
   const authenticated = req.clone({
     setHeaders: {
-      Authorization: `Bearer ${session.tokenMock}`,
+      Authorization: `Bearer ${session.token}`,
     },
   });
 

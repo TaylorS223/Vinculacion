@@ -11,7 +11,7 @@ export class LocalReportAdapter implements ReportRepository {
   getKpis(): Observable<KpiSummary> {
     const totalSurveys = SURVEYS_MOCK.length;
     const totalResponses = RESPONSES_MOCK.length;
-    const activeSurveys = SURVEYS_MOCK.filter((survey) => survey.status === 'IMPLEMENTED').length;
+    const activeSurveys = SURVEYS_MOCK.filter((survey) => survey.status === 'DEPLOYED').length;
 
     return of({
       totalSurveys,

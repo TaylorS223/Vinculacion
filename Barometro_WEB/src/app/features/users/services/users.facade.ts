@@ -11,7 +11,7 @@ export class UsersFacade {
     return this.userRepository.list();
   }
 
-  findById(id: string) {
+  findById(id: number | string) {
     return this.userRepository.findById(id);
   }
 
@@ -19,11 +19,11 @@ export class UsersFacade {
     return this.userRepository.create(user);
   }
 
-  update(id: string, changes: Partial<User>) {
+  update(id: number | string, changes: Partial<User>) {
     return this.userRepository.update(id, changes);
   }
 
-  delete(id: string) {
+  delete(id: number | string) {
     return this.userRepository.delete(id);
   }
 }

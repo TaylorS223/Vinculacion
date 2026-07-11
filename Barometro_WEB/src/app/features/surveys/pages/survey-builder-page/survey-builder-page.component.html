@@ -1,9 +1,16 @@
 <section class="builder">
   <header class="builder-header">
     <h2>{{ pageTitle() }}</h2>
-    <button type="button" (click)="save()" [disabled]="isFormInvalid()">
-      {{ saving() ? 'Guardando...' : 'Guardar formulario' }}
-    </button>
+    <div class="header-actions">
+      @if (canManageShares()) {
+        <button type="button" class="share-btn" (click)="openShareModal()">
+          Compartir
+        </button>
+      }
+      <button type="button" (click)="save()" [disabled]="isFormInvalid()">
+        {{ saving() ? 'Guardando...' : 'Guardar formulario' }}
+      </button>
+    </div>
   </header>
 
   @if (loading()) {
@@ -94,3 +101,114 @@
     </div>
   }
 </section>
+
+@if (shareModalOpen()) {
+  <div class="modal-backdrop" (click)="onBackdropClick($event)">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Compartir formulario</h3>
+        <button type="button" class="modal-close" (click)="closeShareModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form class="share-form" [formGroup]="shareForm" (ngSubmit)="addShare()">
+          <label>
+            Usuario
+            <select formControlName="userId">
+              <option [ngValue]="null" disabled>Seleccionar usuario</option>
+              @for (user of users(); track user.id) {
+                <option [ngValue]="user.id">{{ user.name }} ({{ user.email }})</option>
+              }
+            </select>
+          </label>
+          <label>
+            Rol
+            <select formControlName="role">
+              <option value="RECOLECTOR">Recolector</option>
+              <option value="EDITOR">Editor</option>
+            </select>
+          </label>
+          <label>
+            Respuestas objetivo
+            <input
+              type="number"
+              formControlName="targetResponses"
+              placeholder="Ej: 10"
+              min="1"
+            />
+          </label>
+          <button type="submit" [disabled]="addingShare()" class="assign-btn">
+            {{ addingShare() ? 'Agregando...' : 'Asignar' }}
+          </button>
+        </form>
+
+        <hr />
+
+        <h4>Usuarios asignados</h4>
+        @if (loadingShares()) {
+          <p>Cargando...</p>
+        } @else if (shares().length === 0) {
+          <p class="empty">No hay usuarios asignados.</p>
+        } @else {
+          <table class="shares-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Progreso</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (share of shares(); track share.id) {
+                <tr [class.completed-row]="share.targetResponses && share.targetResponses > 0 && share.responsesCount >= share.targetResponses">
+                  <td>{{ share.userName }}</td>
+                  <td>{{ share.userEmail }}</td>
+                  <td>{{ share.role === 'EDITOR' ? 'Editor' : 'Recolector' }}</td>
+                  <td>
+                    @if (editingShareId() === share.id) {
+                      <div class="inline-edit">
+                        <input
+                          type="number"
+                          [value]="editTargetValue()"
+                          (input)="editTargetValue.set($any($event.target).value)"
+                          min="1"
+                          placeholder="Sin límite"
+                          class="target-input"
+                        />
+                        <button type="button" class="save-target-btn" (click)="saveEditTarget(share.id)" [disabled]="savingTarget()">
+                          {{ savingTarget() ? '...' : 'Guardar' }}
+                        </button>
+                        <button type="button" class="cancel-target-btn" (click)="cancelEditTarget()">Cancelar</button>
+                      </div>
+                    } @else {
+                      @if (share.targetResponses && share.targetResponses > 0) {
+                        <div class="progress-bar">
+                          <div class="progress-fill" [class.full]="share.responsesCount >= share.targetResponses" [style.width.%]="progressPercent(share)"></div>
+                        </div>
+                        <span class="progress-text">{{ share.responsesCount }} / {{ share.targetResponses }}</span>
+                        @if (share.responsesCount >= share.targetResponses) {
+                          <span class="completed-badge">Completado</span>
+                          <button type="button" class="reactivate-btn" (click)="startEditTarget(share)">Reactivar</button>
+                        } @else {
+                          <button type="button" class="edit-target-btn" (click)="startEditTarget(share)">Editar</button>
+                        }
+                      } @else {
+                        <span>{{ share.responsesCount }} respuestas</span>
+                        <button type="button" class="edit-target-btn" (click)="startEditTarget(share)">Definir límite</button>
+                      }
+                    }
+                  </td>
+                  <td>
+                    <button type="button" class="danger" (click)="removeShare(share.id)">Retirar</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  </div>
+}

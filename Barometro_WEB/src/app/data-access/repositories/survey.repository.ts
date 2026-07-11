@@ -9,4 +9,8 @@ export interface SurveyRepository {
   delete(id: string): Observable<void>;
   duplicate(id: string): Observable<Survey>;
   changeStatus(id: string, status: SurveyStatus): Observable<Survey>;
+  getShares(id: string): Observable<unknown[]>;
+  addShare(id: string, data: { email: string; role: string; targetResponses?: number | null }): Observable<unknown>;
+  removeShare(id: string, shareId: number): Observable<void>;
+  updateShareTarget(id: string, shareId: number, targetResponses: number | null): Observable<unknown>;
 }

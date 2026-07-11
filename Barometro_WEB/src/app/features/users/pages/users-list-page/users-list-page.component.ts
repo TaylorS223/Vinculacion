@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { User } from '../../models/user.model';
+import { User, Role } from '../../models/user.model';
 import { UsersFacade } from '../../services/users.facade';
 
 @Component({
@@ -35,16 +35,20 @@ export class UsersListPageComponent {
     });
   }
 
-  protected roleLabel(role: 'ADMIN' | 'ANALYST' | 'VIEWER'): string {
+  protected roleLabel(role: Role): string {
+    if (role === 'SUPER_ADMIN') {
+      return 'Super Administrador';
+    }
+
     if (role === 'ADMIN') {
       return 'Administrador';
     }
 
-    if (role === 'ANALYST') {
-      return 'Analista';
+    if (role === 'PROJECT_LEADER') {
+      return 'Líder de Proyecto';
     }
 
-    return 'Visualizador';
+    return 'Recolector';
   }
 
   private loadUsers(): void {

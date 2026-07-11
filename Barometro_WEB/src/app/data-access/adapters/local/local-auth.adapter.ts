@@ -15,9 +15,10 @@ export class LocalAuthAdapter implements AuthRepository {
 
     return of({
       userId: user.id,
+      name: user.name,
+      email: user.email,
       role: user.role,
-      tokenMock: `mock-token-${user.id}`,
-      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 8).toISOString(),
+      token: `mock-token-${user.id}`,
     });
   }
 

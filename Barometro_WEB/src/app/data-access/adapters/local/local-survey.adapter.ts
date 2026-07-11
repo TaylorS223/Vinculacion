@@ -80,4 +80,20 @@ export class LocalSurveyAdapter implements SurveyRepository {
   changeStatus(id: string, status: SurveyStatus): Observable<Survey> {
     return this.update(id, { status });
   }
+
+  getShares(): Observable<unknown[]> {
+    return of([]);
+  }
+
+  addShare(): Observable<unknown> {
+    return of({});
+  }
+
+  removeShare(): Observable<void> {
+    return of(void 0);
+  }
+
+  updateShareTarget(): Observable<unknown> {
+    return of({});
+  }
 }

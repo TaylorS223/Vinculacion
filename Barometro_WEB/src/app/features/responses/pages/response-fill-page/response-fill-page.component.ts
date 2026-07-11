@@ -155,7 +155,7 @@ export class ResponseFillPageComponent {
   }
 
   protected isPublished(status: SurveyStatus): boolean {
-    return status === 'IMPLEMENTED';
+    return status === 'DEPLOYED';
   }
 
   protected statusLabel(status: SurveyStatus): string {
@@ -163,7 +163,7 @@ export class ResponseFillPageComponent {
       return 'Borrador';
     }
 
-    if (status === 'IMPLEMENTED') {
+    if (status === 'DEPLOYED') {
       return 'Implementado';
     }
 

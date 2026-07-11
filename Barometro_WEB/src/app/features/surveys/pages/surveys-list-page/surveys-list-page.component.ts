@@ -54,7 +54,7 @@ export class SurveysListPageComponent {
       return 'Borrador';
     }
 
-    if (status === 'IMPLEMENTED') {
+    if (status === 'DEPLOYED') {
       return 'Implementado';
     }
 

@@ -2,7 +2,7 @@ import { User } from '../../features/users/models/user.model';
 
 export const USERS_MOCK: User[] = [
   {
-    id: 'u-admin',
+    id: 1,
     name: 'Administrador General',
     email: 'admin@universidad.edu',
     role: 'ADMIN',
@@ -10,10 +10,10 @@ export const USERS_MOCK: User[] = [
     createdAt: '2026-01-01T00:00:00.000Z',
   },
   {
-    id: 'u-analyst',
+    id: 2,
     name: 'Analista Institucional',
     email: 'analyst@universidad.edu',
-    role: 'ANALYST',
+    role: 'PROJECT_LEADER',
     isActive: true,
     createdAt: '2026-01-02T00:00:00.000Z',
   },

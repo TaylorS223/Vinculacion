@@ -21,7 +21,7 @@
             <a [routerLink]="[survey.id, 'preview']">Vista previa</a>
             <a [routerLink]="['/responses', 'fill', survey.id]">Responder</a>
             <button type="button" (click)="duplicate(survey.id)">Duplicar</button>
-            <button type="button" (click)="changeStatus(survey.id, 'IMPLEMENTED')">Publicar</button>
+            <button type="button" (click)="changeStatus(survey.id, 'DEPLOYED')">Publicar</button>
             <button type="button" (click)="changeStatus(survey.id, 'ARCHIVED')">Archivar</button>
             <button type="button" class="danger" (click)="delete(survey.id, survey.title)">Eliminar</button>
           </div>

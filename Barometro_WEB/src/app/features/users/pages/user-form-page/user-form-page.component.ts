@@ -21,12 +21,12 @@ export class UserFormPageComponent {
   protected readonly loading = signal(false);
   protected readonly saving = signal(false);
 
-  protected readonly roleOptions: Role[] = ['ADMIN', 'ANALYST', 'VIEWER'];
+  protected readonly roleOptions: Role[] = ['SUPER_ADMIN', 'ADMIN', 'PROJECT_LEADER', 'USER'];
 
   protected readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
     email: ['', [Validators.required, Validators.email]],
-    role: ['VIEWER' as Role, [Validators.required]],
+    role: ['USER' as Role, [Validators.required]],
     isActive: [true],
   });
 
@@ -71,14 +71,18 @@ export class UserFormPageComponent {
   }
 
   protected roleLabel(role: Role): string {
+    if (role === 'SUPER_ADMIN') {
+      return 'Super Administrador';
+    }
+
     if (role === 'ADMIN') {
       return 'Administrador';
     }
 
-    if (role === 'ANALYST') {
-      return 'Analista';
+    if (role === 'PROJECT_LEADER') {
+      return 'Líder de Proyecto';
     }
 
-    return 'Visualizador';
+    return 'Recolector';
   }
 }

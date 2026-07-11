@@ -32,4 +32,20 @@ export class SupabaseSurveyAdapter implements SurveyRepository {
   changeStatus(_id: string, _status: SurveyStatus): Observable<Survey> {
     return throwError(() => new Error('SupabaseSurveyAdapter pendiente de implementacion.'));
   }
+
+  getShares(_id: string): Observable<unknown[]> {
+    return throwError(() => new Error('SupabaseSurveyAdapter pendiente de implementacion.'));
+  }
+
+  addShare(_id: string, _data: { email: string; role: string; targetResponses?: number | null }): Observable<unknown> {
+    return throwError(() => new Error('SupabaseSurveyAdapter pendiente de implementacion.'));
+  }
+
+  removeShare(_id: string, _shareId: number): Observable<void> {
+    return throwError(() => new Error('SupabaseSurveyAdapter pendiente de implementacion.'));
+  }
+
+  updateShareTarget(_id: string, _shareId: number, _targetResponses: number | null): Observable<unknown> {
+    return throwError(() => new Error('SupabaseSurveyAdapter pendiente de implementacion.'));
+  }
 }

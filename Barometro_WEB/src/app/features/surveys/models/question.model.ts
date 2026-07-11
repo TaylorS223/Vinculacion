@@ -31,6 +31,8 @@ export interface LikertQuestion extends QuestionBase {
   scaleMin: number;
   scaleMax: number;
   labels?: Record<number, string>;
+  likertRows?: string[];
+  likertColumns?: string[];
 }
 
 export interface TextQuestion extends QuestionBase {

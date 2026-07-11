@@ -1,7 +1,9 @@
 import { inject, Injectable } from '@angular/core';
+import { map } from 'rxjs/operators';
 import { SURVEY_REPOSITORY } from '../../../core/tokens/repository.tokens';
 import { SurveyRepository } from '../../../data-access/repositories/survey.repository';
-import { Survey, SurveyStatus } from '../models/survey.model';
+import { FormShare } from '../models/survey.model';
+import { mapDtoToShares } from '../../../data-access/mappers/survey.mapper';
 
 @Injectable({ providedIn: 'root' })
 export class SurveysFacade {
@@ -15,15 +17,15 @@ export class SurveysFacade {
     return this.surveyRepository.findById(id);
   }
 
-  create(survey: Omit<Survey, 'id' | 'createdAt' | 'updatedAt' | 'version'>) {
+  create(survey: Parameters<SurveyRepository['create']>[0]) {
     return this.surveyRepository.create(survey);
   }
 
-  update(id: string, changes: Partial<Survey>) {
+  update(id: string, changes: Parameters<SurveyRepository['update']>[1]) {
     return this.surveyRepository.update(id, changes);
   }
 
-  changeStatus(id: string, status: SurveyStatus) {
+  changeStatus(id: string, status: Parameters<SurveyRepository['changeStatus']>[1]) {
     return this.surveyRepository.changeStatus(id, status);
   }
 
@@ -33,5 +35,23 @@ export class SurveysFacade {
 
   delete(id: string) {
     return this.surveyRepository.delete(id);
+  }
+
+  getShares(id: string) {
+    return this.surveyRepository.getShares(id).pipe(
+      map((data) => mapDtoToShares(data)),
+    );
+  }
+
+  addShare(id: string, data: { email: string; role: string; targetResponses?: number | null }) {
+    return this.surveyRepository.addShare(id, data);
+  }
+
+  removeShare(id: string, shareId: number) {
+    return this.surveyRepository.removeShare(id, shareId);
+  }
+
+  updateShareTarget(id: string, shareId: number, targetResponses: number | null) {
+    return this.surveyRepository.updateShareTarget(id, shareId, targetResponses);
   }
 }

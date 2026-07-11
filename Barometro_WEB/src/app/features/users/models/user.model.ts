@@ -1,7 +1,7 @@
-export type Role = 'ADMIN' | 'ANALYST' | 'VIEWER';
+export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'PROJECT_LEADER' | 'USER';
 
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   role: Role;

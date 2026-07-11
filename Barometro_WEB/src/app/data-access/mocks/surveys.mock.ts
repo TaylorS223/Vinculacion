@@ -5,7 +5,7 @@ export const SURVEYS_MOCK: Survey[] = [
     id: 's-001',
     title: 'Satisfaccion Docente 2026',
     description: 'Encuesta institucional para estudiantes.',
-    status: 'IMPLEMENTED',
+    status: 'DEPLOYED',
     version: 1,
     createdBy: 'u-admin',
     createdAt: '2026-02-01T10:00:00.000Z',

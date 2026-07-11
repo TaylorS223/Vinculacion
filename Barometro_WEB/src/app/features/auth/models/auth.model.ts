@@ -6,8 +6,9 @@ export interface LoginCredentials {
 }
 
 export interface AuthSession {
-  userId: string;
+  userId: number;
+  name: string;
+  email: string;
   role: Role;
-  tokenMock: string;
-  expiresAt: string;
+  token: string;
 }
