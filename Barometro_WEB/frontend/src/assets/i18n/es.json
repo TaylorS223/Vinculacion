@@ -309,6 +309,8 @@
       "titlePlaceholder": "Ej. Encuesta de satisfaccion comunitaria",
       "descriptionLabel": "Descripcion",
       "descriptionPlaceholder": "Agrega contexto para quienes responderan el formulario",
+      "flowModeLabel": "Modo paso a paso",
+      "flowModeDescription": "Muestra una pregunta por vez y permite saltos condicionales entre caminos.",
       "addQuestions": "Agregar preguntas",
       "addQuestion": "Agregar pregunta",
       "editMenu": "Edicion",
@@ -324,6 +326,18 @@
       "addOption": "Agregar opcion",
       "optionPlaceholder": "Opcion de respuesta",
       "deleteOption": "Eliminar opcion",
+      "branchingTitle": "Ramas condicionales",
+      "branchingHelp": "Define que debe pasar por cada respuesta.",
+      "branchingStepHint": "Activa el modo paso a paso para aplicar estas reglas durante la recoleccion.",
+      "branch": {
+        "end": "Continuar con la siguiente pregunta",
+        "selectTarget": "Selecciona una pregunta destino",
+        "actions": {
+          "CONTINUE": "Continuar con la siguiente pregunta",
+          "GO_TO": "Ir a una pregunta especifica",
+          "END_FORM": "Finalizar formulario"
+        }
+      },
       "likert": {
         "titleLabel": "Titulo de la escala",
         "titlePlaceholder": "Ej. Nivel de satisfaccion",
@@ -405,6 +419,10 @@
     },
     "collect": {
       "loading": "Cargando formulario...",
+      "stepMode": "Completa la pregunta actual para continuar.",
+      "back": "Anterior",
+      "next": "Siguiente",
+      "finish": "Finalizar",
       "submittedTitle": "Respuesta enviada",
       "submittedText": "Gracias por completar el formulario.",
       "sendAnother": "Enviar otra respuesta",
