@@ -2,6 +2,7 @@
 
 use App\Domain\Shared\Exceptions\ApiException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -49,5 +50,14 @@ return Application::configure(basePath: dirname(__DIR__))
             }
             // Para peticiones web, redirigir a login
             return redirect('/login');
+        });
+
+        // No exponer consultas SQL, host, tablas ni columnas en respuestas API.
+        $exceptions->render(function (QueryException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'message' => 'No se pudo completar la operacion. Intenta nuevamente o contacta al administrador.',
+                ], 500);
+            }
         });
     })->create();
