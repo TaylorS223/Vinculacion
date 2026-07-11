@@ -10,6 +10,7 @@ use App\Models\FormUserShare;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -85,8 +86,8 @@ class FormController extends Controller
             ->latest()
             ->get();
 
-        $result = $forms->map(function (Form $form) {
-            return $this->formatMobileForm($form);
+        $result = $forms->map(function (Form $form) use ($user) {
+            return $this->formatMobileForm($form, $user);
         });
 
         return response()->json($result);
@@ -126,11 +127,22 @@ class FormController extends Controller
     #[OA\Get(path: '/forms/{id}', summary: 'Ver detalle de formulario', security: [['sanctum' => []]], tags: ['Forms'])]
     public function show(Request $request, string $id): JsonResponse
     {
-        $form = $this->findViewableForm($id, $request->user());
+        $user = $request->user();
+        $form = $this->findViewableForm($id, $user);
         $form->load(['owner:id,name,email,rol', 'project:id,name', 'questions' => fn($q) => $q->orderBy('order'), 'shares.user:id,name,email,rol']);
 
         $data = $form->toArray();
         $data['questions'] = $form->questions->map(fn($q) => $this->formatMobileQuestion($q))->toArray();
+
+        if ($user) {
+            $share = FormUserShare::where('form_id', $form->id)
+                ->where('user_id', $user->id)
+                ->first();
+            $data['target_responses'] = $share?->target_responses ?? null;
+            $data['responses_count'] = $share
+                ? FormResponse::where('form_id', $form->id)->where('user_id', $user->id)->count()
+                : null;
+        }
 
         return response()->json($data);
     }
@@ -269,7 +281,24 @@ class FormController extends Controller
     {
         $form = $this->findShareManageableForm($id, $request->user());
 
-        return response()->json($form->shares()->with('user:id,name,email,rol')->get());
+        $shares = $form->shares()->with('user:id,name,email,rol')->get()->map(function ($share) use ($form) {
+            $responsesCount = FormResponse::where('form_id', $form->id)
+                ->where('user_id', $share->user_id)
+                ->count();
+
+            return [
+                'id' => $share->id,
+                'user_id' => $share->user_id,
+                'user_name' => $share->user->name ?? '',
+                'user_email' => $share->user->email ?? '',
+                'user_rol' => $share->user->rol ?? '',
+                'role' => $share->role,
+                'target_responses' => $share->target_responses,
+                'responses_count' => $responsesCount,
+            ];
+        });
+
+        return response()->json($shares);
     }
 
     #[OA\Post(path: '/forms/{id}/shares', summary: 'Asignar usuario como editor o recolector', security: [['sanctum' => []]], tags: ['Forms'])]
@@ -280,6 +309,7 @@ class FormController extends Controller
         $request->validate([
             'email' => 'required|email',
             'role' => 'required|in:EDITOR,RECOLECTOR',
+            'target_responses' => 'nullable|integer|min:1',
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -297,7 +327,10 @@ class FormController extends Controller
 
         $share = FormUserShare::updateOrCreate(
             ['form_id' => $form->id, 'user_id' => $user->id],
-            ['role' => $request->role]
+            array_filter([
+                'role' => $request->role,
+                'target_responses' => $request->target_responses,
+            ], fn($v) => $v !== null)
         );
 
         return response()->json($share->load('user:id,name,email,rol'), 201);
@@ -311,6 +344,21 @@ class FormController extends Controller
         $share->delete();
 
         return response()->json(null, 204);
+    }
+
+    #[OA\Patch(path: '/forms/{id}/shares/{share_id}', summary: 'Actualizar target_responses de una asignacion', security: [['sanctum' => []]], tags: ['Forms'])]
+    public function updateShare(Request $request, string $id, string $share_id): JsonResponse
+    {
+        $form = $this->findShareManageableForm($id, $request->user());
+
+        $request->validate([
+            'target_responses' => 'nullable|integer|min:1',
+        ]);
+
+        $share = FormUserShare::where('form_id', $form->id)->findOrFail($share_id);
+        $share->update(['target_responses' => $request->target_responses]);
+
+        return response()->json($share->load('user:id,name,email,rol'));
     }
 
     #[OA\Get(path: '/forms/fetch/{link_uuid}', summary: 'Obtener formulario publico implementado', tags: ['Forms'])]
@@ -335,6 +383,26 @@ class FormController extends Controller
             ->with(['questions' => fn($q) => $q->orderBy('order')])
             ->firstOrFail();
 
+        $currentUser = $request->user();
+
+        if ($currentUser) {
+            $share = FormUserShare::where('form_id', $form->id)
+                ->where('user_id', $currentUser->id)
+                ->first();
+
+            if ($share && $share->target_responses !== null) {
+                $responsesCount = FormResponse::where('form_id', $form->id)
+                    ->where('user_id', $currentUser->id)
+                    ->count();
+
+                if ($responsesCount >= $share->target_responses) {
+                    return response()->json([
+                        'message' => 'Has alcanzado el limite de respuestas para este formulario. Espera a que el administrador lo reactive.',
+                    ], 422);
+                }
+            }
+        }
+
         $data = $request->data ?? [];
         $missing = $this->missingRequiredQuestions($form, is_array($data) ? $data : []);
 
@@ -347,7 +415,7 @@ class FormController extends Controller
 
         $response = FormResponse::create([
             'form_id' => $form->id,
-            'user_id' => $request->user()?->id,
+            'user_id' => $currentUser?->id,
             'data' => $data,
         ]);
 
@@ -660,10 +728,21 @@ class FormController extends Controller
         return $data;
     }
 
-    private function formatMobileForm(Form $form): array
+    private function formatMobileForm(Form $form, ?User $user = null): array
     {
         $data = $form->toArray();
         $data['questions'] = $form->questions->map(fn($q) => $this->formatMobileQuestion($q))->toArray();
+
+        if ($user) {
+            $share = FormUserShare::where('form_id', $form->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            $data['target_responses'] = $share?->target_responses ?? null;
+            $data['responses_count'] = $share
+                ? FormResponse::where('form_id', $form->id)->where('user_id', $user->id)->count()
+                : null;
+        }
 
         return $data;
     }

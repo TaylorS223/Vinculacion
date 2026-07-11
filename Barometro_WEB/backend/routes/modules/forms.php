@@ -27,14 +27,17 @@ Route::middleware('auth:sanctum')->group(function () {
     // Sharing
     Route::get('/{id}/shares', [FormController::class, 'getShares']);
     Route::post('/{id}/shares', [FormController::class, 'storeShare']);
+    Route::patch('/{id}/shares/{share_id}', [FormController::class, 'updateShare']);
     Route::delete('/{id}/shares/{share_id}', [FormController::class, 'destroyShare']);
 
     // Responses/Data Management
     Route::get('/{id}/responses', [FormController::class, 'getResponses']);
     Route::get('/{id}/export', [FormController::class, 'exportResponses']); // Export CSV/Excel
     Route::get('/{id}/stats', [FormController::class, 'getStats']); // Graphical data
+
+    // Submit response (requires auth — tracks user_id for target counting)
+    Route::post('/submit/{link_uuid}', [FormController::class, 'submitResponse']);
 });
 
-// To receive responses from mobile devices/web links
-Route::post('/submit/{link_uuid}', [FormController::class, 'submitResponse']);
+// Public: fetch form by link (no auth needed)
 Route::get('/fetch/{link_uuid}', [FormController::class, 'fetchForm']);

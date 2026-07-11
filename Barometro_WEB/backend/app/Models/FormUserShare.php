@@ -13,7 +13,8 @@ class FormUserShare extends Model
     protected $fillable = [
         'form_id',
         'user_id',
-        'role'
+        'role',
+        'target_responses',
     ];
 
     public function form()
