@@ -1,52 +1,89 @@
-import { Component, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { StorageService } from '../storage.service';
+import { DbService, FormDefinition } from '../db.service';
+import { ThemeService } from '../theme.service';
+import { TranslatePipe } from '../translate.pipe';
+
+interface FormWithProgress extends FormDefinition {
+  enviadosCount: number;
+  completado: boolean;
+}
 
 @Component({
   selector: 'app-lista-encuestas',
-  imports: [RouterLink, CommonModule],
+  imports: [RouterLink, CommonModule, TranslatePipe],
   templateUrl: './lista-encuestas.component.html',
   styleUrls: ['./lista-encuestas.component.css']
 })
 export class ListaEncuestasComponent implements OnInit {
-  formularios: any[] = [];
-  seleccionados = new Set<number>();
+  private db = inject(DbService);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  theme = inject(ThemeService);
 
-  constructor(private storage: StorageService) {}
+  formularios: FormWithProgress[] = [];
+  cargando = true;
+  errorCarga = '';
 
-  ngOnInit() {
-    this.formularios = this.storage.obtenerFormularios();
+  async ngOnInit() {
+    await this.cargarFormularios();
   }
 
-  isSeleccionado(formulario: any) {
-    return this.seleccionados.has(formulario.id);
-  }
+  async cargarFormularios() {
+    this.cargando = true;
+    this.errorCarga = '';
+    try {
+      const forms = await this.db.forms.toArray();
 
-  toggleSeleccion(formulario: any) {
-    if (this.seleccionados.has(formulario.id)) {
-      this.seleccionados.delete(formulario.id);
-    } else {
-      this.seleccionados.add(formulario.id);
+      const enviados = await this.db.responses
+        .where('estado')
+        .equals('enviado')
+        .toArray();
+
+      const pendientes = await this.db.responses
+        .where('estado')
+        .equals('listo-para-enviar')
+        .toArray();
+
+      const enviadosByForm: Record<string, number> = {};
+      for (const r of enviados) {
+        enviadosByForm[r.formId] = (enviadosByForm[r.formId] ?? 0) + 1;
+      }
+
+      const pendientesByForm: Record<string, number> = {};
+      for (const r of pendientes) {
+        pendientesByForm[r.formId] = (pendientesByForm[r.formId] ?? 0) + 1;
+      }
+
+      this.formularios = forms.map(f => {
+        const serverCount = f.responses_count ?? 0;
+        const localPending = pendientesByForm[f.id] ?? 0;
+        const totalCount = serverCount + localPending;
+        const hasTarget = f.target_responses != null && f.target_responses > 0;
+        const completado = hasTarget && totalCount >= f.target_responses!;
+
+        return {
+          ...f,
+          enviadosCount: totalCount,
+          completado,
+        };
+      });
+    } catch {
+      this.formularios = [];
     }
+    this.cargando = false;
+    if (this.formularios.length === 0) {
+      this.errorCarga = 'No hay formularios descargados. Presiona "Descargar formulario" en el inicio para sincronizar.';
+    }
+    this.cdr.detectChanges();
   }
 
-  seleccionarTodo() {
-    if (this.seleccionados.size === this.formularios.length) {
-      this.seleccionados.clear();
-      return;
-    }
-
-    this.formularios.forEach(form => this.seleccionados.add(form.id));
+  irALlenar(formId: string) {
+    this.router.navigate(['/llenar', formId]);
   }
 
-  enviarSeleccionados() {
-    if (this.seleccionados.size === 0) {
-      alert('Selecciona al menos un formulario para enviar.');
-      return;
-    }
-
-    alert(`Se enviaron ${this.seleccionados.size} formulario(s).`);
-    this.seleccionados.clear();
+  trackById(_index: number, form: FormDefinition) {
+    return form.id;
   }
 }

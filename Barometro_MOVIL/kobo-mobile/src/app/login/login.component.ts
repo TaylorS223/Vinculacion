@@ -1,10 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth.service';
-
-// TODO: cuando Barometro_WEB esté publicado, reemplazar esta URL por la real.
-const URL_PLATAFORMA_WEB = 'https://barometro-web.example.com';
+import { ApiService } from '../api.service';
 
 @Component({
   selector: 'app-login',
@@ -13,19 +11,16 @@ const URL_PLATAFORMA_WEB = 'https://barometro-web.example.com';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
+  private auth = inject(AuthService);
+  private api = inject(ApiService);
+  private router = inject(Router);
+
   urlServidor: string = '';
   usuario: string = '';
   clave: string = '';
 
   cargando: boolean = false;
   errorLogin: string = '';
-
-  urlPlataformaWeb = URL_PLATAFORMA_WEB;
-
-  constructor(
-    private auth: AuthService,
-    private router: Router
-  ) {}
 
   async iniciarSesion() {
     this.errorLogin = '';
@@ -36,24 +31,19 @@ export class LoginComponent {
     }
 
     this.cargando = true;
-    const exito = await this.auth.login(this.urlServidor, this.usuario, this.clave);
-    this.cargando = false;
-
-    if (exito) {
+    try {
+      const response = await this.api.login(this.urlServidor, this.usuario, this.clave);
+      this.auth.guardarSesion(
+        response.token,
+        response.user.name,
+        response.user.email,
+        this.urlServidor
+      );
+      this.cargando = false;
       this.router.navigate(['/']);
-    } else {
-      this.errorLogin = 'No se pudo iniciar sesión. Verifica tus datos.';
+    } catch {
+      this.cargando = false;
+      this.errorLogin = 'No se pudo iniciar sesión. Verifica tus datos y la URL del servidor.';
     }
-  }
-
-  entrarModoDemo() {
-    this.auth.entrarModoDemo();
-    this.router.navigate(['/']);
-  }
-
-  irAPlataformaWeb() {
-    // Por ahora Barometro_WEB no está implementado todavía.
-    // Cuando exista, esto abrirá la URL real en una nueva pestaña.
-    alert('La plataforma web (Barometro_WEB) todavía no está disponible. Próximamente podrás crear tu cuenta desde ahí.');
   }
 }

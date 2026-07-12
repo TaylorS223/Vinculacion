@@ -1,7 +1,7 @@
 .lista-container {
   padding: 20px;
-  background-color: #fafbfc;
-  color: #1a1f26;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100vh;
 }
 
@@ -16,27 +16,28 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--text);
 }
 
 .btn-back {
   text-decoration: none;
-  color: #065f46;
+  color: var(--primary);
   font-weight: 700;
   font-size: 0.95rem;
   padding: 8px 14px;
-  border: 1px solid #065f46;
+  border: 1px solid var(--primary);
   border-radius: 999px;
-  background-color: #f8fafc;
+  background: var(--bg-elevated);
+  cursor: pointer;
 }
 
 .btn-back:hover {
-  background-color: #ecfdf5;
+  background: var(--bg-item-hover);
 }
 
 .instrucciones {
   margin: 0 0 18px 0;
-  color: #4b5563;
+  color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
@@ -48,15 +49,15 @@
 }
 
 .encuesta-card {
-  background-color: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 18px;
   padding: 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow);
 }
 
 .encuesta-info {
@@ -73,18 +74,18 @@
 .encuesta-detalles h3 {
   margin: 0 0 6px 0;
   font-size: 1.05rem;
-  color: #111827;
+  color: var(--text);
 }
 
 .encuesta-detalles p {
   margin: 0;
   font-size: 0.9rem;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .btn-llenar {
   text-decoration: none;
-  background-color: #16a34a;
+  background: var(--success);
   color: white;
   padding: 11px 18px;
   border-radius: 999px;
@@ -94,7 +95,7 @@
 }
 
 .btn-llenar:hover {
-  background-color: #15803d;
+  background: #15803d;
 }
 
 .guardados-section {
@@ -111,13 +112,13 @@
 .guardados-header h2 {
   margin: 0;
   font-size: 1.2rem;
-  color: #111827;
+  color: var(--text);
 }
 
 .btn-seleccionar {
   background: transparent;
-  border: 1px solid #d1d5db;
-  color: #065f46;
+  border: 1px solid var(--border);
+  color: var(--primary);
   font-weight: 700;
   border-radius: 999px;
   padding: 9px 16px;
@@ -125,7 +126,7 @@
 }
 
 .btn-seleccionar:hover {
-  background-color: #f0fdf4;
+  background: var(--bg-item-hover);
 }
 
 .formularios-guardados {
@@ -139,15 +140,15 @@
   align-items: center;
   gap: 14px;
   padding: 16px;
-  background-color: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow);
 }
 
 .form-guardado-card.selected {
-  background-color: #eefdf3;
-  border-color: #34d399;
+  background: var(--bg-item-checked);
+  border-color: var(--accent);
 }
 
 .guardar-checkbox {
@@ -162,7 +163,7 @@
 .custom-checkbox {
   width: 22px;
   height: 22px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: 8px;
   display: inline-flex;
   align-items: center;
@@ -171,8 +172,8 @@
 }
 
 .guardar-checkbox input:checked + .custom-checkbox {
-  background-color: #16a34a;
-  border-color: #16a34a;
+  background: var(--success);
+  border-color: var(--success);
 }
 
 .custom-checkbox::after {
@@ -201,18 +202,18 @@
 .form-guardado-top h3 {
   margin: 0 0 4px 0;
   font-size: 1rem;
-  color: #111827;
+  color: var(--text);
 }
 
 .subtexto {
   margin: 0;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
 .badge {
   padding: 6px 10px;
-  background-color: #e0f2fe;
+  background: #e0f2fe;
   color: #0c4a6e;
   border-radius: 999px;
   font-size: 0.85rem;
@@ -223,7 +224,7 @@
   margin-top: 14px;
   width: 100%;
   border: none;
-  background-color: #16a34a;
+  background: var(--success);
   color: white;
   padding: 14px 0;
   border-radius: 999px;
@@ -232,11 +233,62 @@
 }
 
 .btn-enviar:hover {
-  background-color: #15803d;
+  background: #15803d;
 }
 
 .empty-state {
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 0.95rem;
   margin-top: 12px;
+}
+
+.target-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.progress-bar {
+  width: 80px;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--success);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.encuesta-card.completed {
+  opacity: 0.7;
+  border-color: var(--success);
+}
+
+.progress-fill.full {
+  background: var(--success);
+}
+
+.completed-text {
+  margin: 4px 0 0 0;
+  font-size: 0.8rem;
+  color: var(--success);
+  font-weight: 600;
+}
+
+.btn-llenar.disabled {
+  background: var(--border);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
 }

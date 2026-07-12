@@ -1,7 +1,7 @@
 .lista-container {
   padding: 15px;
-  background-color: #fafbfc;
-  color: #1a1f26;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100vh;
 }
 
@@ -15,18 +15,19 @@
 .top-bar h2 {
   margin: 0;
   font-size: 1.3rem;
-  color: #1a1f26;
+  color: var(--text);
 }
 
 .btn-back {
   text-decoration: none;
-  color: #00796b;
+  color: var(--primary);
   font-weight: bold;
   font-size: 0.9rem;
   padding: 6px 12px;
-  border: 1px solid #00796b;
+  border: 1px solid var(--primary);
   border-radius: 6px;
-  background-color: white;
+  background: var(--bg-elevated);
+  cursor: pointer;
 }
 
 .guardados-section {
@@ -40,17 +41,23 @@
   margin-bottom: 14px;
 }
 
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .guardados-header h2 {
   margin: 0;
   font-size: 1.1rem;
-  color: #333;
+  color: var(--text);
 }
 
 .btn-seleccionar {
   text-decoration: none;
-  background-color: transparent;
-  border: 1px solid #e0e0e0;
-  color: #00796b;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--primary);
   border-radius: 6px;
   padding: 6px 12px;
   cursor: pointer;
@@ -67,15 +74,15 @@
   align-items: center;
   gap: 14px;
   padding: 12px;
-  background-color: white;
-  border: 1px solid #e0e0e0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: var(--shadow);
 }
 
 .form-guardado-card.selected {
-  background-color: rgba(88,166,255,0.08);
-  border-color: rgba(88,166,255,0.25);
+  background: var(--bg-item-checked);
+  border-color: var(--primary);
 }
 
 .guardar-checkbox {
@@ -90,7 +97,7 @@
 .custom-checkbox {
   width: 20px;
   height: 20px;
-  border: 1px solid #cfcfcf;
+  border: 1px solid var(--border);
   border-radius: 6px;
   display: inline-flex;
   align-items: center;
@@ -106,8 +113,8 @@
 }
 
 .guardar-checkbox input:checked + .custom-checkbox {
-  background-color: #00796b;
-  border-color: #00796b;
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .guardar-checkbox input:checked + .custom-checkbox::after {
@@ -125,21 +132,78 @@
   align-items: flex-start;
 }
 
+.form-guardado-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-eliminar {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-eliminar:active {
+  background: #ef4444;
+  color: #fff;
+  transform: scale(0.92);
+}
+
+.btn-eliminar:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.btn-eliminar-sel {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-eliminar-sel:active {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-eliminar-sel:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .form-guardado-top h3 {
   margin: 0 0 4px 0;
   font-size: 1rem;
+  color: var(--text);
 }
 
 .subtexto {
   margin: 0;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
 .badge {
   padding: 6px 10px;
-  background-color: rgba(88,166,255,0.12);
-  color: #0d47a1;
+  background: rgba(88,166,255,0.12);
+  color: var(--primary);
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -149,7 +213,7 @@
   margin-top: 14px;
   width: 100%;
   border: none;
-  background-color: #238636;
+  background: var(--success);
   color: white;
   padding: 14px 0;
   border-radius: 999px;
@@ -158,7 +222,7 @@
 }
 
 .empty-state {
-  color: #8b949e;
+  color: var(--text-muted);
   font-size: 0.95rem;
 }
 
@@ -169,14 +233,14 @@
 .progress-bar {
   width: 100%;
   height: 8px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--border-light);
   border-radius: 999px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #58a6ff, #79c0ff);
+  background: linear-gradient(90deg, var(--primary), var(--accent));
   width: 0%;
   transition: width 0.3s ease;
 }

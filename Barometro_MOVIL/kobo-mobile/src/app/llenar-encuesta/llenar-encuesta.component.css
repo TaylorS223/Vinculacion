@@ -1,6 +1,6 @@
 .formulario-container {
   padding: 12px;
-  background-color: #fafbfc;
+  background: var(--bg);
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border);
   padding-bottom: 10px;
   margin-bottom: 12px;
 }
@@ -19,32 +19,32 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1a1f26;
+  color: var(--text);
 }
 
 .btn-cancelar {
   text-decoration: none;
-  color: #f85149;
+  color: var(--danger);
   font-weight: 500;
   font-size: 0.8rem;
   padding: 6px 12px;
-  border: 1px solid #f85149;
+  border: 1px solid var(--danger);
   border-radius: 5px;
-  background-color: transparent;
+  background: transparent;
   transition: all 0.2s;
 }
 
 .btn-cancelar:hover {
-  background-color: rgba(248, 81, 73, 0.1);
+  background: rgba(248, 81, 73, 0.1);
 }
 
 .meta-info {
-  background-color: rgba(88, 166, 255, 0.08);
+  background: rgba(88, 166, 255, 0.08);
   padding: 9px 12px;
   border-radius: 6px;
-  border-left: 3px solid #58a6ff;
+  border-left: 3px solid var(--primary);
   font-size: 0.8rem;
-  color: #4f7fa3;
+  color: var(--text-secondary);
   margin-bottom: 12px;
 }
 
@@ -58,48 +58,46 @@
   gap: 11px;
 }
 
-/* Cajas de cada pregunta */
 .pregunta-box {
-  background-color: white;
-  border: 1px solid #e1e4e8;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 12px 13px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  box-shadow: var(--shadow);
   transition: border-color 0.2s;
 }
 
 .pregunta-box:focus-within {
-  border-color: #58a6ff;
+  border-color: var(--primary);
 }
 
 .pregunta-label {
   display: block;
   font-weight: 500;
-  color: #1a1f26;
+  color: var(--text);
   margin-bottom: 8px;
   font-size: 0.9rem;
 }
 
-/* Entradas de texto y número */
 .form-input, .form-textarea {
   width: 100%;
   padding: 9px 10px;
-  border: 1px solid #e1e4e8;
+  border: 1px solid var(--border);
   border-radius: 5px;
   font-size: 0.9rem;
   box-sizing: border-box;
-  background-color: #fafbfc;
+  background: var(--bg-input);
+  color: var(--text);
   transition: all 0.2s;
 }
 
 .form-input:focus, .form-textarea:focus {
-  border-color: #58a6ff;
-  background-color: white;
+  border-color: var(--primary);
+  background: var(--bg-input);
   outline: none;
   box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
 }
 
-/* Opciones de Radio */
 .radio-option {
   display: flex;
   align-items: center;
@@ -110,26 +108,25 @@
 }
 
 .radio-option:hover {
-  background-color: rgba(88, 166, 255, 0.05);
+  background: var(--bg-item-hover);
   padding-left: 3px;
 }
 
 .radio-option input[type="radio"] {
   width: 16px;
   height: 16px;
-  accent-color: #58a6ff;
+  accent-color: var(--primary);
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .radio-text {
   font-size: 0.9rem;
-  color: #424242;
+  color: var(--text);
 }
 
-/* Botón Guardar */
 .btn-guardar {
-  background-color: #58a6ff;
+  background: var(--primary);
   color: white;
   border: none;
   border-radius: 6px;
@@ -143,13 +140,13 @@
 }
 
 .btn-guardar:hover:not(:disabled) {
-  background-color: #79c0ff;
+  background: var(--primary-dark);
   box-shadow: 0 2px 6px rgba(88, 166, 255, 0.4);
 }
 
 .btn-guardar:disabled {
-  background-color: #d0d7de;
-  color: #8b949e;
+  background: var(--text-muted);
+  color: var(--text-secondary);
   cursor: not-allowed;
   box-shadow: none;
 }

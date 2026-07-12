@@ -13,5 +13,17 @@
         ]
       }
     }
+  ],
+  "dataGroups": [
+    {
+      "name": "api-forms",
+      "urls": ["/api/forms/**"],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 50,
+        "maxAge": "1d",
+        "timeout": "10s"
+      }
+    }
   ]
 }

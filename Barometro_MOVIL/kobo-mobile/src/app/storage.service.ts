@@ -1,32 +1,34 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { DbService, SavedResponse } from './db.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class StorageService {
-  private formularios: any[] = [];
+  private db = inject(DbService);
 
-  obtenerCantidad() {
-    return this.formularios.length;
+  async obtenerCantidad(): Promise<number> {
+    return this.db.responses
+      .where('estado')
+      .equals('listo-para-enviar')
+      .count();
   }
 
-  obtenerFormularios() {
-    return this.formularios;
+  async obtenerFormularios(): Promise<SavedResponse[]> {
+    return this.db.responses.toArray();
   }
 
-  agregarFormulario(formulario: any) {
-    this.formularios.push(formulario);
+  async agregarFormulario(formulario: SavedResponse): Promise<number> {
+    return this.db.responses.add(formulario);
   }
 
-  limpiarFormularios() {
-    this.formularios = [];
+  async limpiarFormularios(): Promise<void> {
+    await this.db.responses.clear();
   }
 
-  eliminarFormularios(ids: number[]) {
-    this.formularios = this.formularios.filter(f => !ids.includes(f.id));
+  async eliminarFormularios(ids: number[]): Promise<void> {
+    await this.db.responses.bulkDelete(ids);
   }
 
-  eliminarFormulario(id: number) {
-    this.formularios = this.formularios.filter(f => f.id !== id);
+  async eliminarFormulario(id: number): Promise<void> {
+    await this.db.responses.delete(id);
   }
 }

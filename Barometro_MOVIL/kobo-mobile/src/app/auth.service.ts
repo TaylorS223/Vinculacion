@@ -2,57 +2,32 @@ import { Injectable, signal } from '@angular/core';
 
 const TOKEN_KEY = 'kobo_token';
 const USER_KEY = 'kobo_user';
+const USER_EMAIL_KEY = 'kobo_user_email';
 const SERVER_KEY = 'kobo_server_url';
 const DEMO_KEY = 'kobo_demo_mode';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  // Señal reactiva para saber en cualquier parte de la app si hay sesión activa
   isAuthenticated = signal<boolean>(this.hayTokenGuardado());
 
   private hayTokenGuardado(): boolean {
     return !!localStorage.getItem(TOKEN_KEY);
   }
 
-  /**
-   * Simula una llamada a un backend de autenticación tipo KoboToolbox.
-   * Cuando tengas tu API real, reemplaza el contenido de esta función
-   * por un this.http.post(`${urlServidor}/login`, { usuario, clave })
-   * y guarda el token que te devuelva el servidor.
-   */
-  login(urlServidor: string, usuario: string, clave: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const credencialesValidas =
-          urlServidor.trim().length > 0 &&
-          usuario.trim().length > 0 &&
-          clave.trim().length > 0;
-
-        if (credencialesValidas) {
-          const tokenFalso = 'fake-jwt-' + Date.now();
-          localStorage.setItem(TOKEN_KEY, tokenFalso);
-          localStorage.setItem(USER_KEY, usuario);
-          localStorage.setItem(SERVER_KEY, urlServidor);
-          localStorage.removeItem(DEMO_KEY);
-          this.isAuthenticated.set(true);
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      }, 800); // Simula latencia de red
-    });
+  guardarSesion(token: string, nombre: string, email: string, servidor: string): void {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, nombre);
+    localStorage.setItem(USER_EMAIL_KEY, email);
+    localStorage.setItem(SERVER_KEY, servidor);
+    localStorage.removeItem(DEMO_KEY);
+    this.isAuthenticated.set(true);
   }
 
-  /**
-   * Entra en modo demo: no valida nada contra un servidor,
-   * solo habilita la sesión con datos de prueba.
-   */
   entrarModoDemo(): void {
     const tokenDemo = 'demo-token-' + Date.now();
     localStorage.setItem(TOKEN_KEY, tokenDemo);
     localStorage.setItem(USER_KEY, 'demo');
+    localStorage.setItem(USER_EMAIL_KEY, 'demo@demo.com');
     localStorage.setItem(SERVER_KEY, 'modo-demo');
     localStorage.setItem(DEMO_KEY, 'true');
     this.isAuthenticated.set(true);
@@ -65,9 +40,14 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(USER_EMAIL_KEY);
     localStorage.removeItem(SERVER_KEY);
     localStorage.removeItem(DEMO_KEY);
     this.isAuthenticated.set(false);
+  }
+
+  obtenerToken(): string | null {
+    return localStorage.getItem(TOKEN_KEY);
   }
 
   obtenerUsuario(): string | null {
@@ -76,5 +56,13 @@ export class AuthService {
 
   obtenerUrlServidor(): string | null {
     return localStorage.getItem(SERVER_KEY);
+  }
+
+  obtenerEmail(): string | null {
+    return localStorage.getItem(USER_EMAIL_KEY);
+  }
+
+  actualizarUsuario(nombre: string): void {
+    localStorage.setItem(USER_KEY, nombre);
   }
 }
