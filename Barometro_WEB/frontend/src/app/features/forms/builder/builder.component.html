@@ -404,7 +404,13 @@
             <h2>{{ 'forms.builder.previewTitle' | translate }}</h2>
             <p>{{ 'forms.builder.previewSubtitle' | translate }}</p>
           </div>
-          <span class="status-pill">{{ vm.state() }}</span>
+          <div class="preview-actions">
+            <span class="status-pill">{{ vm.state() }}</span>
+            <button class="preview-open-button" type="button" (click)="openPreview('mobile')">
+              <span class="material-icons" aria-hidden="true">open_in_full</span>
+              {{ 'forms.builder.previewOpen' | translate }}
+            </button>
+          </div>
         </div>
 
         <div class="mobile-preview">
@@ -418,10 +424,10 @@
               <p class="preview-empty">{{ 'forms.builder.previewEmpty' | translate }}</p>
             }
 
-            @for (question of vm.questions(); track question.tempId; let index = $index) {
+            @for (question of previewSummaryQuestions(); track question.tempId; let index = $index) {
               <div class="preview-question">
                 <p class="preview-label">
-                  <strong>{{ index + 1 }}. {{ vm.getQuestionDisplayLabel(question) }}</strong>
+                  <strong>{{ index + 1 }}. {{ question.displayLabel }}</strong>
                   @if (question.required) {
                     <span>*</span>
                   }
@@ -432,23 +438,11 @@
                 } @else if (question.type === 'NUMBER') {
                   <input type="number" disabled placeholder="0" />
                 } @else if (question.type === 'LIKERT') {
-                  <div class="preview-likert">
-                    <div
-                      class="preview-likert-grid"
-                      [style.grid-template-columns]="'minmax(180px, 1.25fr) repeat(' + question.likertColumns.length + ', minmax(112px, 1fr))'"
-                    >
-                      <span></span>
-                      @for (column of question.likertColumns; track $index) {
-                        <strong>{{ column || ('forms.builder.emptyOption' | translate) }}</strong>
-                      }
-                      @for (row of question.likertRows; track $index) {
-                        <span class="preview-likert-row">{{ row || ('forms.builder.likert.emptyRow' | translate) }}</span>
-                        @for (column of question.likertColumns; track $index) {
-                          <span class="preview-likert-choice">
-                            <input type="radio" disabled />
-                          </span>
-                        }
-                      }
+                  <div class="preview-likert-summary">
+                    <span class="material-icons" aria-hidden="true">view_module</span>
+                    <div>
+                      <strong>{{ question.likertRows.length }} x {{ question.likertColumns.length }}</strong>
+                      <small>{{ 'forms.builder.previewLikertSummary' | translate }}</small>
                     </div>
                   </div>
                 } @else {
@@ -466,12 +460,141 @@
                 }
               </div>
             }
+
+            @if (hiddenPreviewQuestions() > 0) {
+              <button class="preview-more" type="button" (click)="openPreview('mobile')">
+                <span class="material-icons" aria-hidden="true">visibility</span>
+                {{ 'forms.builder.previewMore' | translate: { count: hiddenPreviewQuestions() } }}
+              </button>
+            }
           </div>
         </div>
       </aside>
     </div>
   }
 </section>
+
+@if (previewModalOpen()) {
+  <div class="preview-modal-backdrop" (click)="closePreview()">
+    <div class="preview-modal" (click)="$event.stopPropagation()">
+      <div class="preview-modal-header">
+        <div>
+          <h3>{{ 'forms.builder.previewTitle' | translate }}</h3>
+          <p>{{ 'forms.builder.previewModeLabel' | translate }}</p>
+        </div>
+
+        <div class="preview-modal-actions">
+          <div class="device-switch" role="group" [attr.aria-label]="'forms.builder.previewModeLabel' | translate">
+            <button
+              type="button"
+              [class.active]="previewMode() === 'mobile'"
+              (click)="setPreviewMode('mobile')"
+            >
+              <span class="material-icons" aria-hidden="true">smartphone</span>
+              {{ 'forms.builder.previewDeviceMobile' | translate }}
+            </button>
+            <button
+              type="button"
+              [class.active]="previewMode() === 'web'"
+              (click)="setPreviewMode('web')"
+            >
+              <span class="material-icons" aria-hidden="true">desktop_windows</span>
+              {{ 'forms.builder.previewDeviceWeb' | translate }}
+            </button>
+          </div>
+
+          <button class="modal-close" type="button" (click)="closePreview()">&times;</button>
+        </div>
+      </div>
+
+      <div class="preview-stage" [class.web-stage]="previewMode() === 'web'">
+        <div class="collect-preview-frame" [class.mobile-frame]="previewMode() === 'mobile'" [class.web-frame]="previewMode() === 'web'">
+          @if (previewMode() === 'mobile') {
+            <div class="phone-status">
+              <span>9:41</span>
+              <span class="material-icons" aria-hidden="true">signal_cellular_alt</span>
+            </div>
+          }
+
+          <div class="collect-preview-card">
+            <header class="collect-preview-header">
+              <h4>{{ vm.title() || ('forms.builder.previewFormTitle' | translate) }}</h4>
+              <p>{{ vm.description() || ('forms.builder.previewDescription' | translate) }}</p>
+            </header>
+
+            @if (vm.stepByStep()) {
+              <div class="collect-step-banner">
+                <strong>1 / {{ vm.questions().length || 1 }}</strong>
+                <span>{{ 'forms.collect.stepMode' | translate }}</span>
+              </div>
+            }
+
+            <div class="collect-preview-body">
+              @if (vm.questions().length === 0) {
+                <p class="preview-empty">{{ 'forms.builder.previewEmpty' | translate }}</p>
+              }
+
+              @for (question of modalPreviewQuestions(); track question.tempId; let index = $index) {
+                <fieldset class="collect-question">
+                  <legend>
+                    {{ index + 1 }}. {{ question.displayLabel }}
+                    @if (question.required) {
+                      <span>*</span>
+                    }
+                  </legend>
+
+                  @if (question.type === 'TEXT') {
+                    <textarea rows="3" [placeholder]="'forms.collect.textPlaceholder' | translate"></textarea>
+                  } @else if (question.type === 'NUMBER') {
+                    <input type="number" placeholder="0" />
+                  } @else if (question.type === 'LIKERT') {
+                    <div class="collect-likert-wrap">
+                      <div
+                        class="collect-likert"
+                        [style.grid-template-columns]="'minmax(150px, 1.25fr) repeat(' + question.likertColumns.length + ', minmax(92px, 1fr))'"
+                      >
+                        <span></span>
+                        @for (column of question.likertColumns; track $index) {
+                          <strong>{{ column || ('forms.builder.emptyOption' | translate) }}</strong>
+                        }
+                        @for (row of question.likertRows; track $index; let rowIndex = $index) {
+                          <span class="collect-likert-row">{{ row || ('forms.builder.likert.emptyRow' | translate) }}</span>
+                          @for (column of question.likertColumns; track $index) {
+                            <label class="collect-likert-cell">
+                              <input type="radio" [name]="'preview-' + question.tempId + '-' + rowIndex" />
+                            </label>
+                          }
+                        }
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="collect-options">
+                      @for (option of question.options; track $index) {
+                        <label>
+                          <input [type]="question.type === 'MULTIPLE_CHOICE' ? 'checkbox' : 'radio'" [name]="'preview-' + question.tempId" />
+                          <span>{{ option || ('forms.builder.emptyOption' | translate) }}</span>
+                        </label>
+                      }
+                    </div>
+                  }
+                </fieldset>
+              }
+            </div>
+
+            <footer class="collect-preview-footer">
+              @if (vm.stepByStep() && previewMode() === 'mobile') {
+                <button type="button" class="btn btn-secondary">{{ 'forms.collect.back' | translate }}</button>
+                <button type="button" class="btn btn-primary">{{ 'forms.collect.next' | translate }}</button>
+              } @else {
+                <button type="button" class="btn btn-primary">{{ 'forms.collect.submit' | translate }}</button>
+              }
+            </footer>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
 
 @if (shareModalOpen) {
   <div class="modal-backdrop" (click)="closeShareModal()">

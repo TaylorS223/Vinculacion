@@ -1,13 +1,16 @@
 ﻿import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormQuestion, FormShare, FormService } from '@core/services/form.service';
 import { AuthService } from '@core/services/auth.service';
 import { UserService } from '@core/services/user.service';
 import { User } from '@core/models/user/user.interface';
-import { FormBuilderViewModel } from '@presentation/viewmodels/form-builder.viewmodel';
+import { FormBuilderViewModel, FormQuestionDraft } from '@presentation/viewmodels/form-builder.viewmodel';
 import { TranslateModule } from '@ngx-translate/core';
+
+type PreviewMode = 'mobile' | 'web';
+type PreviewQuestion = FormQuestionDraft & { displayLabel: string };
 
 @Component({
   selector: 'app-builder',
@@ -23,6 +26,24 @@ export class BuilderComponent implements OnInit {
   private readonly formService = inject(FormService);
   readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
+  readonly previewMode = signal<PreviewMode>('mobile');
+  readonly previewModalOpen = signal(false);
+  readonly previewSummaryQuestions = computed(() =>
+    this.toPreviewQuestions(this.vm.questions().slice(0, 3)),
+  );
+  readonly hiddenPreviewQuestions = computed(() =>
+    Math.max(this.vm.questionsCount() - this.previewSummaryQuestions().length, 0),
+  );
+  readonly modalPreviewQuestions = computed(() => {
+    if (!this.previewModalOpen()) return [];
+
+    const questions = this.vm.questions();
+    const visibleQuestions = this.vm.stepByStep() && this.previewMode() === 'mobile'
+      ? questions.slice(0, 1)
+      : questions;
+
+    return this.toPreviewQuestions(visibleQuestions);
+  });
 
   readonly questionTypes: Array<{
     value: FormQuestion['type'];
@@ -89,6 +110,26 @@ export class BuilderComponent implements OnInit {
     } else {
       this.vm.updateProject(this.route.snapshot.queryParamMap.get('project_id'));
     }
+  }
+
+  openPreview(mode: PreviewMode = 'mobile'): void {
+    this.previewMode.set(mode);
+    this.previewModalOpen.set(true);
+  }
+
+  closePreview(): void {
+    this.previewModalOpen.set(false);
+  }
+
+  setPreviewMode(mode: PreviewMode): void {
+    this.previewMode.set(mode);
+  }
+
+  private toPreviewQuestions(questions: FormQuestionDraft[]): PreviewQuestion[] {
+    return questions.map((question) => ({
+      ...question,
+      displayLabel: this.vm.getQuestionDisplayLabel(question),
+    }));
   }
 
   openShareModal(): void {
