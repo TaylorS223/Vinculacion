@@ -697,7 +697,7 @@ textarea {
 .preview-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1100;
+  z-index: 5000;
   display: grid;
   place-items: center;
   padding: 1rem;
@@ -708,7 +708,8 @@ textarea {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   width: min(1120px, 100%);
-  max-height: min(92vh, 920px);
+  height: min(92dvh, 920px);
+  max-height: calc(100dvh - 2rem);
   overflow: hidden;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
@@ -724,6 +725,7 @@ textarea {
   gap: 1rem;
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--border-color);
+  min-width: 0;
 
   h3,
   p {
@@ -747,6 +749,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  flex: 0 0 auto;
 }
 
 .device-switch {
@@ -796,9 +799,14 @@ textarea {
 
 .collect-preview-frame {
   margin: 0 auto;
+  min-height: 0;
 
   &.mobile-frame {
     width: min(390px, 100%);
+    height: min(76dvh, 720px);
+    max-height: 100%;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
     overflow: hidden;
     border: 10px solid #111827;
     border-radius: 2rem;
@@ -808,6 +816,7 @@ textarea {
 
   &.web-frame {
     width: min(880px, 100%);
+    max-height: 100%;
   }
 }
 
@@ -831,15 +840,27 @@ textarea {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
   background: var(--card-bg);
+  min-height: 0;
 }
 
 .mobile-frame .collect-preview-card {
-  max-height: 74vh;
-  overflow-y: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border-radius: 1.35rem;
 }
 
+.web-frame .collect-preview-card {
+  display: flex;
+  flex-direction: column;
+  height: min(76dvh, 760px);
+  max-height: 100%;
+  overflow: hidden;
+}
+
 .collect-preview-header {
+  flex: 0 0 auto;
   padding: 1.25rem;
   background: var(--primary-600);
   color: #fff;
@@ -862,6 +883,7 @@ textarea {
 }
 
 .collect-step-banner {
+  flex: 0 0 auto;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -878,8 +900,13 @@ textarea {
 }
 
 .collect-preview-body {
+  flex: 1 1 auto;
   display: grid;
+  align-content: start;
   gap: 1rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 1rem;
 }
 
@@ -930,12 +957,19 @@ textarea {
 .collect-options {
   display: grid;
   gap: 0.55rem;
+  min-width: 0;
 
   label {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     color: var(--text-secondary);
+    min-width: 0;
+  }
+
+  span {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -982,14 +1016,18 @@ textarea {
 }
 
 .collect-preview-footer {
+  flex: 0 0 auto;
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 0.65rem;
   padding: 1rem;
   border-top: 1px solid var(--border-color);
   background: var(--bg-secondary);
+  flex-wrap: wrap;
 
   .btn-primary {
+    flex: 0 0 auto;
     min-width: 132px;
   }
 }
@@ -1030,6 +1068,42 @@ textarea {
 
   .question-actions {
     justify-content: flex-end;
+  }
+
+  .preview-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .preview-modal {
+    width: 100%;
+    height: calc(100dvh - 1rem);
+    max-height: calc(100dvh - 1rem);
+  }
+
+  .preview-modal-header,
+  .preview-modal-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .device-switch {
+    width: 100%;
+
+    button {
+      flex: 1 1 0;
+      justify-content: center;
+    }
+  }
+
+  .preview-stage,
+  .preview-stage.web-stage {
+    padding: 0.75rem;
+  }
+
+  .collect-preview-frame.mobile-frame,
+  .web-frame .collect-preview-card {
+    height: 100%;
+    max-height: 100%;
   }
 }
 

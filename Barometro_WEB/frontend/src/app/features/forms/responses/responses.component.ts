@@ -1,5 +1,6 @@
 ﻿import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -28,9 +29,10 @@ import { TranslateModule } from '@ngx-translate/core';
   styleUrl: './responses.component.scss',
   providers: [FormResponsesViewModel],
 })
-export class ResponsesComponent implements OnInit {
+export class ResponsesComponent implements OnInit, OnDestroy {
   readonly vm = inject(FormResponsesViewModel);
   private readonly route = inject(ActivatedRoute);
+  private readonly document = inject(DOCUMENT);
 
   displayedColumns: string[] = [];
   selectedResponse: FormResponseRow | null = null;
@@ -44,12 +46,18 @@ export class ResponsesComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.setImmersiveModal(false);
+  }
+
   openResponsePreview(row: FormResponseRow): void {
     this.selectedResponse = row;
+    this.setImmersiveModal(true);
   }
 
   closeResponsePreview(): void {
     this.selectedResponse = null;
+    this.setImmersiveModal(false);
   }
 
   previewFields(): { key: string; label: string; value: string }[] {
@@ -64,5 +72,9 @@ export class ResponsesComponent implements OnInit {
         label: column.label,
         value: response.answers[column.key] || '-',
       }));
+  }
+
+  private setImmersiveModal(isOpen: boolean): void {
+    this.document.body.classList.toggle('immersive-modal-open', isOpen);
   }
 }

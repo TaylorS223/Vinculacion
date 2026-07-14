@@ -1638,6 +1638,43 @@ a:not([class*='mat-']):not([class*='btn']):not([class*='nav']) {
   margin-top: 0.5rem;
 }
 
+body.preview-modal-open,
+body.immersive-modal-open {
+  overflow: hidden;
+}
+
+body.preview-modal-open .layout-header,
+body.preview-modal-open .layout-sidenav,
+body.immersive-modal-open .layout-header,
+body.immersive-modal-open .layout-sidenav {
+  display: none !important;
+}
+
+body.preview-modal-open .layout-container,
+body.preview-modal-open .layout-body,
+body.immersive-modal-open .layout-container,
+body.immersive-modal-open .layout-body {
+  height: 100dvh !important;
+}
+
+body.preview-modal-open .layout-content,
+body.preview-modal-open .mat-drawer-content,
+body.preview-modal-open .mat-sidenav-content,
+body.immersive-modal-open .layout-content,
+body.immersive-modal-open .mat-drawer-content,
+body.immersive-modal-open .mat-sidenav-content {
+  margin-left: 0 !important;
+  transform: none !important;
+  overflow: hidden !important;
+}
+
+body.preview-modal-open .layout-main,
+body.immersive-modal-open .layout-main {
+  min-height: 100dvh !important;
+  padding: 0 !important;
+  animation: none !important;
+}
+
 /* Variable selector panel */
 .variable-selector-panel {
   max-height: 400px !important;

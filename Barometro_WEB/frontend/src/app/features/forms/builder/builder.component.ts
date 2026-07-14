@@ -1,5 +1,6 @@
 ﻿import { CommonModule } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormQuestion, FormShare, FormService } from '@core/services/form.service';
@@ -20,12 +21,13 @@ type PreviewQuestion = FormQuestionDraft & { displayLabel: string };
   styleUrl: './builder.component.scss',
   providers: [FormBuilderViewModel],
 })
-export class BuilderComponent implements OnInit {
+export class BuilderComponent implements OnInit, OnDestroy {
   readonly vm = inject(FormBuilderViewModel);
   private readonly route = inject(ActivatedRoute);
   private readonly formService = inject(FormService);
   readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
+  private readonly document = inject(DOCUMENT);
   readonly previewMode = signal<PreviewMode>('mobile');
   readonly previewModalOpen = signal(false);
   readonly previewSummaryQuestions = computed(() =>
@@ -112,13 +114,19 @@ export class BuilderComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.setPreviewShell(false);
+  }
+
   openPreview(mode: PreviewMode = 'mobile'): void {
     this.previewMode.set(mode);
     this.previewModalOpen.set(true);
+    this.setPreviewShell(true);
   }
 
   closePreview(): void {
     this.previewModalOpen.set(false);
+    this.setPreviewShell(false);
   }
 
   setPreviewMode(mode: PreviewMode): void {
@@ -130,6 +138,10 @@ export class BuilderComponent implements OnInit {
       ...question,
       displayLabel: this.vm.getQuestionDisplayLabel(question),
     }));
+  }
+
+  private setPreviewShell(isOpen: boolean): void {
+    this.document.body.classList.toggle('preview-modal-open', isOpen);
   }
 
   openShareModal(): void {
