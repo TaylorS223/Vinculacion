@@ -290,6 +290,24 @@ docker rm -f observatorio-backend
 
 ---
 
+## Script de arranque completo
+
+Para iniciar PostgreSQL, backend, frontend web y app movil desde la raiz del proyecto:
+
+```powershell
+.\iniciar-todo.ps1
+```
+
+Si es la primera vez y necesitas instalar dependencias de la web y la app movil:
+
+```powershell
+.\iniciar-todo.ps1 -Install
+```
+
+El script deja el backend en Docker y abre dos terminales de desarrollo: una para `Barometro_WEB/frontend` y otra para `Barometro_MOVIL/kobo-mobile`.
+
+---
+
 ## Flujo de uso (app móvil)
 
 1. Abrir http://localhost:4201
