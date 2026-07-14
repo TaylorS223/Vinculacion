@@ -229,7 +229,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
       .collect-header {
         padding: 1.5rem;
-        background: linear-gradient(135deg, var(--primary-600), #8b5cf6);
+        background: var(--primary-600);
         color: white;
 
         h1 {
@@ -411,7 +411,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         }
 
         &.success mat-icon {
-          color: #10b981;
+          color: var(--text-primary);
         }
 
         h2 {

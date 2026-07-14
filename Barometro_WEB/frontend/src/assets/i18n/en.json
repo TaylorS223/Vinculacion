@@ -416,6 +416,11 @@
       "empty": "There are no responses for this form yet.",
       "emptyHint": "Share the collection link to start receiving data.",
       "submitted": "Submission date",
+      "previewAction": "View response",
+      "previewEyebrow": "Answered preview",
+      "previewTitle": "Recorded response",
+      "previewSubmittedAt": "Submitted on",
+      "noAnswer": "No answer",
       "filePrefix": "form",
       "fileSuffix": "responses",
       "errors": {

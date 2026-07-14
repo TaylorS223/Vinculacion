@@ -65,7 +65,7 @@ import { BaseChartComponent, CHART_COLORS } from './base-chart.component';
         padding: 0.7rem 0.75rem;
         border: 1px solid var(--border-color);
         border-radius: var(--radius-lg);
-        background: linear-gradient(180deg, var(--bg-secondary), var(--card-bg));
+        background: var(--card-bg);
       }
 
       .chart-summary span {
@@ -118,18 +118,14 @@ import { BaseChartComponent, CHART_COLORS } from './base-chart.component';
         height: 16px;
         overflow: hidden;
         border-radius: var(--radius-full);
-        background:
-          linear-gradient(90deg, rgba(148, 163, 184, 0.18), rgba(148, 163, 184, 0.08)),
-          var(--bg-secondary);
+        background: var(--bg-secondary);
       }
 
       .bar-fill {
         display: block;
         height: 100%;
         border-radius: inherit;
-        background:
-          linear-gradient(90deg, var(--bar-color), color-mix(in srgb, var(--bar-color), white 24%));
-        box-shadow: 0 6px 14px color-mix(in srgb, var(--bar-color), transparent 70%);
+        background: var(--bar-color);
       }
 
       .chart-empty {

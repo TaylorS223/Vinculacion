@@ -2,16 +2,16 @@ import { Component, Input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export const CHART_COLORS = [
-  '#00695C', // ULEAM primary
-  '#26A69A',
-  '#4DB6AC',
-  '#80CBC4',
-  '#B2DFDB',
-  '#FF7043',
-  '#FFB74D',
-  '#4FC3F7',
-  '#BA68C8',
-  '#F06292',
+  '#0F766E',
+  '#14B8A6',
+  '#334155',
+  '#64748B',
+  '#C8102E',
+  '#2DD4BF',
+  '#475569',
+  '#99F6DF',
+  '#A00D25',
+  '#94A3B8',
 ];
 
 @Component({

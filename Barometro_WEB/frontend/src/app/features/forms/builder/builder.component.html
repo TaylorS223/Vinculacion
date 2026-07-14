@@ -14,7 +14,7 @@
         {{ 'forms.builder.back' | translate }}
       </a>
       @if (vm.isEditMode() && authService.isAdmin()) {
-        <button class="btn btn-primary" type="button" style="background:#ff9800;border-color:#ff9800;" (click)="openShareModal()">
+        <button class="btn btn-primary" type="button" (click)="openShareModal()">
           <span class="material-icons" aria-hidden="true">share</span>
           Compartir
         </button>

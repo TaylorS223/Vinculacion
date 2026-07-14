@@ -61,7 +61,7 @@ import { SidebarComponent } from './sidebar.component';
       }
 
       .layout-sidenav {
-        width: 280px;
+        width: 264px;
         background: var(--bg-secondary) !important;
         border-right: 1px solid var(--border-color) !important;
       }
@@ -78,13 +78,13 @@ import { SidebarComponent } from './sidebar.component';
 
       @media (min-width: 1024px) {
         .layout-main {
-          padding: 2rem;
+          padding: 2rem 2.25rem;
         }
       }
 
       @media (max-width: 1023px) {
         .layout-sidenav {
-          width: 280px;
+          width: 264px;
         }
       }
     `,

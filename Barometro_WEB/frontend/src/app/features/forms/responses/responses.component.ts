@@ -7,7 +7,7 @@ import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BarChartComponent } from '@presentation/components/charts/bar-chart.component';
 import { PieChartComponent } from '@presentation/components/charts/pie-chart.component';
-import { FormResponsesViewModel } from '@presentation/viewmodels/form-responses.viewmodel';
+import { FormResponseRow, FormResponsesViewModel } from '@presentation/viewmodels/form-responses.viewmodel';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
@@ -33,13 +33,36 @@ export class ResponsesComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
 
   displayedColumns: string[] = [];
+  selectedResponse: FormResponseRow | null = null;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) return;
 
     void this.vm.load(id).then(() => {
-      this.displayedColumns = this.vm.tableColumns().map((column) => column.key);
+      this.displayedColumns = [...this.vm.tableColumns().map((column) => column.key), '_actions'];
     });
+  }
+
+  openResponsePreview(row: FormResponseRow): void {
+    this.selectedResponse = row;
+  }
+
+  closeResponsePreview(): void {
+    this.selectedResponse = null;
+  }
+
+  previewFields(): { key: string; label: string; value: string }[] {
+    if (!this.selectedResponse) return [];
+    const response = this.selectedResponse;
+
+    return this.vm
+      .tableColumns()
+      .filter((column) => column.key !== '_submitted')
+      .map((column) => ({
+        key: column.key,
+        label: column.label,
+        value: response.answers[column.key] || '-',
+      }));
   }
 }

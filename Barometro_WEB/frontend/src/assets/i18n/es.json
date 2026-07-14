@@ -416,6 +416,11 @@
       "empty": "Aun no hay respuestas para este formulario.",
       "emptyHint": "Comparte el enlace de recoleccion para empezar a recibir datos.",
       "submitted": "Fecha envio",
+      "previewAction": "Ver respuesta",
+      "previewEyebrow": "Vista previa contestada",
+      "previewTitle": "Respuesta registrada",
+      "previewSubmittedAt": "Enviada el",
+      "noAnswer": "Sin respuesta",
       "filePrefix": "formulario",
       "fileSuffix": "respuestas",
       "errors": {
