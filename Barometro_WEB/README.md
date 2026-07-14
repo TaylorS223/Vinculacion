@@ -53,6 +53,9 @@ El frontend que se debe ejecutar y compilar es siempre `frontend/`. La carpeta `
 
 En CMD:
 
++ Permisos en caso de zsh: permission denied
+chmod +x scripts/start.sh
+
 ```cmd
 scripts\install.bat
 scripts\start.bat all
