@@ -70,7 +70,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                   @switch (question.type) {
                     @case ('SINGLE_CHOICE') {
                       <div class="options-list">
-                        @for (opt of question.options ?? []; track $index) {
+                        @for (opt of getChoiceOptions(question); track $index) {
                           <label class="option">
                             <input
                               type="radio"
@@ -87,7 +87,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     }
                     @case ('MULTIPLE_CHOICE') {
                       <div class="options-list">
-                        @for (opt of question.options ?? []; track $index) {
+                        @for (opt of getChoiceOptions(question); track $index) {
                           <label class="option">
                             <input
                               type="checkbox"
@@ -539,6 +539,12 @@ export class FormCollectComponent implements OnInit {
     }
 
     this.setAnswer(questionId, selected);
+  }
+
+  getChoiceOptions(question: FormQuestion): string[] {
+    return Array.isArray(question.options)
+      ? question.options.map((option) => String(option)).filter(Boolean)
+      : [];
   }
 
   getLikertRows(question: FormQuestion): string[] {
