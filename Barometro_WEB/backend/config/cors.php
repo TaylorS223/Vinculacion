@@ -15,23 +15,18 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'storage/*'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
         'http://localhost:4200',
-        'http://localhost:4202',
-        'http://localhost:4000',
         'http://127.0.0.1:4200',
-        'https://observatirio.vercel.app',
-        'https://observatirio.onrender.com',
+        'http://localhost:4201',
+        'http://127.0.0.1:4201',
     ],
 
-    'allowed_origins_patterns' => [
-        '#^https://observatirio.*\.vercel\.app$#',
-        '#^http://localhost:[0-9]+$#',
-    ],
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 

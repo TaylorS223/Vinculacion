@@ -24,6 +24,8 @@ El backend se ejecuta dentro de una imagen Docker construida desde `backend/Dock
 .\scripts\backend.ps1 install
 .\scripts\backend.ps1 migrate
 .\scripts\backend.ps1 start
+.\scripts\backend.ps1 worker
+.\scripts\backend.ps1 scheduler
 ```
 
 Comandos equivalentes en Bash:
@@ -33,6 +35,8 @@ Comandos equivalentes en Bash:
 ./scripts/backend.sh install
 ./scripts/backend.sh migrate
 ./scripts/backend.sh start
+./scripts/backend.sh worker
+./scripts/backend.sh scheduler
 ```
 
 ## Comandos backend
@@ -43,6 +47,8 @@ Comandos equivalentes en Bash:
 .\scripts\backend.ps1 cache-clear
 .\scripts\backend.ps1 migrate-fresh-seed
 .\scripts\backend.ps1 logs
+.\scripts\backend.ps1 worker
+.\scripts\backend.ps1 scheduler
 ```
 
 ## Rutas principales
@@ -94,6 +100,15 @@ Para probar rutas protegidas en Swagger:
 ## Configuracion
 
 Si `backend/.env` no existe, los scripts lo crean desde `.env.example`. En ejecucion Docker, los scripts detectan la red donde esta conectado `observatorio_db`, usan `DB_HOST=postgres` y `DB_PORT=5432`; si no encuentran el contenedor de PostgreSQL, usan `host.docker.internal` y el puerto publicado `5433` como fallback.
+
+Variables Supabase requeridas en `backend/.env`:
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SCHEMA` (default: `public`)
+- `SUPABASE_RESPONSES_TABLE` (default: `form_responses`)
+
+La sincronizacion asincrona requiere `QUEUE_CONNECTION=database` y tener ejecutando worker + scheduler.
 
 ## Notas de refactor
 

@@ -2,12 +2,14 @@
 set -euo pipefail
 
 # Backend helper for Laravel API running in Docker.
-# Usage: ./scripts/backend.sh <start|stop|logs|install|migrate|seed|migrate-fresh|migrate-fresh-seed|cache-clear|swagger|routes|tinker|help>
+# Usage: ./scripts/backend.sh <start|stop|logs|worker|scheduler|install|migrate|seed|migrate-fresh|migrate-fresh-seed|cache-clear|swagger|routes|tinker|help>
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_PATH="$SCRIPT_DIR/../backend"
 IMAGE_NAME="backend-backend"
 CONTAINER_NAME="observatorio-backend-dev"
+WORKER_CONTAINER_NAME="observatorio-backend-worker"
+SCHEDULER_CONTAINER_NAME="observatorio-backend-scheduler"
 POSTGRES_CONTAINER_NAME="observatorio_db"
 ENV_FILE="$BACKEND_PATH/.env"
 COMPOSE_NETWORK="observatirio_default"
@@ -106,9 +108,47 @@ case "$COMMAND" in
     ;;
   stop)
     docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+    docker rm -f "$WORKER_CONTAINER_NAME" >/dev/null 2>&1 || true
+    docker rm -f "$SCHEDULER_CONTAINER_NAME" >/dev/null 2>&1 || true
     echo "Backend stopped."
     ;;
   logs) docker logs -f "$CONTAINER_NAME" ;;
+  worker)
+    ensure_env_file
+    ensure_backend_image
+    docker_db_args
+    dev_mount_args
+    docker rm -f "$WORKER_CONTAINER_NAME" >/dev/null 2>&1 || true
+    docker run -d \
+      --name "$WORKER_CONTAINER_NAME" \
+      --rm \
+      "${DOCKER_DB_ARGS[@]}" \
+      "${DOCKER_DEV_MOUNT_ARGS[@]}" \
+      --env-file "$ENV_FILE" \
+      -e DB_HOST="$DB_HOST_VALUE" \
+      -e DB_PORT="$DB_PORT_VALUE" \
+      --entrypoint php \
+      "$IMAGE_NAME" artisan queue:work database --sleep=2 --tries=1 --timeout=120 >/dev/null
+    echo "Worker started."
+    ;;
+  scheduler)
+    ensure_env_file
+    ensure_backend_image
+    docker_db_args
+    dev_mount_args
+    docker rm -f "$SCHEDULER_CONTAINER_NAME" >/dev/null 2>&1 || true
+    docker run -d \
+      --name "$SCHEDULER_CONTAINER_NAME" \
+      --rm \
+      "${DOCKER_DB_ARGS[@]}" \
+      "${DOCKER_DEV_MOUNT_ARGS[@]}" \
+      --env-file "$ENV_FILE" \
+      -e DB_HOST="$DB_HOST_VALUE" \
+      -e DB_PORT="$DB_PORT_VALUE" \
+      --entrypoint php \
+      "$IMAGE_NAME" artisan schedule:work >/dev/null
+    echo "Scheduler started."
+    ;;
   install)
     ensure_env_file
     docker build -t "$IMAGE_NAME" -f Dockerfile .
@@ -131,6 +171,8 @@ case "$COMMAND" in
     echo "  start              - Start Laravel API in Docker"
     echo "  stop               - Stop Laravel API container"
     echo "  logs               - Follow backend logs"
+    echo "  worker             - Start queue worker"
+    echo "  scheduler          - Start Laravel scheduler"
     echo "  install            - Build backend Docker image"
     echo "  migrate            - Run migrations"
     echo "  seed               - Run seeders"

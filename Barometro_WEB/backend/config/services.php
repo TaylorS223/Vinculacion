@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'supabase' => [
+        'url' => env('SUPABASE_URL'),
+        'service_role_key' => env('SUPABASE_SERVICE_ROLE_KEY'),
+        'schema' => env('SUPABASE_SCHEMA', 'public'),
+        'responses_table' => env('SUPABASE_RESPONSES_TABLE', 'form_responses'),
+        'max_retry_attempts' => (int) env('SUPABASE_MAX_RETRY_ATTEMPTS', 12),
+        'retry_base_seconds' => (int) env('SUPABASE_RETRY_BASE_SECONDS', 30),
+    ],
+
 ];

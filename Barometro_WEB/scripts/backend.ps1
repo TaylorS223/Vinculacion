@@ -1,5 +1,5 @@
 # Backend Scripts (Laravel/PHP 8.4 via Docker)
-# Usage: .\scripts\backend.ps1 <start|stop|logs|install|migrate|seed|migrate-fresh|migrate-fresh-seed|cache-clear|swagger|routes|tinker|help>
+# Usage: .\scripts\backend.ps1 <start|stop|logs|worker|scheduler|install|migrate|seed|migrate-fresh|migrate-fresh-seed|cache-clear|swagger|routes|tinker|help>
 
 param(
     [Parameter(Position=0)]
@@ -10,6 +10,8 @@ param(
 $BackendPath = Join-Path $PSScriptRoot '..\backend'
 $ImageName = 'backend-backend'
 $ContainerName = 'observatorio-backend-dev'
+$WorkerContainerName = 'observatorio-backend-worker'
+$SchedulerContainerName = 'observatorio-backend-scheduler'
 $PostgresContainerName = 'observatorio_db'
 $EnvFile = Join-Path $BackendPath '.env'
 $ComposeNetwork = 'observatirio_default'
@@ -91,9 +93,31 @@ try {
         }
         'stop' {
             docker rm -f $ContainerName 2>$null | Out-Null
+            docker rm -f $WorkerContainerName 2>$null | Out-Null
+            docker rm -f $SchedulerContainerName 2>$null | Out-Null
             Write-Host 'Backend stopped.' -ForegroundColor Green
         }
         'logs' { docker logs -f $ContainerName }
+        'worker' {
+            Ensure-EnvFile
+            Ensure-BackendImage
+            $db = Get-DbRuntime
+            docker rm -f $WorkerContainerName 2>$null | Out-Null
+            $dockerArgs = @('run', '-d', '--name', $WorkerContainerName, '--rm') + $db.Args + (Get-DevMountArgs) + @('--env-file', $EnvFile, '-e', "DB_HOST=$($db.Host)", '-e', "DB_PORT=$($db.Port)", '--entrypoint', 'php', $ImageName, 'artisan', 'queue:work', 'database', '--sleep=2', '--tries=1', '--timeout=120')
+            & docker @dockerArgs | Out-Null
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            Write-Host 'Worker started.' -ForegroundColor Green
+        }
+        'scheduler' {
+            Ensure-EnvFile
+            Ensure-BackendImage
+            $db = Get-DbRuntime
+            docker rm -f $SchedulerContainerName 2>$null | Out-Null
+            $dockerArgs = @('run', '-d', '--name', $SchedulerContainerName, '--rm') + $db.Args + (Get-DevMountArgs) + @('--env-file', $EnvFile, '-e', "DB_HOST=$($db.Host)", '-e', "DB_PORT=$($db.Port)", '--entrypoint', 'php', $ImageName, 'artisan', 'schedule:work')
+            & docker @dockerArgs | Out-Null
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            Write-Host 'Scheduler started.' -ForegroundColor Green
+        }
         'install' {
             Ensure-EnvFile
             Write-Host 'Building backend image...' -ForegroundColor Green
@@ -118,6 +142,8 @@ try {
             Write-Host '  start              - Start Laravel API in Docker'
             Write-Host '  stop               - Stop Laravel API container'
             Write-Host '  logs               - Follow backend logs'
+            Write-Host '  worker             - Start queue worker'
+            Write-Host '  scheduler          - Start Laravel scheduler'
             Write-Host '  install            - Build backend Docker image'
             Write-Host '  migrate            - Run migrations'
             Write-Host '  seed               - Run seeders'

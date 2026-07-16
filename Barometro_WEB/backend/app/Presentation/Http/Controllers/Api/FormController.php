@@ -2,6 +2,7 @@
 
 namespace App\Presentation\Http\Controllers\Api;
 
+use App\Application\Responses\Services\EnqueueResponseSync;
 use App\Http\Controllers\Controller;
 use App\Models\Form;
 use App\Models\FormQuestion;
@@ -25,6 +26,10 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 #[OA\Tag(name: 'Forms', description: 'Formularios dinamicos, publicacion, respuestas y comparticion')]
 class FormController extends Controller
 {
+    public function __construct(private readonly EnqueueResponseSync $enqueueResponseSync)
+    {
+    }
+
     #[OA\Get(path: '/forms', summary: 'Listar formularios propios y compartidos', security: [['sanctum' => []]], tags: ['Forms'])]
     public function index(Request $request): JsonResponse
     {
@@ -493,6 +498,8 @@ class FormController extends Controller
             'user_id' => $currentUser?->id,
             'data' => $data,
         ]);
+
+        $this->enqueueResponseSync->enqueue($response);
 
         return response()->json(['message' => 'Respuesta guardada', 'id' => $response->id], 201);
     }
