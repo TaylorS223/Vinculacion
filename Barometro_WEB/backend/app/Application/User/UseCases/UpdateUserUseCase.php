@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\User\UseCases;
 
+use App\Application\Auth\Contracts\SupabaseAuthUserProvisioner;
 use App\Application\User\DTOs\UpdateUserDTO;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UpdateUserUseCase
 {
+    public function __construct(private readonly SupabaseAuthUserProvisioner $supabaseAuthUserProvisioner)
+    {
+    }
+
     /**
      * Actualiza un usuario existente.
      * Solo puede ser ejecutado por un administrador.
@@ -89,6 +94,8 @@ class UpdateUserUseCase
 
             // Recargar relaciones
             $user->load('perfil');
+
+            $this->supabaseAuthUserProvisioner->ensureUser($user, $dto->password);
 
             return $user;
         });

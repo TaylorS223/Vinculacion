@@ -2,6 +2,7 @@
 
 namespace App\Presentation\Http\Controllers\Api;
 
+use App\Application\Forms\Services\EnqueueFormSchemaSync;
 use App\Application\Responses\Services\EnqueueResponseSync;
 use App\Http\Controllers\Controller;
 use App\Models\Form;
@@ -26,7 +27,10 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 #[OA\Tag(name: 'Forms', description: 'Formularios dinamicos, publicacion, respuestas y comparticion')]
 class FormController extends Controller
 {
-    public function __construct(private readonly EnqueueResponseSync $enqueueResponseSync)
+    public function __construct(
+        private readonly EnqueueResponseSync $enqueueResponseSync,
+        private readonly EnqueueFormSchemaSync $enqueueFormSchemaSync,
+    )
     {
     }
 
@@ -129,6 +133,8 @@ class FormController extends Controller
             'step_by_step' => $request->boolean('step_by_step'),
         ]);
 
+        $this->enqueueFormSchemaSync->enqueue($form);
+
         return response()->json($form, 201);
     }
 
@@ -172,6 +178,8 @@ class FormController extends Controller
 
         $form->update($request->only(['title', 'description', 'step_by_step']));
 
+        $this->enqueueFormSchemaSync->enqueue($form->fresh(['questions' => fn($q) => $q->orderBy('order')]));
+
         return response()->json($form);
     }
 
@@ -189,7 +197,10 @@ class FormController extends Controller
             return response()->json(['message' => 'Archiva el formulario antes de eliminarlo permanentemente'], 422);
         }
 
+        $formId = $form->id;
         $form->delete();
+
+        $this->enqueueFormSchemaSync->enqueueById($formId, 'delete');
 
         return response()->json(null, 204);
     }
@@ -228,6 +239,8 @@ class FormController extends Controller
         $copy->load(['owner:id,name,email,rol', 'project:id,name']);
         $copy->loadCount('responses');
 
+        $this->enqueueFormSchemaSync->enqueue($copy->fresh(['questions' => fn($q) => $q->orderBy('order')]));
+
         return response()->json($copy, 201);
     }
 
@@ -245,6 +258,8 @@ class FormController extends Controller
             'link_uuid' => $form->link_uuid ?? Str::uuid(),
         ]);
 
+        $this->enqueueFormSchemaSync->enqueue($form->fresh(['questions' => fn($q) => $q->orderBy('order')]));
+
         return response()->json($form);
     }
 
@@ -258,6 +273,8 @@ class FormController extends Controller
         }
 
         $form->update(['state' => 'ARCHIVED']);
+
+        $this->enqueueFormSchemaSync->enqueue($form->fresh(['questions' => fn($q) => $q->orderBy('order')]));
 
         return response()->json($form);
     }
@@ -286,6 +303,8 @@ class FormController extends Controller
             'required' => 'boolean',
             'options' => 'nullable|array',
             'branch_rules' => 'nullable|array',
+            'section_name' => 'nullable|string|max:255',
+            'parent_question_id' => 'nullable|uuid|exists:form_questions,id',
             'branch_rules.*.option_index' => 'required_with:branch_rules|integer|min:0',
             'branch_rules.*.action' => 'nullable|in:CONTINUE,GO_TO,END_FORM',
             'branch_rules.*.next_question_id' => 'nullable|uuid',
@@ -298,7 +317,11 @@ class FormController extends Controller
             'required',
             'options',
             'branch_rules',
+            'section_name',
+            'parent_question_id',
         ]));
+
+        $this->enqueueFormSchemaSync->enqueue($form->fresh(['questions' => fn($q) => $q->orderBy('order')]));
 
         return response()->json($question, 201);
     }
@@ -320,6 +343,8 @@ class FormController extends Controller
             'required' => 'sometimes|boolean',
             'options' => 'sometimes|nullable|array',
             'branch_rules' => 'sometimes|nullable|array',
+            'section_name' => 'sometimes|nullable|string|max:255',
+            'parent_question_id' => 'sometimes|nullable|uuid|exists:form_questions,id',
             'branch_rules.*.option_index' => 'required_with:branch_rules|integer|min:0',
             'branch_rules.*.action' => 'nullable|in:CONTINUE,GO_TO,END_FORM',
             'branch_rules.*.next_question_id' => 'nullable|uuid',
@@ -332,7 +357,11 @@ class FormController extends Controller
             'required',
             'options',
             'branch_rules',
+            'section_name',
+            'parent_question_id',
         ]));
+
+        $this->enqueueFormSchemaSync->enqueue($question->form->fresh(['questions' => fn($q) => $q->orderBy('order')]));
 
         return response()->json($question);
     }
@@ -347,7 +376,10 @@ class FormController extends Controller
             return response()->json(['message' => 'No se puede cambiar preguntas de un formulario implementado'], 403);
         }
 
+        $form = $question->form;
         $question->delete();
+
+        $this->enqueueFormSchemaSync->enqueue($form->fresh(['questions' => fn($q) => $q->orderBy('order')]));
 
         return response()->json(null, 204);
     }
@@ -751,8 +783,15 @@ class FormController extends Controller
     {
         $missing = [];
 
-        foreach ($this->questionsInSubmissionFlow($form, $data) as $question) {
+        $flowQuestions = $this->questionsInSubmissionFlow($form, $data);
+        $questionById = collect($flowQuestions)->keyBy('id');
+
+        foreach ($flowQuestions as $question) {
             if (!$question->required) {
+                continue;
+            }
+
+            if (!$this->isRequiredQuestionActive($question, $data, $questionById->all())) {
                 continue;
             }
 
@@ -766,6 +805,26 @@ class FormController extends Controller
         }
 
         return $missing;
+    }
+
+    /**
+     * @param array<string, FormQuestion> $questionById
+     */
+    private function isRequiredQuestionActive(FormQuestion $question, array $data, array $questionById): bool
+    {
+        $parentId = $question->parent_question_id ?? null;
+        if (!$parentId) {
+            return true;
+        }
+
+        $parent = $questionById[$parentId] ?? null;
+        if (!$parent instanceof FormQuestion) {
+            return true;
+        }
+
+        $parentAnswer = $data[$parent->id] ?? null;
+
+        return $this->hasRequiredAnswer($parent, $parentAnswer);
     }
 
     /**

@@ -1,115 +1,296 @@
 ﻿# Backend - Laravel API
 
-API REST para la plataforma de formularios dinamicos del Observatorio ULEAM.
+Este es el backend del proyecto `Barometro_WEB`. Aquí se documenta de forma clara cómo ejecutar la API Laravel.
 
-## Responsabilidades
+## ¿Qué hace este backend?
 
-- Autenticacion con Sanctum.
-- Gestion administrativa de usuarios.
-- Roles globales `SUPER_ADMIN`, `ADMIN`, `PROJECT_LEADER` y `USER`.
-- Gestion de proyectos y asignacion de lideres de proyecto.
-- CRUD de formularios y preguntas.
-- Ciclo de vida de formularios: borrador, implementado y archivado.
-- Comparticion de formularios con permisos `EDITOR` o `RECOLECTOR`.
-- Recoleccion publica por `link_uuid`.
-- Consulta de respuestas, estadisticas y exportacion.
-- Seed inicial de usuario super admin.
+El backend expone la API REST para la plataforma de recolección de datos. Las funciones principales son:
 
-## Desarrollo con Docker
+- Autenticación con Laravel Sanctum.
+- Gestión de usuarios y roles (`SUPER_ADMIN`, `ADMIN`, `PROJECT_LEADER`, `USER`).
+- Gestión de proyectos y formularios dinamicos.
+- CRUD de formularios, preguntas y permisos.
+- Recolección de respuestas y estadísticas.
+- Sincronización de respuestas con Supabase (cuando está configurado).
+- Cola de trabajos (`worker`) y scheduler de tareas programadas.
 
-El backend se ejecuta dentro de una imagen Docker construida desde `backend/Dockerfile`. PostgreSQL corre con `docker-compose.yml` en la raiz.
+## Estructura rápida de los scripts
 
-```powershell
-.\scripts\docker.ps1 up
-.\scripts\backend.ps1 install
-.\scripts\backend.ps1 migrate
-.\scripts\backend.ps1 start
-.\scripts\backend.ps1 worker
-.\scripts\backend.ps1 scheduler
-```
+Los scripts disponibles son:
 
-Comandos equivalentes en Bash:
+- `Barometro_WEB/scripts/backend.sh` → para Bash / zsh.
+- `Barometro_WEB/scripts/backend.ps1` → para PowerShell en Windows.
+- `Barometro_WEB/scripts/docker.sh` / `Barometro_WEB/scripts/docker.ps1` → levantan PostgreSQL y redes Docker necesarias.
+
+Ambos `backend.sh` y `backend.ps1` ejecutan el backend dentro de un contenedor Docker y montan el código fuente para desarrollo.
+
+## Requisitos previos
+
+Antes de ejecutar el backend, asegúrate de tener:
+
+- Docker instalado.
+- El proyecto clonado en tu equipo.
+- El servicio PostgreSQL levantado usando los scripts de Docker.
+
+## Iniciar PostgreSQL y la red Docker
+
+### Bash / zsh
 
 ```bash
-./scripts/docker.sh up
-./scripts/backend.sh install
-./scripts/backend.sh migrate
+cd /Vinculacion/Barometro_WEB
+./scripts/docker.sh up -d
+```
+
+### PowerShell
+
+```powershell
+cd Vinculacion\Barometro_WEB
+.\scripts\docker.ps1 up -d
+```
+
+## Comandos principales del backend
+
+### Arrancar el backend
+
+### Bash / zsh
+
+```bash
+cd Vinculacion/Barometro_WEB
 ./scripts/backend.sh start
+```
+
+### PowerShell
+
+```powershell
+cd Vinculacion\Barometro_WEB
+.\scripts\backend.ps1 start
+```
+
+El backend quedará disponible en:
+
+- `http://127.0.0.1:8000`
+
+### Detener el backend
+
+### Bash / zsh
+
+```bash
+./scripts/backend.sh stop
+```
+
+### PowerShell
+
+```powershell
+.\scripts\backend.ps1 stop
+```
+
+### Ver logs del backend
+
+### Bash / zsh
+
+```bash
+./scripts/backend.sh logs
+```
+
+### PowerShell
+
+```powershell
+.\scripts\backend.ps1 logs
+```
+
+### Limpiar caché de Laravel
+
+### Bash / zsh
+
+```bash
+./scripts/backend.sh cache-clear
+```
+
+### PowerShell
+
+```powershell
+.\scripts\backend.ps1 cache-clear
+```
+
+### Ejecutar worker de colas
+
+### Bash / zsh
+
+```bash
 ./scripts/backend.sh worker
+```
+
+### PowerShell
+
+```powershell
+.\scripts\backend.ps1 worker
+```
+
+### Ejecutar scheduler de Laravel
+
+### Bash / zsh
+
+```bash
 ./scripts/backend.sh scheduler
 ```
 
-## Comandos backend
+### PowerShell
 
 ```powershell
-.\scripts\backend.ps1 routes
-.\scripts\backend.ps1 swagger
-.\scripts\backend.ps1 cache-clear
-.\scripts\backend.ps1 migrate-fresh-seed
-.\scripts\backend.ps1 logs
-.\scripts\backend.ps1 worker
 .\scripts\backend.ps1 scheduler
 ```
 
-## Rutas principales
+## Comandos adicionales útiles
 
-- `POST /api/login`
-- `POST /api/logout`
-- `GET /api/user`
-- `GET|POST /api/forms`
-- `GET|PUT|DELETE /api/forms/{id}`
-- `GET|POST /api/projects`
-- `GET|PUT|DELETE /api/projects/{id}`
-- `POST /api/forms/{id}/questions`
-- `POST /api/forms/{id}/deploy`
-- `POST /api/forms/{id}/archive`
-- `GET /api/forms/{id}/responses`
-- `GET /api/forms/{id}/stats`
-- `GET /api/forms/{id}/export`
-- `GET /api/forms/fetch/{link_uuid}`
-- `POST /api/forms/submit/{link_uuid}`
-- `POST /api/seed/admin`
+### Construir la imagen del backend
 
-## Roles y permisos
+```bash
+./scripts/backend.sh install
+```
 
-- `SUPER_ADMIN`: control total sobre usuarios, proyectos, formularios, configuracion y datos.
-- `ADMIN`: gestiona proyectos, asigna lideres y crea/gestiona formularios dentro de proyectos.
-- `PROJECT_LEADER`: gestiona formularios dentro de proyectos asignados.
-- `USER`: ve solo formularios asignados, recolecta datos y edita solo cuando recibe permiso `EDITOR`.
+```powershell
+.\scripts\backend.ps1 install
+```
 
-Los permisos de formulario no son roles globales; viven en `form_user_shares` como `EDITOR` o `RECOLECTOR`.
-Todo formulario debe pertenecer a un proyecto. El detalle de proyecto expone un panel de miembros con lideres y usuarios asignados por formulario.
+### Ejecutar migraciones
 
-La fuente de verdad es `backend/routes/api.php` y los archivos activos en `backend/routes/modules/`.
+```bash
+./scripts/backend.sh migrate
+```
 
-## Swagger
+```powershell
+.\scripts\backend.ps1 migrate
+```
 
-- UI: `GET /api/docs`
-- JSON: `GET /api/documentation`
-- Generacion: `.\scripts\backend.ps1 swagger`
+### Ejecutar seeders
 
-La documentacion se genera solo desde controladores activos: Auth, Forms, Projects, Profile, Seed y Users.
+```bash
+./scripts/backend.sh seed
+```
 
-Para probar rutas protegidas en Swagger:
+```powershell
+.\scripts\backend.ps1 seed
+```
 
-1. Ejecutar `POST /api/login`.
-2. Copiar el valor `token` de la respuesta.
-3. Pulsar `Authorize` en Swagger y pegar solo el token.
-4. Ejecutar rutas protegidas como `POST /api/users`.
+### Eliminar y volver a crear la base de datos
 
-## Configuracion
+```bash
+./scripts/backend.sh migrate-fresh
+```
 
-Si `backend/.env` no existe, los scripts lo crean desde `.env.example`. En ejecucion Docker, los scripts detectan la red donde esta conectado `observatorio_db`, usan `DB_HOST=postgres` y `DB_PORT=5432`; si no encuentran el contenedor de PostgreSQL, usan `host.docker.internal` y el puerto publicado `5433` como fallback.
+```powershell
+.\scripts\backend.ps1 migrate-fresh
+```
 
-Variables Supabase requeridas en `backend/.env`:
+### Eliminar, crear y seedear la base de datos
 
+```bash
+./scripts/backend.sh migrate-fresh-seed
+```
+
+```powershell
+.\scripts\backend.ps1 migrate-fresh-seed
+```
+
+### Generar documentación Swagger
+
+```bash
+./scripts/backend.sh swagger
+```
+
+```powershell
+.\scripts\backend.ps1 swagger
+```
+
+### Listar rutas de API
+
+```bash
+./scripts/backend.sh routes
+```
+
+```powershell
+.\scripts\backend.ps1 routes
+```
+
+### Iniciar Tinker
+
+```bash
+./scripts/backend.sh tinker
+```
+
+```powershell
+.\scripts\backend.ps1 tinker
+```
+
+## Configuración del entorno
+
+Si `backend/.env` no existe, los scripts lo crearán automáticamente desde `backend/.env.example`.
+
+El backend usa Docker para ejecutar Laravel, y al iniciar detecta si PostgreSQL ya está en una red Docker válida. Si no puede conectarse directamente a la red del contenedor PostgreSQL, usa `host.docker.internal:5433` como fallback.
+
+### Variables importantes en `backend/.env`
+
+- `DB_HOST`
+- `DB_PORT`
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `SUPABASE_SCHEMA` (default: `public`)
-- `SUPABASE_RESPONSES_TABLE` (default: `form_responses`)
+- `SUPABASE_SCHEMA`
+- `SUPABASE_RESPONSES_TABLE`
+- `QUEUE_CONNECTION=database`
 
-La sincronizacion asincrona requiere `QUEUE_CONNECTION=database` y tener ejecutando worker + scheduler.
+## ¿Qué hacen los comandos nuevos?
 
-## Notas de refactor
+- `./scripts/backend.sh logs` / `.\scripts\backend.ps1 logs`
+  - Sigue los logs del contenedor backend en tiempo real.
 
-El backend quedo orientado a formularios dinamicos. No agregar rutas, modelos o carpetas del antiguo observatorio salvo decision explicita del proyecto.
+- `./scripts/backend.sh cache-clear` / `.\scripts\backend.ps1 cache-clear`
+  - Borra las cachés de configuración, ruta y vista de Laravel.
+
+- `./scripts/backend.sh stop` / `.\scripts\backend.ps1 stop`
+  - Detiene todos los contenedores del backend, worker y scheduler.
+
+- `./scripts/backend.sh start` / `.\scripts\backend.ps1 start`
+  - Arranca el backend Laravel en Docker y expone `localhost:8000`.
+
+- `./scripts/backend.sh worker` / `.\scripts\backend.ps1 worker`
+  - Inicia el worker de colas de Laravel para procesar trabajos en segundo plano.
+
+- `./scripts/backend.sh scheduler` / `.\scripts\backend.ps1 scheduler`
+  - Inicia el scheduler de Laravel para ejecutar tareas programadas.
+
+## Inicio rápido completo
+
+### Bash / zsh
+
+```bash
+cd Vinculacion/Barometro_WEB
+./scripts/docker.sh up -d
+./scripts/backend.sh install
+./scripts/backend.sh migrate
+./scripts/backend.sh seed
+./scripts/backend.sh start
+./scripts/backend.sh logs
+```
+
+### PowerShell
+
+```powershell
+cd C:\Users\taylor\Documents\Vinculacion\Barometro_WEB
+.\scripts\docker.ps1 up -d
+.\scripts\backend.ps1 install
+.\scripts\backend.ps1 migrate
+.\scripts\backend.ps1 seed
+.\scripts\backend.ps1 start
+.\scripts\backend.ps1 logs
+```
+
+## URLs importantes
+
+- Backend API: `http://127.0.0.1:8000`
+- Swagger UI: `http://127.0.0.1:8000/api/docs`
+
+## Notas finales
+
+Mantén `backend/.env` actualizado y ejecuta `cache-clear` después de cambiar configuración o rutas.
+
+Si necesitas detener todo, usa `stop` y luego vuelve a iniciar con `start`.

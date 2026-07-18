@@ -11,13 +11,15 @@ class HttpSupabaseResponseWriter implements SupabaseResponseWriter
     public function upsertResponse(array $record): void
     {
         $url = rtrim((string) config('services.supabase.url'), '/');
-        $serviceKey = (string) config('services.supabase.service_role_key');
+        $serviceKey = trim((string) config('services.supabase.service_role_key'));
         $table = (string) config('services.supabase.responses_table', 'form_responses');
         $schema = (string) config('services.supabase.schema', 'public');
 
         if ($url === '' || $serviceKey === '') {
             throw new RuntimeException('Supabase no esta configurado en backend.');
         }
+
+        $this->assertValidServiceRoleKey($serviceKey);
 
         $endpoint = sprintf('%s/rest/v1/%s?on_conflict=id', $url, $table);
 
@@ -40,5 +42,13 @@ class HttpSupabaseResponseWriter implements SupabaseResponseWriter
             throw new RuntimeException((string) $message);
         }
     }
-}
 
+    private function assertValidServiceRoleKey(string $serviceKey): void
+    {
+        $lower = mb_strtolower($serviceKey);
+
+        if (str_starts_with($lower, 'sb_publishable_') || str_starts_with($lower, 'sb_anon_')) {
+            throw new RuntimeException('SUPABASE_SERVICE_ROLE_KEY invalida. Debe ser la service_role key.');
+        }
+    }
+}

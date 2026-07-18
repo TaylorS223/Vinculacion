@@ -63,6 +63,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'supabase_auth_id',
         'password',
         'rol',
         'is_active',
