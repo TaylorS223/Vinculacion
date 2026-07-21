@@ -702,82 +702,104 @@ class FormController extends Controller
             ->value('role');
     }
 
-    private function buildExportMatrix(Form $form): array
-    {
-        $headers = ['start', 'end'];
-        $columnMap = [];
+private function buildExportMatrix(Form $form): array
+{
+    $headers = ['start', 'end'];
+    $columnMap = [];
 
-        foreach ($form->questions as $question) {
-            if ($question->type === 'MULTIPLE_CHOICE' && is_array($question->options)) {
-                $headers[] = $question->label;
-                $columnMap[] = ['type' => 'multi_summary', 'question_id' => $question->id];
-                foreach ($question->options as $option) {
-                    $headers[] = "{$question->label}/{$option}";
-                    $columnMap[] = ['type' => 'multi_option', 'question_id' => $question->id, 'option' => $option];
-                }
-            } elseif ($question->type === 'LIKERT' && is_array($question->options) && isset($question->options['rows']) && is_array($question->options['rows'])) {
-                foreach ($question->options['rows'] as $rowLabel) {
-                    $headers[] = "{$question->label}/{$rowLabel}";
-                    $columnMap[] = ['type' => 'likert_row', 'question_id' => $question->id, 'row' => $rowLabel];
-                }
-            } else {
-                $headers[] = $question->label;
-                $columnMap[] = ['type' => 'simple', 'question_id' => $question->id];
+    foreach ($form->questions as $question) {
+        $likertRows = $question->type === 'LIKERT' && is_array($question->options) && isset($question->options['rows']) && is_array($question->options['rows'])
+            ? $question->options['rows']
+            : null;
+
+        if (($question->type === 'MULTIPLE_CHOICE' || $question->type === 'SINGLE_CHOICE') && is_array($question->options)) {
+            $headers[] = $question->label;
+            $columnMap[] = ['type' => 'choice_summary', 'question_id' => $question->id, 'question_type' => $question->type];
+            foreach ($question->options as $option) {
+                $headers[] = "{$question->label}/{$option}";
+                $columnMap[] = ['type' => 'choice_option', 'question_id' => $question->id, 'option' => $option, 'question_type' => $question->type];
             }
+        } elseif ($likertRows !== null && count($likertRows) > 1) {
+            foreach ($likertRows as $rowLabel) {
+                $headers[] = "{$question->label}/{$rowLabel}";
+                $columnMap[] = ['type' => 'likert_row', 'question_id' => $question->id, 'row' => $rowLabel];
+            }
+        } elseif ($likertRows !== null && count($likertRows) === 1) {
+            $headers[] = $question->label;
+            $columnMap[] = ['type' => 'likert_row', 'question_id' => $question->id, 'row' => $likertRows[0]];
+        } else {
+            $headers[] = $question->label;
+            $columnMap[] = ['type' => 'simple', 'question_id' => $question->id];
         }
+    }
 
-        $headers = array_merge($headers, [
-            '_id',
-            '_uuid',
-            '_submission_time',
-            '_validation_status',
-            '_notes',
-            '_status',
-            '_submitted_by',
-            '__version__',
-            '_tags',
-            'meta/rootUuid',
-            '_index',
-        ]);
+    $headers = array_merge($headers, [
+        '_id',
+        '_uuid',
+        '_submission_time',
+        '_validation_status',
+        '_notes',
+        '_status',
+        '_submitted_by',
+        '__version__',
+        '_tags',
+        'meta/rootUuid',
+        '_index',
+    ]);
 
-        $rows = [];
-        foreach ($form->responses as $index => $response) {
-            $submittedAt = $response->created_at?->toDateTimeString() ?? '';
-            $row = [$submittedAt, $submittedAt];
+    $rows = [];
+    foreach ($form->responses as $index => $response) {
+        $submittedAt = $response->created_at;
+        $submissionSerial = $submittedAt ? ($submittedAt->timestamp / 86400) + 25569 : '';
+        $responseData = is_array($response->data) ? $response->data : [];
+        $respondentMeta = is_array($response->respondent_meta) ? $response->respondent_meta : [];
+        $row = [$submissionSerial, $submissionSerial];
 
-            foreach ($columnMap as $col) {
-                $answer = $response->data[$col['question_id']] ?? null;
-                if ($col['type'] === 'multi_option') {
+        foreach ($columnMap as $col) {
+            $answer = $responseData[$col['question_id']] ?? null;
+
+            if ($col['type'] === 'choice_option') {
+                $selected = [];
+                if ($col['question_type'] === 'MULTIPLE_CHOICE') {
                     $selected = is_array($answer) ? $answer : ($answer ? [$answer] : []);
-                    $row[] = in_array($col['option'], $selected, true) ? 1 : 0;
-                } elseif ($col['type'] === 'likert_row') {
-                    $row[] = is_array($answer) ? ($answer[$col['row']] ?? '') : '';
-                } elseif (is_array($answer)) {
+                } else {
+                    $selected = is_scalar($answer) && $answer !== '' ? [(string) $answer] : [];
+                }
+                $row[] = in_array($col['option'], $selected, true) ? '1' : '0';
+            } elseif ($col['type'] === 'choice_summary') {
+                if (is_array($answer)) {
                     $row[] = implode(' ', array_map(fn($value) => is_scalar($value) ? (string) $value : json_encode($value), $answer));
                 } else {
                     $row[] = $answer ?? '';
                 }
+            } elseif ($col['type'] === 'likert_row') {
+                $row[] = is_array($answer) ? ($answer[$col['row']] ?? '') : '';
+            } elseif (is_array($answer)) {
+                $row[] = implode(' ', array_map(fn($value) => is_scalar($value) ? (string) $value : json_encode($value), $answer));
+            } else {
+                $row[] = $answer ?? '';
             }
-
-            $row = array_merge($row, [
-                $response->id,
-                $response->id,
-                $submittedAt,
-                '',
-                '',
-                'submitted_via_web',
-                '',
-                (string) ($form->updated_at?->timestamp ?? ''),
-                '',
-                "uuid:{$response->id}",
-                $index + 1,
-            ]);
-
-            $rows[] = $row;
         }
 
-        return ['headers' => $headers, 'rows' => $rows];
+        $row = array_merge($row, [
+            $index + 1,
+            (string) $response->id,
+            $submissionSerial,
+            '',
+            '',
+            'submitted_via_web',
+            '',
+            $responseData['__version__'] ?? $responseData['_version'] ?? $respondentMeta['__version__'] ?? '',
+            '',
+            "uuid:{$response->id}",
+            $index + 1,
+        ]);
+
+        $rows[] = $row;
     }
+
+    return ['headers' => $headers, 'rows' => $rows];
+}
 
     private function missingRequiredQuestions(Form $form, array $data): array
     {
