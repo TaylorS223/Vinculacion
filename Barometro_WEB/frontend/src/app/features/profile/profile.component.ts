@@ -241,12 +241,12 @@ export class ProfileComponent implements OnInit {
   getRoleBadgeClass(): string {
     if (this.user()?.rol === 'SUPER_ADMIN') return 'badge-super-admin';
     if (this.user()?.rol === 'ADMIN') return 'badge-admin';
-    return this.user()?.rol === 'PROJECT_LEADER' ? 'badge-project-leader' : 'badge-user';
+    return this.user()?.rol === 'PROJECT' ? 'badge-project-leader' : 'badge-user';
   }
 
   getRoleLabel(): string {
     if (this.user()?.rol === 'SUPER_ADMIN') return 'profile.roles.superAdmin';
     if (this.user()?.rol === 'ADMIN') return 'profile.roles.admin';
-    return this.user()?.rol === 'PROJECT_LEADER' ? 'profile.roles.projectLeader' : 'profile.roles.user';
+    return this.user()?.rol === 'PROJECT' ? 'profile.roles.projectLeader' : 'profile.roles.user';
   }
 }

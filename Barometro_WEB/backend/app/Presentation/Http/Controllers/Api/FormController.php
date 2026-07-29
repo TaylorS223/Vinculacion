@@ -2,6 +2,8 @@
 
 namespace App\Presentation\Http\Controllers\Api;
 
+use App\Application\Forms\Services\EnqueueFormSchemaSync;
+use App\Application\Responses\Services\EnqueueResponseSync;
 use App\Http\Controllers\Controller;
 use App\Models\Form;
 use App\Models\FormQuestion;
@@ -25,6 +27,13 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 #[OA\Tag(name: 'Forms', description: 'Formularios dinamicos, publicacion, respuestas y comparticion')]
 class FormController extends Controller
 {
+    public function __construct(
+        private readonly EnqueueResponseSync $enqueueResponseSync,
+        private readonly EnqueueFormSchemaSync $enqueueFormSchemaSync,
+    )
+    {
+    }
+
     #[OA\Get(path: '/forms', summary: 'Listar formularios propios y compartidos', security: [['sanctum' => []]], tags: ['Forms'])]
     public function index(Request $request): JsonResponse
     {
@@ -94,6 +103,44 @@ class FormController extends Controller
         return response()->json($result);
     }
 
+    #[OA\Get(path: '/mobile/forms/metadata', summary: 'Obtener metadatos actualizados de formularios (sin preguntas)', security: [['sanctum' => []]], tags: ['Mobile'])]
+    public function mobileMetadata(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $forms = Form::where('state', 'DEPLOYED')
+            ->where(function ($query) use ($user) {
+                if ($user->isSuperAdmin() || $user->isAdmin()) {
+                    return;
+                }
+                $query->where('user_id', $user->id)
+                    ->orWhereHas('shares', fn($q) => $q->where('user_id', $user->id));
+            })
+            ->select('id', 'title', 'state', 'link_uuid', 'step_by_step')
+            ->latest()
+            ->get();
+
+        $result = $forms->map(function (Form $form) use ($user) {
+            $share = FormUserShare::where('form_id', $form->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            return [
+                'id' => $form->id,
+                'title' => $form->title,
+                'state' => $form->state,
+                'link_uuid' => $form->link_uuid,
+                'step_by_step' => (bool) $form->step_by_step,
+                'target_responses' => $share?->target_responses ?? null,
+                'responses_count' => $share
+                    ? FormResponse::where('form_id', $form->id)->where('user_id', $user->id)->count()
+                    : null,
+            ];
+        });
+
+        return response()->json($result);
+    }
+
     #[OA\Post(path: '/forms', summary: 'Crear formulario en borrador', security: [['sanctum' => []]], tags: ['Forms'])]
     public function store(Request $request): JsonResponse
     {
@@ -123,6 +170,8 @@ class FormController extends Controller
             'state' => 'DRAFT',
             'step_by_step' => $request->boolean('step_by_step'),
         ]);
+
+        $this->enqueueFormSchemaSync->enqueue($form);
 
         return response()->json($form, 201);
     }
@@ -167,6 +216,8 @@ class FormController extends Controller
 
         $form->update($request->only(['title', 'description', 'step_by_step']));
 
+        $this->enqueueFormSchemaSync->enqueue($form->fresh(['questions' => fn($q) => $q->orderBy('order')]));
+
         return response()->json($form);
     }
 
@@ -184,7 +235,10 @@ class FormController extends Controller
             return response()->json(['message' => 'Archiva el formulario antes de eliminarlo permanentemente'], 422);
         }
 
+        $formId = $form->id;
         $form->delete();
+
+        $this->enqueueFormSchemaSync->enqueueById($formId, 'delete');
 
         return response()->json(null, 204);
     }
@@ -223,6 +277,8 @@ class FormController extends Controller
         $copy->load(['owner:id,name,email,rol', 'project:id,name']);
         $copy->loadCount('responses');
 
+        $this->enqueueFormSchemaSync->enqueue($copy->fresh(['questions' => fn($q) => $q->orderBy('order')]));
+
         return response()->json($copy, 201);
     }
 
@@ -240,6 +296,8 @@ class FormController extends Controller
             'link_uuid' => $form->link_uuid ?? Str::uuid(),
         ]);
 
+        $this->enqueueFormSchemaSync->enqueue($form->fresh(['questions' => fn($q) => $q->orderBy('order')]));
+
         return response()->json($form);
     }
 
@@ -253,6 +311,8 @@ class FormController extends Controller
         }
 
         $form->update(['state' => 'ARCHIVED']);
+
+        $this->enqueueFormSchemaSync->enqueue($form->fresh(['questions' => fn($q) => $q->orderBy('order')]));
 
         return response()->json($form);
     }
@@ -281,6 +341,8 @@ class FormController extends Controller
             'required' => 'boolean',
             'options' => 'nullable|array',
             'branch_rules' => 'nullable|array',
+            'section_name' => 'nullable|string|max:255',
+            'parent_question_id' => 'nullable|uuid|exists:form_questions,id',
             'branch_rules.*.option_index' => 'required_with:branch_rules|integer|min:0',
             'branch_rules.*.action' => 'nullable|in:CONTINUE,GO_TO,END_FORM',
             'branch_rules.*.next_question_id' => 'nullable|uuid',
@@ -293,7 +355,11 @@ class FormController extends Controller
             'required',
             'options',
             'branch_rules',
+            'section_name',
+            'parent_question_id',
         ]));
+
+        $this->enqueueFormSchemaSync->enqueue($form->fresh(['questions' => fn($q) => $q->orderBy('order')]));
 
         return response()->json($question, 201);
     }
@@ -315,6 +381,8 @@ class FormController extends Controller
             'required' => 'sometimes|boolean',
             'options' => 'sometimes|nullable|array',
             'branch_rules' => 'sometimes|nullable|array',
+            'section_name' => 'sometimes|nullable|string|max:255',
+            'parent_question_id' => 'sometimes|nullable|uuid|exists:form_questions,id',
             'branch_rules.*.option_index' => 'required_with:branch_rules|integer|min:0',
             'branch_rules.*.action' => 'nullable|in:CONTINUE,GO_TO,END_FORM',
             'branch_rules.*.next_question_id' => 'nullable|uuid',
@@ -327,7 +395,11 @@ class FormController extends Controller
             'required',
             'options',
             'branch_rules',
+            'section_name',
+            'parent_question_id',
         ]));
+
+        $this->enqueueFormSchemaSync->enqueue($question->form->fresh(['questions' => fn($q) => $q->orderBy('order')]));
 
         return response()->json($question);
     }
@@ -342,7 +414,10 @@ class FormController extends Controller
             return response()->json(['message' => 'No se puede cambiar preguntas de un formulario implementado'], 403);
         }
 
+        $form = $question->form;
         $question->delete();
+
+        $this->enqueueFormSchemaSync->enqueue($form->fresh(['questions' => fn($q) => $q->orderBy('order')]));
 
         return response()->json(null, 204);
     }
@@ -379,7 +454,7 @@ class FormController extends Controller
 
         $request->validate([
             'email' => 'required|email',
-            'role' => 'required|in:EDITOR,RECOLECTOR',
+            'role' => 'required|in:PROJECT,RECOLECTOR',
             'target_responses' => 'nullable|integer|min:1',
         ]);
 
@@ -493,6 +568,8 @@ class FormController extends Controller
             'user_id' => $currentUser?->id,
             'data' => $data,
         ]);
+
+        $this->enqueueResponseSync->enqueue($response);
 
         return response()->json(['message' => 'Respuesta guardada', 'id' => $response->id], 201);
     }
@@ -626,7 +703,7 @@ class FormController extends Controller
     private function abortUnlessCanEdit(Form $form, User $user): void
     {
         $role = $this->shareRole($form, $user);
-        if ($user->isSuperAdmin() || $user->isAdmin() || $user->leadsProject($form->project_id) || ((int) $form->user_id === (int) $user->id && !$user->isUser()) || $role === 'EDITOR') {
+        if ($user->isSuperAdmin() || $user->isAdmin() || $user->leadsProject($form->project_id) || ((int) $form->user_id === (int) $user->id && !$user->isUser()) || $role === 'PROJECT') {
             return;
         }
 
@@ -663,89 +740,118 @@ class FormController extends Controller
             ->value('role');
     }
 
-    private function buildExportMatrix(Form $form): array
-    {
-        $headers = ['start', 'end'];
-        $columnMap = [];
+private function buildExportMatrix(Form $form): array
+{
+    $headers = ['start', 'end'];
+    $columnMap = [];
 
-        foreach ($form->questions as $question) {
-            if ($question->type === 'MULTIPLE_CHOICE' && is_array($question->options)) {
-                $headers[] = $question->label;
-                $columnMap[] = ['type' => 'multi_summary', 'question_id' => $question->id];
-                foreach ($question->options as $option) {
-                    $headers[] = "{$question->label}/{$option}";
-                    $columnMap[] = ['type' => 'multi_option', 'question_id' => $question->id, 'option' => $option];
-                }
-            } elseif ($question->type === 'LIKERT' && is_array($question->options) && isset($question->options['rows']) && is_array($question->options['rows'])) {
-                foreach ($question->options['rows'] as $rowLabel) {
-                    $headers[] = "{$question->label}/{$rowLabel}";
-                    $columnMap[] = ['type' => 'likert_row', 'question_id' => $question->id, 'row' => $rowLabel];
-                }
-            } else {
-                $headers[] = $question->label;
-                $columnMap[] = ['type' => 'simple', 'question_id' => $question->id];
+    foreach ($form->questions as $question) {
+        $likertRows = $question->type === 'LIKERT' && is_array($question->options) && isset($question->options['rows']) && is_array($question->options['rows'])
+            ? $question->options['rows']
+            : null;
+
+        if (($question->type === 'MULTIPLE_CHOICE' || $question->type === 'SINGLE_CHOICE') && is_array($question->options)) {
+            $headers[] = $question->label;
+            $columnMap[] = ['type' => 'choice_summary', 'question_id' => $question->id, 'question_type' => $question->type];
+            foreach ($question->options as $option) {
+                $headers[] = "{$question->label}/{$option}";
+                $columnMap[] = ['type' => 'choice_option', 'question_id' => $question->id, 'option' => $option, 'question_type' => $question->type];
             }
+        } elseif ($likertRows !== null && count($likertRows) > 1) {
+            foreach ($likertRows as $rowLabel) {
+                $headers[] = "{$question->label}/{$rowLabel}";
+                $columnMap[] = ['type' => 'likert_row', 'question_id' => $question->id, 'row' => $rowLabel];
+            }
+        } elseif ($likertRows !== null && count($likertRows) === 1) {
+            $headers[] = $question->label;
+            $columnMap[] = ['type' => 'likert_row', 'question_id' => $question->id, 'row' => $likertRows[0]];
+        } else {
+            $headers[] = $question->label;
+            $columnMap[] = ['type' => 'simple', 'question_id' => $question->id];
         }
+    }
 
-        $headers = array_merge($headers, [
-            '_id',
-            '_uuid',
-            '_submission_time',
-            '_validation_status',
-            '_notes',
-            '_status',
-            '_submitted_by',
-            '__version__',
-            '_tags',
-            'meta/rootUuid',
-            '_index',
-        ]);
+    $headers = array_merge($headers, [
+        '_id',
+        '_uuid',
+        '_submission_time',
+        '_validation_status',
+        '_notes',
+        '_status',
+        '_submitted_by',
+        '__version__',
+        '_tags',
+        'meta/rootUuid',
+        '_index',
+    ]);
 
-        $rows = [];
-        foreach ($form->responses as $index => $response) {
-            $submittedAt = $response->created_at?->toDateTimeString() ?? '';
-            $row = [$submittedAt, $submittedAt];
+    $rows = [];
+    foreach ($form->responses as $index => $response) {
+        $submittedAt = $response->created_at;
+        $submissionSerial = $submittedAt ? ($submittedAt->timestamp / 86400) + 25569 : '';
+        $responseData = is_array($response->data) ? $response->data : [];
+        $respondentMeta = is_array($response->respondent_meta) ? $response->respondent_meta : [];
+        $row = [$submissionSerial, $submissionSerial];
 
-            foreach ($columnMap as $col) {
-                $answer = $response->data[$col['question_id']] ?? null;
-                if ($col['type'] === 'multi_option') {
+        foreach ($columnMap as $col) {
+            $answer = $responseData[$col['question_id']] ?? null;
+
+            if ($col['type'] === 'choice_option') {
+                $selected = [];
+                if ($col['question_type'] === 'MULTIPLE_CHOICE') {
                     $selected = is_array($answer) ? $answer : ($answer ? [$answer] : []);
-                    $row[] = in_array($col['option'], $selected, true) ? 1 : 0;
-                } elseif ($col['type'] === 'likert_row') {
-                    $row[] = is_array($answer) ? ($answer[$col['row']] ?? '') : '';
-                } elseif (is_array($answer)) {
+                } else {
+                    $selected = is_scalar($answer) && $answer !== '' ? [(string) $answer] : [];
+                }
+                $row[] = in_array($col['option'], $selected, true) ? '1' : '0';
+            } elseif ($col['type'] === 'choice_summary') {
+                if (is_array($answer)) {
                     $row[] = implode(' ', array_map(fn($value) => is_scalar($value) ? (string) $value : json_encode($value), $answer));
                 } else {
                     $row[] = $answer ?? '';
                 }
+            } elseif ($col['type'] === 'likert_row') {
+                $row[] = is_array($answer) ? ($answer[$col['row']] ?? '') : '';
+            } elseif (is_array($answer)) {
+                $row[] = implode(' ', array_map(fn($value) => is_scalar($value) ? (string) $value : json_encode($value), $answer));
+            } else {
+                $row[] = $answer ?? '';
             }
-
-            $row = array_merge($row, [
-                $response->id,
-                $response->id,
-                $submittedAt,
-                '',
-                '',
-                'submitted_via_web',
-                '',
-                (string) ($form->updated_at?->timestamp ?? ''),
-                '',
-                "uuid:{$response->id}",
-                $index + 1,
-            ]);
-
-            $rows[] = $row;
         }
 
-        return ['headers' => $headers, 'rows' => $rows];
+        $row = array_merge($row, [
+            $index + 1,
+            (string) $response->id,
+            $submissionSerial,
+            '',
+            '',
+            'submitted_via_web',
+            '',
+            $responseData['__version__'] ?? $responseData['_version'] ?? $respondentMeta['__version__'] ?? '',
+            '',
+            "uuid:{$response->id}",
+            $index + 1,
+        ]);
+
+        $rows[] = $row;
     }
+
+    return ['headers' => $headers, 'rows' => $rows];
+}
 
     private function missingRequiredQuestions(Form $form, array $data): array
     {
         $missing = [];
 
-        foreach ($this->questionsInSubmissionFlow($form, $data) as $question) {
+        $flowQuestions = $this->questionsInSubmissionFlow($form, $data);
+        $questionById = collect($flowQuestions)->keyBy('id');
+
+        foreach ($flowQuestions as $question) {
             if (!$question->required) {
+                continue;
+            }
+
+            if (!$this->isRequiredQuestionActive($question, $data, $questionById->all())) {
                 continue;
             }
 
@@ -759,6 +865,26 @@ class FormController extends Controller
         }
 
         return $missing;
+    }
+
+    /**
+     * @param array<string, FormQuestion> $questionById
+     */
+    private function isRequiredQuestionActive(FormQuestion $question, array $data, array $questionById): bool
+    {
+        $parentId = $question->parent_question_id ?? null;
+        if (!$parentId) {
+            return true;
+        }
+
+        $parent = $questionById[$parentId] ?? null;
+        if (!$parent instanceof FormQuestion) {
+            return true;
+        }
+
+        $parentAnswer = $data[$parent->id] ?? null;
+
+        return $this->hasRequiredAnswer($parent, $parentAnswer);
     }
 
     /**

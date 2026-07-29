@@ -130,8 +130,8 @@
     "roles": {
       "superAdmin": "Super administrador",
       "admin": "Administrador",
-      "projectLeader": "Lider de proyecto",
-      "user": "Usuario"
+      "project": "Project Manager",
+      "recolector": "Recolector"
     },
     "messages": {
       "updateSuccess": "Perfil actualizado correctamente",
@@ -166,8 +166,8 @@
     "roles": {
       "superAdminDesc": "control total de usuarios, configuracion y datos",
       "adminDesc": "gestiona proyectos, lideres y formularios",
-      "projectLeaderDesc": "gestiona formularios y permisos dentro de sus proyectos",
-      "userDesc": "recolecta datos y edita solo con permiso explicito"
+      "projectDesc": "gestiona formularios y permisos dentro de sus proyectos",
+      "recolectorDesc": "recolecta datos y edita solo con permiso explicito"
     },
     "form": {
       "createTitle": "Crear usuario",
@@ -280,7 +280,7 @@
         "viewLink": "Ver enlace"
       },
       "roles": {
-        "EDITOR": "Editor",
+        "PROJECT": "Project Manager",
         "RECOLECTOR": "Recolector"
       },
       "errors": {
@@ -469,8 +469,7 @@
     "projectScope": "Proyecto",
     "formScope": "Formulario",
     "roles": {
-      "PROJECT_LEADER": "Lider de proyecto",
-      "EDITOR": "Editor",
+      "PROJECT": "Project Manager",
       "RECOLECTOR": "Recolector"
     },
     "scopes": {

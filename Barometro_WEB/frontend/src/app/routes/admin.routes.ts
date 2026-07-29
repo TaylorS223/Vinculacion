@@ -23,7 +23,7 @@ export const ADMIN_ROUTES: Routes = [
     path: 'forms/builder',
     loadComponent: () =>
       import('../features/forms/builder/builder.component').then((m) => m.BuilderComponent),
-    canActivate: [roleGuard('SUPER_ADMIN', 'ADMIN', 'PROJECT_LEADER')],
+    canActivate: [roleGuard('SUPER_ADMIN', 'ADMIN', 'PROJECT')],
     title: 'routes.newForm',
   },
   {

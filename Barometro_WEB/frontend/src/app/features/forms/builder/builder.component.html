@@ -691,10 +691,10 @@
                   </td>
                   <td>{{ share.user_email || '—' }}</td>
                   <td>
-                    <span class="role-pill role-{{ share.role.toLowerCase() }}">{{ share.role === 'EDITOR' ? 'Editor' : 'Recolector' }}</span>
+                    <span class="role-pill role-{{ share.role.toLowerCase() }}">{{ share.role === 'PROJECT' ? 'Project Manager' : 'Recolector' }}</span>
                   </td>
                   <td>
-                    @if (share.role === 'EDITOR') {
+                    @if (share.role === 'PROJECT') {
                       <span class="progress-text">Permiso de edicion</span>
                     } @else if (editingShareId === share.id) {
                       <div class="inline-edit">

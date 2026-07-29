@@ -42,7 +42,7 @@ class ProjectController extends Controller
 
         return response()->json(
             User::query()
-                ->where('rol', User::ROLE_PROJECT_LEADER)
+                ->where('rol', User::ROLE_PROJECT)
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['id', 'name', 'email', 'rol'])
@@ -63,7 +63,7 @@ class ProjectController extends Controller
             'leader_ids' => 'sometimes|array',
             'leader_ids.*' => [
                 'integer',
-                Rule::exists('users', 'id')->where('rol', User::ROLE_PROJECT_LEADER),
+                Rule::exists('users', 'id')->where('rol', User::ROLE_PROJECT),
             ],
         ]);
 
@@ -115,7 +115,7 @@ class ProjectController extends Controller
             'leader_ids' => 'sometimes|array',
             'leader_ids.*' => [
                 'integer',
-                Rule::exists('users', 'id')->where('rol', User::ROLE_PROJECT_LEADER),
+                Rule::exists('users', 'id')->where('rol', User::ROLE_PROJECT),
             ],
         ]);
 
@@ -176,7 +176,7 @@ class ProjectController extends Controller
                 'user_id' => $leader->id,
                 'name' => $leader->name,
                 'email' => $leader->email,
-                'role' => 'PROJECT_LEADER',
+                'role' => 'PROJECT',
                 'scope' => 'Proyecto',
                 'form_id' => null,
                 'form_title' => null,

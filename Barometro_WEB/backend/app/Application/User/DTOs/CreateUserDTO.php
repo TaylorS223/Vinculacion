@@ -24,7 +24,7 @@ final readonly class CreateUserDTO
             name: $data['name'],
             email: $data['email'],
             password: $data['password'],
-            rol: $data['rol'] ?? 'USER',
+            rol: $data['rol'] ?? 'RECOLECTOR',
             isActive: $data['is_active'] ?? true,
             adminId: $adminId,
             telefono: $data['telefono'] ?? null,

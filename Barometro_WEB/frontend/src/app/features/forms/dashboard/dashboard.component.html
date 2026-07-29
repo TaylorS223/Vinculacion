@@ -291,7 +291,7 @@
                     </span>
                   </td>
                   <td>
-                    @if (share.role === 'EDITOR') {
+                    @if (share.role === 'PROJECT') {
                       <span class="progress-text">{{ 'forms.dashboard.share.editorPermission' | translate }}</span>
                     } @else if (vm.editingShareId() === share.id) {
                       <div class="inline-edit">

@@ -56,7 +56,7 @@ Vinculacion-main/
 ### Autenticación
 - Login con email + contraseña + URL del servidor
 - Tokens Sanctum que **no revocan** sesiones activas (web y móvil simultáneos)
-- Modo demo sin conexión
+- Soporta los roles: SUPER_ADMIN, ADMIN, PROJECT, RECOLECTOR
 
 ### Descarga de formularios
 - Selector con checkboxes: elige qué formularios bajar del servidor
@@ -329,6 +329,7 @@ El script deja el backend en Docker y abre dos terminales de desarrollo: una par
 |--------|------|-------------|
 | POST | `/api/login` | Login (email + password) |
 | GET | `/api/mobile/forms` | Lista de formularios DEPLOYED para móvil |
+| GET | `/api/mobile/forms/metadata` | Metadatos de formularios (sin preguntas, sincronización rápida) |
 | POST | `/api/mobile/submit` | Enviar respuestas desde la app |
 | POST | `/api/collect/{uuid}` | Submit público por link_uuid |
 

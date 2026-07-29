@@ -8,7 +8,7 @@ import { AuthService } from '@core/services/auth.service';
  * Uso:
  * ```html
  * <button *hasRole="'ADMIN'">Solo Admin</button>
- * <div *hasRole="['ADMIN', 'USER']">Admin o User</div>
+ * <div *hasRole="['ADMIN', 'RECOLECTOR']">Admin o Recolector</div>
  * ```
  */
 @Directive({

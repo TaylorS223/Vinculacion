@@ -604,8 +604,8 @@ export class ProjectListComponent implements OnInit {
 
   roleLabel(role: string): string {
     const labels: Record<string, string> = {
-      PROJECT_LEADER: this.translate.instant('projects.roles.PROJECT_LEADER'),
-      EDITOR: this.translate.instant('projects.roles.EDITOR'),
+      PROJECT: this.translate.instant('projects.roles.PROJECT'),
+      EDITOR: this.translate.instant('projects.roles.PROJECT'),
       RECOLECTOR: this.translate.instant('projects.roles.RECOLECTOR'),
     };
 

@@ -78,7 +78,7 @@ class UserController extends Controller
             content: new OA\JsonContent(
                 required: ['rol'],
                 properties: [
-                    new OA\Property(property: 'rol', type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'PROJECT_LEADER', 'USER'], example: 'USER')
+                    new OA\Property(property: 'rol', type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'PROJECT', 'RECOLECTOR'], example: 'RECOLECTOR')
                 ]
             )
         ),
@@ -139,7 +139,7 @@ class UserController extends Controller
                     new OA\Property(property: 'name', type: 'string', example: 'Juan Pérez'),
                     new OA\Property(property: 'email', type: 'string', format: 'email', example: 'juan@example.com'),
                     new OA\Property(property: 'password', type: 'string', example: 'password123'),
-                    new OA\Property(property: 'rol', type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'PROJECT_LEADER', 'USER'], example: 'USER'),
+                    new OA\Property(property: 'rol', type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'PROJECT', 'RECOLECTOR'], example: 'RECOLECTOR'),
                     new OA\Property(property: 'is_active', type: 'boolean', example: true),
                     new OA\Property(property: 'telefono', type: 'string', example: '+593999999999'),
                     new OA\Property(property: 'cargo', type: 'string', example: 'Analista'),
@@ -182,7 +182,7 @@ class UserController extends Controller
                     new OA\Property(property: 'name', type: 'string', example: 'Juan Pérez'),
                     new OA\Property(property: 'email', type: 'string', format: 'email', example: 'juan@example.com'),
                     new OA\Property(property: 'password', type: 'string', example: 'newpassword123'),
-                    new OA\Property(property: 'rol', type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'PROJECT_LEADER', 'USER'], example: 'USER'),
+                    new OA\Property(property: 'rol', type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'PROJECT', 'RECOLECTOR'], example: 'RECOLECTOR'),
                     new OA\Property(property: 'is_active', type: 'boolean', example: true),
                     new OA\Property(property: 'telefono', type: 'string', example: '+593999999999'),
                     new OA\Property(property: 'cargo', type: 'string', example: 'Analista'),

@@ -26,7 +26,7 @@ export class FormDashboardViewModel {
   shareModalOpen = signal(false);
   shareFormId = signal<string | null>(null);
   shareEmail = signal('');
-  shareRole = signal<'EDITOR' | 'RECOLECTOR'>('RECOLECTOR');
+  shareRole = signal<'PROJECT' | 'RECOLECTOR'>('RECOLECTOR');
   shareTarget = signal<number | null>(null);
   shareError = signal('');
   shares = signal<FormShare[]>([]);
@@ -97,7 +97,7 @@ export class FormDashboardViewModel {
   }
 
   canEditForm(form: Form): boolean {
-    return this.canManageForm(form) || (this.authService.isUser() && form.access_role === 'EDITOR');
+    return this.canManageForm(form) || (this.authService.isRecolector() && form.access_role === 'PROJECT');
   }
 
   canViewResults(): boolean {
@@ -194,9 +194,9 @@ export class FormDashboardViewModel {
     }
   }
 
-  setShareRole(role: 'EDITOR' | 'RECOLECTOR'): void {
+  setShareRole(role: 'PROJECT' | 'RECOLECTOR'): void {
     this.shareRole.set(role);
-    if (role === 'EDITOR') {
+    if (role === 'PROJECT') {
       this.shareTarget.set(null);
     }
   }

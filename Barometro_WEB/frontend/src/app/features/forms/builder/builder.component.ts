@@ -93,7 +93,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   addingShare = false;
   shareError = '';
   shareEmail = '';
-  shareRole: 'EDITOR' | 'RECOLECTOR' = 'RECOLECTOR';
+  shareRole: 'PROJECT' | 'RECOLECTOR' = 'RECOLECTOR';
   shareTarget: number | null = null;
   editingShareId: string | null = null;
   editTargetValue: number | null = null;
@@ -162,9 +162,9 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.clearLookupTimer();
   }
 
-  setShareRole(role: 'EDITOR' | 'RECOLECTOR'): void {
+  setShareRole(role: 'PROJECT' | 'RECOLECTOR'): void {
     this.shareRole = role;
-    if (role === 'EDITOR') {
+    if (role === 'PROJECT') {
       this.shareTarget = null;
     }
   }

@@ -432,11 +432,11 @@ export class HeaderComponent {
     const labels: Record<string, string> = {
       SUPER_ADMIN: 'profile.roles.superAdmin',
       ADMIN: 'profile.roles.admin',
-      PROJECT_LEADER: 'profile.roles.projectLeader',
-      USER: 'profile.roles.user',
+      PROJECT: 'profile.roles.project',
+      RECOLECTOR: 'profile.roles.recolector',
     };
 
-    return labels[role] ?? 'profile.roles.user';
+    return labels[role] ?? 'profile.roles.recolector';
   }
 
   logout(): void {

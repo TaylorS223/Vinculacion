@@ -35,7 +35,7 @@ class UpdateUserRoleUseCase
 
             // Validar que el rol sea válido
             if (!in_array($dto->rol, User::ROLES, true)) {
-                throw new \InvalidArgumentException('Rol inválido. Los roles permitidos son: SUPER_ADMIN, ADMIN, PROJECT_LEADER, USER');
+                throw new \InvalidArgumentException('Rol inválido. Los roles permitidos son: SUPER_ADMIN, ADMIN, PROJECT, RECOLECTOR');
             }
 
             if (!$admin->canManageRole($user->rol) || !$admin->canManageRole($dto->rol)) {

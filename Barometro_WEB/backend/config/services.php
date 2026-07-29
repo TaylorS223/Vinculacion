@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'supabase' => [
+        'url' => env('SUPABASE_URL'),
+        'service_role_key' => env('SUPABASE_SERVICE_ROLE_KEY'),
+        'schema' => env('SUPABASE_SCHEMA', 'public'),
+        'surveys_table' => env('SUPABASE_SURVEYS_TABLE', 'surveys'),
+        'questions_table' => env('SUPABASE_QUESTIONS_TABLE', 'questions'),
+        'responses_table' => env('SUPABASE_RESPONSES_TABLE', 'responses'),
+        'max_retry_attempts' => (int) env('SUPABASE_MAX_RETRY_ATTEMPTS', 12),
+        'retry_base_seconds' => (int) env('SUPABASE_RETRY_BASE_SECONDS', 30),
+    ],
+
 ];

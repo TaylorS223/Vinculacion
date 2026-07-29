@@ -17,7 +17,7 @@ class UpdateUserRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'rol' => ['required', 'string', 'in:SUPER_ADMIN,ADMIN,PROJECT_LEADER,USER'],
+            'rol' => ['required', 'string', 'in:SUPER_ADMIN,ADMIN,PROJECT,RECOLECTOR'],
         ];
     }
 
@@ -25,7 +25,7 @@ class UpdateUserRoleRequest extends FormRequest
     {
         return [
             'rol.required' => 'El rol es obligatorio',
-            'rol.in' => 'El rol debe ser SUPER_ADMIN, ADMIN, PROJECT_LEADER o USER',
+            'rol.in' => 'El rol debe ser SUPER_ADMIN, ADMIN, PROJECT o RECOLECTOR',
         ];
     }
 }

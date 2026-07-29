@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\User\UseCases;
 
+use App\Application\Auth\Contracts\SupabaseAuthUserProvisioner;
 use App\Application\User\DTOs\CreateUserDTO;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,10 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class CreateUserUseCase
 {
+    public function __construct(private readonly SupabaseAuthUserProvisioner $supabaseAuthUserProvisioner)
+    {
+    }
+
     /**
      * Crea un nuevo usuario.
      * Solo puede ser ejecutado por un administrador.
@@ -34,7 +39,7 @@ class CreateUserUseCase
 
             // Validar rol
             if (!in_array($dto->rol, User::ROLES, true)) {
-                throw new \InvalidArgumentException('Rol inválido. Los roles permitidos son: SUPER_ADMIN, ADMIN, PROJECT_LEADER, USER');
+                throw new \InvalidArgumentException('Rol inválido. Los roles permitidos son: SUPER_ADMIN, ADMIN, PROJECT, RECOLECTOR');
             }
 
             if (!$admin->canManageRole($dto->rol)) {
@@ -49,6 +54,8 @@ class CreateUserUseCase
                 'rol' => $dto->rol,
                 'is_active' => $dto->isActive,
             ]);
+
+            $this->supabaseAuthUserProvisioner->ensureUser($user, $dto->password);
 
             // Crear perfil si hay datos adicionales
             if ($dto->telefono || $dto->cargo || $dto->bio) {
