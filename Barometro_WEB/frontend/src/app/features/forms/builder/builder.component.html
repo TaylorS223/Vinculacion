@@ -640,7 +640,7 @@
               <span>Rol</span>
               <select [ngModel]="shareRole" (ngModelChange)="setShareRole($event)" name="role">
                 <option value="RECOLECTOR">Recolector</option>
-                <option value="EDITOR">Editor</option>
+                <option value="PROJECT">Project Manager</option>
               </select>
             </label>
             @if (shareRole === 'RECOLECTOR') {
