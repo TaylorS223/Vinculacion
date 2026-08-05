@@ -1,59 +1,60 @@
-# KoboMobile
+# KoboMobile — App Móvil de Recolección (ULEAM)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.15.
+Aplicación web móvil **PWA** para la recolección de datos en campo, inspirada en KoboCollect. Funciona **offline-first**: descarga formularios, los llena sin conexión y sincroniza cuando vuelve a tener internet.
 
-## Development server
+## Manual de uso
 
-To start a local development server, run:
+Para aprender a usar la app como recolector, consulta:
 
-```bash
-ng serve
-```
+➡️ **[MANUAL_DE_USO.md](./MANUAL_DE_USO.md)**
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### Primeros pasos para el recolector
 
-## Code scaffolding
+1. **Las credenciales te las da el administrador** (no hay registro público). Debes recibir de él 3 datos: **URL del servidor**, **usuario** (tu correo) y **contraseña**.
+2. **Abre la app** en el navegador de tu celular o computadora. La **URL de la app** (ej. `http://192.168.1.10:4201`) es distinta de la **URL del servidor** (ej. `http://192.168.1.10:8000`).
+3. En la pantalla de acceso escribe la **URL del servidor sin `/api`**, tu usuario y tu contraseña, y pulsa **Acceder**.
+4. Descarga los formularios que te asignaron, llénalos (funciona sin internet) y envíalos desde **Listo para enviar**.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+> La app termina en el puerto `4201` y el servidor en `8000`. Ninguno lleva `/api` al final.
 
-```bash
-ng generate component component-name
-```
+## Stack
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+| Capa | Tecnología |
+|------|-----------|
+| Framework | Angular 21 (standalone components, signals) |
+| Almacenamiento offline | Dexie.js (IndexedDB) |
+| PWA | Service worker + instalable |
+| Idioma / tema | `ThemeService` (ES/EN, modo oscuro) |
+| Backend | Laravel API (`Barometro_WEB/backend`) |
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Desarrollo
 
 ```bash
-ng test
+npm install
+npx ng serve        # abre en http://localhost:4201
 ```
 
-## Running end-to-end tests
+## Estructura
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
+```
+src/app/
+├── login/              # Inicio de sesión (servidor + usuario + contraseña)
+├── inicio/             # Menú principal (descargar, borradores, envíos)
+├── lista-encuestas/    # Formularios descargados
+├── llenar-encuesta/    # Llenado de formularios (offline)
+├── borradores/         # Borradores guardados
+├── listo-para-enviar/  # Pendientes de envío al servidor
+├── enviados/           # Historial de enviados
+├── ajustes/            # Idioma, modo oscuro, servidor, limpieza
+├── perfil/             # Edición de datos del usuario
+├── auth.service.ts     # Autenticación con Laravel Sanctum
+├── sync.service.ts     # Sincronización con el servidor
+├── db.service.ts       # Dexie.js (IndexedDB)
+├── storage.service.ts  # Almacenamiento de respuestas
+├── theme.service.ts    # Modo oscuro + idioma
+└── translate.pipe.ts   # Pipe de traducción ES/EN
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Tipos de preguntas soportados
 
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- `TEXT`, `NUMBER`, `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `LIKERT` (matriz).

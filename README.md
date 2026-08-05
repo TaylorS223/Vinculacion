@@ -13,6 +13,7 @@ Sistema inspirado en **KoboCollect + KoboToolbox** para la recolección de datos
 | **Frontend Web** | Angular 21 con SSR, Bun 1.2.18 |
 | **App Móvil** | Angular 21 standalone, Dexie.js (IndexedDB), PWA |
 | **Auth** | Laravel Sanctum (tokens) |
+| **Nube / Sync** | Supabase (Auth + PostgreSQL + REST/PostgREST) |
 
 ---
 
@@ -22,6 +23,9 @@ Sistema inspirado en **KoboCollect + KoboToolbox** para la recolección de datos
 Vinculacion-main/
 ├── Barometro_WEB/                 # Plataforma web completa
 │   ├── backend/                   #   Laravel API + Dockerfile
+│   │   ├── app/Jobs/              #   Jobs de sincronizacion con Supabase
+│   │   ├── app/Models/ResponseSyncQueue.php  #   Cola local de respuestas por sincronizar
+│   │   └── database/migrations/   #   Migraciones (incluye tabla de cola + supabase_auth_id)
 │   ├── frontend/                  #   Angular 21 web SPA
 │   ├── scripts/                   #   Scripts de desarrollo (.ps1, .sh, .bat)
 │   ├── docker-compose.yml         #   PostgreSQL 16
@@ -241,6 +245,92 @@ npx ng serve
 
 ---
 
+## Conexión con Supabase
+
+El backend se conecta a **Supabase** para replicar los datos en la nube: los formularios, sus preguntas y las respuestas recolectadas se sincronizan automáticamente, y la creación/actualización de usuarios se refleja en **Supabase Auth**.
+
+### 1. Configuración en `backend/.env`
+
+```
+SUPABASE_URL=https://<tu-proyecto>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_...
+SUPABASE_SCHEMA=public
+SUPABASE_SURVEYS_TABLE=surveys
+SUPABASE_QUESTIONS_TABLE=questions
+SUPABASE_RESPONSES_TABLE=responses
+SUPABASE_MAX_RETRY_ATTEMPTS=12
+SUPABASE_RETRY_BASE_SECONDS=30
+```
+
+> La `SUPABASE_SERVICE_ROLE_KEY` (clave **secret**, formato `sb_secret_...`) se obtiene en Supabase Dashboard → Project Settings → API Keys. **No** uses la clave publishable/anon en el backend (no tiene permisos para escribir).
+
+### 2. Tablas requeridas en Supabase
+
+El backend asume que existen tres tablas en el schema `public`. Créalas desde el SQL Editor del dashboard (o con `psql`):
+
+```sql
+create table if not exists public.surveys (
+    id uuid primary key,
+    title text not null,
+    description text,
+    state text not null default 'DRAFT',
+    link_uuid uuid,
+    step_by_step boolean not null default false,
+    owner_user_id bigint,
+    created_at timestamptz,
+    updated_at timestamptz
+);
+alter table public.surveys enable row level security;
+
+create table if not exists public.questions (
+    id uuid primary key,
+    survey_id uuid not null references public.surveys(id) on delete cascade,
+    type text not null,
+    label text not null,
+    required boolean not null default false,
+    "order" integer not null default 0,
+    help_text text,
+    properties jsonb,
+    created_at timestamptz,
+    updated_at timestamptz
+);
+alter table public.questions enable row level security;
+create index if not exists questions_survey_id_idx on public.questions(survey_id);
+
+create table if not exists public.responses (
+    id uuid primary key,
+    form_id uuid not null references public.surveys(id) on delete cascade,
+    user_id bigint,
+    data jsonb not null default '{}'::jsonb,
+    created_at timestamptz,
+    updated_at timestamptz
+);
+alter table public.responses enable row level security;
+create index if not exists responses_form_id_idx on public.responses(form_id);
+```
+
+### 3. Cómo funciona la sincronización
+
+| Evento | Qué ocurre |
+|--------|------------|
+| **Crear / actualizar usuario** | Se registra en **Supabase Auth** (con rol en `app_metadata`) y se guarda su `supabase_auth_id` en la tabla local `users`. |
+| **Crear / actualizar / desplegar / archivar formulario** | El job `SyncFormSchemaToSupabase` escribe en `surveys` y `questions`. |
+| **Enviar una respuesta** | El job `SyncFormResponseToSupabase` escribe en `responses`. |
+
+- Los envíos se encolan localmente en la tabla `response_sync_queue` (modelo `ResponseSyncQueue`) con reintentos configurables (`SUPABASE_MAX_RETRY_ATTEMPTS`, `SUPABASE_RETRY_BASE_SECONDS`).
+- Con `QUEUE_CONNECTION=sync` los jobs se ejecutan de inmediato. Para procesamiento en segundo plano, usa una cola Redis/database y `php artisan queue:work`.
+
+### 4. Solución de problemas con Supabase
+
+| Síntoma | Causa / solución |
+|---------|------------------|
+| `cURL error 6: Could not resolve host` | `SUPABASE_URL` apunta a un proyecto inexistente/eliminado. Verifica la URL de un proyecto activo. |
+| `Class "App\Jobs\Sync...Supabase" not found` | Faltan los archivos de `app/Jobs/` (ver estructura del proyecto). |
+| `PGRST205 Could not find the table` | Las tablas de la sección 2 aún no existen en Supabase. Ejecuta el SQL. |
+| Auth crea el usuario pero falla el guardado local | Falta la columna `supabase_auth_id` en `users`. Ejecuta `php artisan migrate`. |
+
+---
+
 ## Solución de problemas comunes
 
 ### "Connection refused" en `localhost:8000/api/forms`
@@ -340,4 +430,5 @@ El script deja el backend en Docker y abre dos terminales de desarrollo: una par
 - [`Barometro_WEB/README.md`](./Barometro_WEB/README.md) — Documentación completa del frontend web
 - [`Barometro_WEB/backend/README.md`](./Barometro_WEB/backend/README.md) — Backend: rutas, roles, Swagger
 - [`Barometro_WEB/backend/DOCKER.md`](./Barometro_WEB/backend/DOCKER.md) — Docker workflow detallado
+- [`Barometro_MOVIL/kobo-mobile/MANUAL_DE_USO.md`](./Barometro_MOVIL/kobo-mobile/MANUAL_DE_USO.md) — Manual de uso de la app móvil (para recolectores)
 - [`Barometro_WEB/docs/ESTADO_PROYECTO_KOBO.md`](./Barometro_WEB/docs/ESTADO_PROYECTO_KOBO.md) — Estado del proyecto
