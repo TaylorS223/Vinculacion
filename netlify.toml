@@ -5,6 +5,5 @@
   publish = "dist/frontend/browser"
 
 # Ensure Netlify uses the Angular runtime plugin (installed via Netlify UI)
-[plugins]
-  [[plugins]]
+[[plugins]]
   package = "@netlify/angular-runtime"
