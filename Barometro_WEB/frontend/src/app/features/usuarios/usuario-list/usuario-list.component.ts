@@ -200,7 +200,7 @@ export class UsuarioListComponent implements OnInit {
   getRoleBadgeClass(rol: string): string {
     if (rol === 'SUPER_ADMIN') return 'badge-super-admin';
     if (rol === 'ADMIN') return 'badge-admin';
-    return rol === 'PROJECT_LEADER' ? 'badge-project-leader' : 'badge-user';
+    return rol === 'PROJECT' ? 'badge-project-leader' : 'badge-user';
   }
 
   getStatusBadgeClass(isActive: boolean): string {

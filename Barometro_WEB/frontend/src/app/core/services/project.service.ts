@@ -22,7 +22,7 @@ export interface ProjectMember {
   user_id: number;
   name: string;
   email: string;
-  role: 'PROJECT_LEADER' | 'EDITOR' | 'RECOLECTOR';
+  role: 'PROJECT' | 'RECOLECTOR';
   scope: 'Proyecto' | 'Formulario';
   form_id?: string | null;
   form_title?: string | null;

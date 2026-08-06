@@ -1,4 +1,4 @@
-﻿.builder-shell {
+.builder-shell {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -109,13 +109,13 @@
 }
 
 .alert-success {
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  border: 1px solid var(--success-border);
   background: var(--success-bg);
   color: var(--success-color);
 }
 
 .alert-warning {
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  border: 1px solid var(--warning-border);
   background: var(--warning-bg);
   color: var(--warning-color);
 }
@@ -196,7 +196,7 @@ select {
 
   &:focus {
     border-color: var(--primary-500);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.14);
     outline: none;
   }
 
@@ -555,7 +555,7 @@ textarea {
   padding: 0.75rem;
   border: 1px dashed var(--border-color);
   border-radius: var(--radius-md);
-  background: rgba(99, 102, 241, 0.04);
+  background: rgba(200, 16, 46, 0.05);
 }
 
 .branch-warning {
@@ -631,16 +631,16 @@ textarea {
   align-items: center;
   gap: 0.4rem;
   min-height: 36px;
-  border: 1px solid rgba(79, 70, 229, 0.24);
+  border: 1px solid rgba(200, 16, 46, 0.2);
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, var(--primary-600), #7c3aed);
+  background: var(--primary-600);
   color: #fff;
   cursor: pointer;
   font-size: 0.82rem;
   font-weight: 800;
   padding: 0.5rem 0.75rem;
   white-space: nowrap;
-  box-shadow: 0 10px 22px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 10px 22px rgba(200, 16, 46, 0.18);
   transition:
     transform var(--transition-fast),
     box-shadow var(--transition-fast),
@@ -653,13 +653,13 @@ textarea {
   &:hover {
     filter: brightness(1.03);
     transform: translateY(-1px);
-    box-shadow: 0 14px 28px rgba(79, 70, 229, 0.24);
+    box-shadow: 0 14px 28px rgba(200, 16, 46, 0.2);
   }
 }
 
 .status-pill {
   border-radius: var(--radius-full);
-  background: rgba(99, 102, 241, 0.12);
+  background: rgba(200, 16, 46, 0.12);
   color: var(--primary-600);
   font-size: 0.72rem;
   font-weight: 800;
@@ -675,9 +675,7 @@ textarea {
 }
 
 .preview-header {
-  background:
-    linear-gradient(135deg, rgba(200, 16, 46, 0.9), rgba(99, 102, 241, 0.92)),
-    var(--primary-600);
+  background: var(--primary-600);
   color: #fff;
   padding: 1.25rem;
 
@@ -749,9 +747,9 @@ textarea {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  border: 1px dashed rgba(99, 102, 241, 0.32);
+  border: 1px dashed rgba(200, 16, 46, 0.24);
   border-radius: var(--radius-md);
-  background: rgba(99, 102, 241, 0.07);
+  background: rgba(200, 16, 46, 0.07);
   padding: 0.65rem 0.75rem;
 
   > .material-icons {
@@ -807,7 +805,7 @@ textarea {
 .preview-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1100;
+  z-index: 5000;
   display: grid;
   place-items: center;
   padding: 1rem;
@@ -818,7 +816,8 @@ textarea {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   width: min(1120px, 100%);
-  max-height: min(92vh, 920px);
+  height: min(92dvh, 920px);
+  max-height: calc(100dvh - 2rem);
   overflow: hidden;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
@@ -834,6 +833,7 @@ textarea {
   gap: 1rem;
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--border-color);
+  min-width: 0;
 
   h3,
   p {
@@ -857,6 +857,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  flex: 0 0 auto;
 }
 
 .device-switch {
@@ -897,7 +898,7 @@ textarea {
   overflow: auto;
   overscroll-behavior: contain;
   padding: 1.25rem;
-  background: linear-gradient(180deg, var(--bg-secondary), var(--bg-primary));
+  background: var(--bg-primary);
 
   &.web-stage {
     padding: 1.5rem;
@@ -906,9 +907,14 @@ textarea {
 
 .collect-preview-frame {
   margin: 0 auto;
+  min-height: 0;
 
   &.mobile-frame {
     width: min(390px, 100%);
+    height: min(76dvh, 720px);
+    max-height: 100%;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
     overflow: hidden;
     border: 10px solid #111827;
     border-radius: 2rem;
@@ -918,6 +924,7 @@ textarea {
 
   &.web-frame {
     width: min(880px, 100%);
+    max-height: 100%;
   }
 }
 
@@ -941,19 +948,29 @@ textarea {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
   background: var(--card-bg);
+  min-height: 0;
 }
 
 .mobile-frame .collect-preview-card {
-  max-height: 74vh;
-  overflow-y: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border-radius: 1.35rem;
 }
 
+.web-frame .collect-preview-card {
+  display: flex;
+  flex-direction: column;
+  height: min(76dvh, 760px);
+  max-height: 100%;
+  overflow: hidden;
+}
+
 .collect-preview-header {
+  flex: 0 0 auto;
   padding: 1.25rem;
-  background:
-    linear-gradient(135deg, rgba(200, 16, 46, 0.92), rgba(79, 70, 229, 0.9)),
-    var(--primary-600);
+  background: var(--primary-600);
   color: #fff;
 
   h4,
@@ -974,6 +991,7 @@ textarea {
 }
 
 .collect-step-banner {
+  flex: 0 0 auto;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -990,8 +1008,13 @@ textarea {
 }
 
 .collect-preview-body {
+  flex: 1 1 auto;
   display: grid;
+  align-content: start;
   gap: 1rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 1rem;
 }
 
@@ -1042,12 +1065,19 @@ textarea {
 .collect-options {
   display: grid;
   gap: 0.55rem;
+  min-width: 0;
 
   label {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     color: var(--text-secondary);
+    min-width: 0;
+  }
+
+  span {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -1094,14 +1124,18 @@ textarea {
 }
 
 .collect-preview-footer {
+  flex: 0 0 auto;
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 0.65rem;
   padding: 1rem;
   border-top: 1px solid var(--border-color);
   background: var(--bg-secondary);
+  flex-wrap: wrap;
 
   .btn-primary {
+    flex: 0 0 auto;
     min-width: 132px;
   }
 }
@@ -1142,6 +1176,42 @@ textarea {
 
   .question-actions {
     justify-content: flex-end;
+  }
+
+  .preview-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .preview-modal {
+    width: 100%;
+    height: calc(100dvh - 1rem);
+    max-height: calc(100dvh - 1rem);
+  }
+
+  .preview-modal-header,
+  .preview-modal-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .device-switch {
+    width: 100%;
+
+    button {
+      flex: 1 1 0;
+      justify-content: center;
+    }
+  }
+
+  .preview-stage,
+  .preview-stage.web-stage {
+    padding: 0.75rem;
+  }
+
+  .collect-preview-frame.mobile-frame,
+  .web-frame .collect-preview-card {
+    height: 100%;
+    max-height: 100%;
   }
 }
 
@@ -1269,7 +1339,7 @@ textarea {
       &:focus {
         outline: none;
         border-color: var(--primary-500);
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.14);
       }
 
       &::placeholder {
@@ -1411,7 +1481,7 @@ textarea {
   gap: 0.25rem;
   margin-left: 0.5rem;
   padding: 0.3rem 0.65rem;
-  background: #f97316;
+  background: var(--text-secondary);
   color: #fff;
   border: none;
   border-radius: var(--radius-md);
@@ -1422,7 +1492,7 @@ textarea {
   transition: background var(--transition-fast), transform var(--transition-fast);
 
   &:hover {
-    background: #ea580c;
+    background: var(--text-primary);
     transform: translateY(-1px);
   }
 }
@@ -1474,7 +1544,7 @@ textarea {
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.14);
   }
 }
 
@@ -1535,8 +1605,8 @@ textarea {
   align-items: center;
   gap: 0.75rem;
   padding: 0.65rem 0.85rem;
-  background: var(--primary-50, rgba(99, 102, 241, 0.06));
-  border: 1px solid var(--primary-200, rgba(99, 102, 241, 0.2));
+  background: var(--primary-50, rgba(200, 16, 46, 0.06));
+  border: 1px solid var(--primary-200, rgba(200, 16, 46, 0.16));
   border-radius: var(--radius-md);
 }
 
@@ -1611,12 +1681,12 @@ textarea {
 }
 
 .role-editor {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
 }
 
 .role-recolector {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(200, 16, 46, 0.1);
   color: var(--primary-600);
 }
 

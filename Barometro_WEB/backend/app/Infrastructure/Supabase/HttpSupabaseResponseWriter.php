@@ -45,10 +45,6 @@ class HttpSupabaseResponseWriter implements SupabaseResponseWriter
 
     private function assertValidServiceRoleKey(string $serviceKey): void
     {
-        $lower = mb_strtolower($serviceKey);
-
-        if (str_starts_with($lower, 'sb_publishable_') || str_starts_with($lower, 'sb_anon_')) {
-            throw new RuntimeException('SUPABASE_SERVICE_ROLE_KEY invalida. Debe ser la service_role key.');
-        }
+        SupabaseKeyValidator::validate($serviceKey);
     }
 }

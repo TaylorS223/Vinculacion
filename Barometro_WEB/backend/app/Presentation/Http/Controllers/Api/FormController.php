@@ -103,6 +103,44 @@ class FormController extends Controller
         return response()->json($result);
     }
 
+    #[OA\Get(path: '/mobile/forms/metadata', summary: 'Obtener metadatos actualizados de formularios (sin preguntas)', security: [['sanctum' => []]], tags: ['Mobile'])]
+    public function mobileMetadata(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $forms = Form::where('state', 'DEPLOYED')
+            ->where(function ($query) use ($user) {
+                if ($user->isSuperAdmin() || $user->isAdmin()) {
+                    return;
+                }
+                $query->where('user_id', $user->id)
+                    ->orWhereHas('shares', fn($q) => $q->where('user_id', $user->id));
+            })
+            ->select('id', 'title', 'state', 'link_uuid', 'step_by_step')
+            ->latest()
+            ->get();
+
+        $result = $forms->map(function (Form $form) use ($user) {
+            $share = FormUserShare::where('form_id', $form->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            return [
+                'id' => $form->id,
+                'title' => $form->title,
+                'state' => $form->state,
+                'link_uuid' => $form->link_uuid,
+                'step_by_step' => (bool) $form->step_by_step,
+                'target_responses' => $share?->target_responses ?? null,
+                'responses_count' => $share
+                    ? FormResponse::where('form_id', $form->id)->where('user_id', $user->id)->count()
+                    : null,
+            ];
+        });
+
+        return response()->json($result);
+    }
+
     #[OA\Post(path: '/forms', summary: 'Crear formulario en borrador', security: [['sanctum' => []]], tags: ['Forms'])]
     public function store(Request $request): JsonResponse
     {
@@ -416,7 +454,7 @@ class FormController extends Controller
 
         $request->validate([
             'email' => 'required|email',
-            'role' => 'required|in:EDITOR,RECOLECTOR',
+            'role' => 'required|in:PROJECT,RECOLECTOR',
             'target_responses' => 'nullable|integer|min:1',
         ]);
 
@@ -665,7 +703,7 @@ class FormController extends Controller
     private function abortUnlessCanEdit(Form $form, User $user): void
     {
         $role = $this->shareRole($form, $user);
-        if ($user->isSuperAdmin() || $user->isAdmin() || $user->leadsProject($form->project_id) || ((int) $form->user_id === (int) $user->id && !$user->isUser()) || $role === 'EDITOR') {
+        if ($user->isSuperAdmin() || $user->isAdmin() || $user->leadsProject($form->project_id) || ((int) $form->user_id === (int) $user->id && !$user->isUser()) || $role === 'PROJECT') {
             return;
         }
 

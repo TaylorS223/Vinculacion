@@ -77,7 +77,7 @@ Sesion en `AuthSessionService` persiste a `localStorage`. Token Sanctum via `aut
 | `/auth/login` | `LoginComponent` | Inicio de sesion |
 | `/admin/dashboard` | `DashboardComponent` | Panel principal |
 | `/admin/configuracion` | `ProfileComponent` | Configuracion de cuenta |
-| `/admin/forms/builder` | `BuilderComponent` | Constructor de formularios (requiere ADMIN/PROJECT_LEADER) |
+| `/admin/forms/builder` | `BuilderComponent` | Constructor de formularios (requiere ADMIN/PROJECT) |
 | `/admin/forms/:id/edit` | `BuilderComponent` | Editor de formularios |
 | `/admin/forms/:id/responses` | `ResponsesComponent` | Respuestas de un formulario |
 | `/admin/proyectos` | `ProjectListComponent` | Gestion de proyectos |
@@ -147,7 +147,7 @@ Roles globales:
 
 - `SUPER_ADMIN`: control total de usuarios, proyectos, formularios, configuracion y datos.
 - `ADMIN`: gestiona proyectos, asigna lideres de proyecto y crea/gestiona formularios dentro de proyectos.
-- `PROJECT_LEADER`: gestiona formularios dentro de proyectos asignados.
+- `PROJECT`: gestiona formularios dentro de proyectos asignados.
 - `USER`: usuario recolector/editor movil; solo ve formularios asignados y recolecta o edita segun permiso.
 
 Los permisos `EDITOR` y `RECOLECTOR` pertenecen a la comparticion de formularios, no al rol global del usuario.

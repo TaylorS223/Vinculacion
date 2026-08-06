@@ -10,51 +10,51 @@ export class ChartThemeService {
 
   // Paleta de colores para tema claro
   private readonly lightColors = [
-    '#6366F1', // Indigo
-    '#EC4899', // Pink
-    '#14B8A6', // Teal
-    '#F59E0B', // Amber
-    '#EF4444', // Red
-    '#8B5CF6', // Violet
-    '#06B6D4', // Cyan
-    '#84CC16', // Lime
-    '#F97316', // Orange
-    '#3B82F6', // Blue
-    '#10B981', // Emerald
-    '#E11D48', // Rose
+    '#0F766E',
+    '#14B8A6',
+    '#334155',
+    '#64748B',
+    '#C8102E',
+    '#2DD4BF',
+    '#475569',
+    '#99F6DF',
+    '#A00D25',
+    '#94A3B8',
+    '#115E59',
+    '#D73A4A',
   ];
 
   // Paleta de colores para tema oscuro (más brillantes)
   private readonly darkColors = [
-    '#818CF8', // Indigo Light
-    '#F472B6', // Pink Light
-    '#2DD4BF', // Teal Light
-    '#FBBF24', // Amber Light
-    '#F87171', // Red Light
-    '#A78BFA', // Violet Light
-    '#22D3EE', // Cyan Light
-    '#A3E635', // Lime Light
-    '#FB923C', // Orange Light
-    '#60A5FA', // Blue Light
-    '#34D399', // Emerald Light
-    '#FB7185', // Rose Light
+    '#5EEAD0',
+    '#14B8A6',
+    '#CBD5E1',
+    '#94A3B8',
+    '#F87171',
+    '#2DD4BF',
+    '#64748B',
+    '#99F6DF',
+    '#EF4444',
+    '#475569',
+    '#CCFBF1',
+    '#FCA5A5',
   ];
 
   // Gradientes para gráficos
   readonly lightGradients = [
-    { start: '#6366F1', end: '#4F46E5' },
-    { start: '#EC4899', end: '#DB2777' },
-    { start: '#14B8A6', end: '#0D9488' },
-    { start: '#F59E0B', end: '#D97706' },
-    { start: '#EF4444', end: '#DC2626' },
+    { start: '#0F766E', end: '#14B8A6' },
+    { start: '#334155', end: '#64748B' },
+    { start: '#2DD4BF', end: '#99F6DF' },
+    { start: '#C8102E', end: '#D73A4A' },
+    { start: '#64748B', end: '#94A3B8' },
   ];
 
   readonly darkGradients = [
-    { start: '#818CF8', end: '#6366F1' },
-    { start: '#F472B6', end: '#EC4899' },
-    { start: '#2DD4BF', end: '#14B8A6' },
-    { start: '#FBBF24', end: '#F59E0B' },
+    { start: '#5EEAD0', end: '#14B8A6' },
+    { start: '#CBD5E1', end: '#64748B' },
+    { start: '#99F6DF', end: '#2DD4BF' },
     { start: '#F87171', end: '#EF4444' },
+    { start: '#94A3B8', end: '#475569' },
   ];
 
   // Computed para obtener configuración actual del tema
@@ -65,24 +65,24 @@ export class ChartThemeService {
       ? {
           colors: this.darkColors,
           backgroundColor: 'transparent',
-          textColor: '#F9FAFB',
-          textColorSecondary: '#9CA3AF',
-          borderColor: '#334155',
-          axisLineColor: '#475569',
-          splitLineColor: '#334155',
-          tooltipBg: 'rgba(30, 41, 59, 0.95)',
-          tooltipBorder: '#475569',
+          textColor: '#F3FAF7',
+          textColorSecondary: '#B8C7C1',
+          borderColor: '#243530',
+          axisLineColor: '#3A514A',
+          splitLineColor: '#243530',
+          tooltipBg: 'rgba(13, 23, 21, 0.96)',
+          tooltipBorder: '#3A514A',
         }
       : {
           colors: this.lightColors,
           backgroundColor: 'transparent',
-          textColor: '#111827',
-          textColorSecondary: '#6B7280',
-          borderColor: '#E5E7EB',
-          axisLineColor: '#D1D5DB',
-          splitLineColor: '#F3F4F6',
-          tooltipBg: 'rgba(255, 255, 255, 0.95)',
-          tooltipBorder: '#E5E7EB',
+          textColor: '#10201D',
+          textColorSecondary: '#5F6F69',
+          borderColor: '#DCE5E1',
+          axisLineColor: '#B6C7C0',
+          splitLineColor: '#E4ECE7',
+          tooltipBg: 'rgba(251, 253, 252, 0.96)',
+          tooltipBorder: '#DCE5E1',
         };
   });
 
@@ -353,7 +353,7 @@ export class ChartThemeService {
         height: 20,
         bottom: 10,
         borderColor: cfg.borderColor,
-        fillerColor: 'rgba(99, 102, 241, 0.2)',
+        fillerColor: 'rgba(200, 16, 46, 0.16)',
         handleStyle: {
           color: cfg.colors[0],
         },
@@ -371,13 +371,13 @@ export class ChartThemeService {
     const absCorr = Math.abs(correlation);
 
     if (absCorr >= 0.7) {
-      return correlation > 0 ? '#10B981' : '#EF4444'; // Verde fuerte / Rojo fuerte
+      return correlation > 0 ? '#111111' : '#EF4444'; // Verde fuerte / Rojo fuerte
     } else if (absCorr >= 0.4) {
-      return correlation > 0 ? '#34D399' : '#F87171'; // Verde medio / Rojo medio
+      return correlation > 0 ? '#525252' : '#F87171'; // Verde medio / Rojo medio
     } else if (absCorr >= 0.2) {
-      return '#F59E0B'; // Amarillo (correlación débil)
+      return '#737373'; // Amarillo (correlación débil)
     } else {
-      return '#6B7280'; // Gris (sin correlación)
+      return '#8A8A8A'; // Gris (sin correlación)
     }
   }
 

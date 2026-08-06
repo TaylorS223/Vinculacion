@@ -87,7 +87,7 @@ import { TranslateModule } from '@ngx-translate/core';
         height: 100%;
         display: flex;
         flex-direction: column;
-        padding: 1rem 0.75rem;
+        padding: 1rem 0.65rem;
         overflow-y: auto;
       }
 
@@ -109,9 +109,10 @@ import { TranslateModule } from '@ngx-translate/core';
       .nav-item {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        padding: 0.625rem 0.75rem;
-        border-radius: var(--radius-lg);
+        gap: 0.65rem;
+        padding: 0.6rem 0.7rem;
+        border-left: 3px solid transparent;
+        border-radius: var(--radius-md);
         color: var(--text-secondary);
         text-decoration: none;
         cursor: pointer;
@@ -126,11 +127,12 @@ import { TranslateModule } from '@ngx-translate/core';
 
       .nav-item.active {
         background: var(--primary-50);
+        border-left-color: var(--primary-600);
         color: var(--primary-700);
       }
 
       :host-context(.dark) .nav-item.active {
-        background: rgba(99, 102, 241, 0.15);
+        background: rgba(248, 113, 113, 0.12);
         color: var(--primary-400);
       }
 
@@ -140,13 +142,13 @@ import { TranslateModule } from '@ngx-translate/core';
         display: flex;
         align-items: center;
         justify-content: center;
-        background: var(--bg-tertiary);
+        background: transparent;
         border-radius: var(--radius-md);
         transition: all var(--transition-fast);
       }
 
       .nav-item:hover .nav-icon-wrapper {
-        background: var(--primary-100);
+        background: var(--bg-tertiary);
       }
 
       .nav-item.active .nav-icon-wrapper {

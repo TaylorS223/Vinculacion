@@ -188,7 +188,7 @@
 
   &:hover {
     border-color: var(--primary-300);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    box-shadow: none;
   }
 }
 
@@ -208,13 +208,13 @@
   border-radius: var(--radius-md);
 
   &.state-draft {
-    background: rgba(245, 158, 11, 0.15);
-    color: #d97706;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
   }
 
   &.state-deployed {
-    background: rgba(16, 185, 129, 0.15);
-    color: #059669;
+    background: var(--primary-600);
+    color: #fff;
   }
 
   &.state-archived {
@@ -634,7 +634,7 @@
 
     &:focus {
       border-color: var(--primary-500);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+      box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.14);
       outline: none;
     }
   }
@@ -663,7 +663,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.65rem 0.85rem;
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid var(--primary-200);
   border-radius: var(--radius-md);
   background: var(--primary-50);
 }
@@ -771,12 +771,12 @@
   text-transform: uppercase;
 
   &.role-editor {
-    background: rgba(16, 185, 129, 0.1);
-    color: #059669;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
   }
 
   &.role-recolector {
-    background: rgba(99, 102, 241, 0.12);
+    background: var(--primary-50);
     color: var(--primary-600);
   }
 }

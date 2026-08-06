@@ -93,7 +93,7 @@ interface QuestionVisualMeta {
                   @switch (question.type) {
                     @case ('SINGLE_CHOICE') {
                       <div class="options-list">
-                        @for (opt of question.options ?? []; track $index) {
+                        @for (opt of getChoiceOptions(question); track $index) {
                           <label class="option">
                             <input
                               type="radio"
@@ -110,7 +110,7 @@ interface QuestionVisualMeta {
                     }
                     @case ('MULTIPLE_CHOICE') {
                       <div class="options-list">
-                        @for (opt of question.options ?? []; track $index) {
+                        @for (opt of getChoiceOptions(question); track $index) {
                           <label class="option">
                             <input
                               type="checkbox"
@@ -252,7 +252,7 @@ interface QuestionVisualMeta {
 
       .collect-header {
         padding: 1.5rem;
-        background: linear-gradient(135deg, var(--primary-600), #8b5cf6);
+        background: var(--primary-600);
         color: white;
 
         h1 {
@@ -473,7 +473,7 @@ interface QuestionVisualMeta {
         }
 
         &.success mat-icon {
-          color: #10b981;
+          color: var(--text-primary);
         }
 
         h2 {
@@ -603,6 +603,12 @@ export class FormCollectComponent implements OnInit {
     }
 
     this.setAnswer(questionId, selected);
+  }
+
+  getChoiceOptions(question: FormQuestion): string[] {
+    return Array.isArray(question.options)
+      ? question.options.map((option) => String(option)).filter(Boolean)
+      : [];
   }
 
   getLikertRows(question: FormQuestion): string[] {

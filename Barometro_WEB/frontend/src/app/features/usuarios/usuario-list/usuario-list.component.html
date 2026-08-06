@@ -137,16 +137,16 @@
                 </button>
                 <button
                   mat-menu-item
-                  (click)="changeRole(user, 'PROJECT_LEADER')"
-                  [disabled]="user.rol === 'PROJECT_LEADER'"
+                  (click)="changeRole(user, 'PROJECT')"
+                  [disabled]="user.rol === 'PROJECT'"
                 >
                   <mat-icon>assignment_ind</mat-icon>
-                  <span>PROJECT_LEADER</span>
+                  <span>PROJECT</span>
                 </button>
                 <button
                   mat-menu-item
-                  (click)="changeRole(user, 'USER')"
-                  [disabled]="user.rol === 'USER'"
+                  (click)="changeRole(user, 'RECOLECTOR')"
+                  [disabled]="user.rol === 'RECOLECTOR'"
                 >
                   <mat-icon>person</mat-icon>
                   <span>USER</span>

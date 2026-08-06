@@ -35,31 +35,61 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     <section class="projects-page">
       <header class="page-header">
         <div>
+          <span class="eyebrow">Gestión de proyectos</span>
           <h1>{{ 'projects.title' | translate }}</h1>
           <p>{{ 'projects.subtitle' | translate }}</p>
+        </div>
+        <div class="page-kpis">
+          <article>
+            <mat-icon>folder_managed</mat-icon>
+            <span>Proyectos</span>
+            <strong>{{ projects().length }}</strong>
+          </article>
+          <article>
+            <mat-icon>description</mat-icon>
+            <span>Formularios</span>
+            <strong>{{ totalForms() }}</strong>
+          </article>
+          <article>
+            <mat-icon>supervisor_account</mat-icon>
+            <span>Líderes</span>
+            <strong>{{ projectLeaders().length }}</strong>
+          </article>
         </div>
       </header>
 
       @if (canManageProjects()) {
         <form class="project-form" [formGroup]="projectForm" (ngSubmit)="saveProject()">
-          <mat-form-field appearance="outline">
-            <mat-label>{{ 'projects.name' | translate }}</mat-label>
-            <input matInput formControlName="name" />
-          </mat-form-field>
+          <div class="project-form-heading">
+            <span class="form-icon">
+              <mat-icon>{{ editingProject() ? 'edit_note' : 'create_new_folder' }}</mat-icon>
+            </span>
+            <div>
+              <strong>{{ (editingProject() ? 'projects.editProject' : 'projects.create') | translate }}</strong>
+              <p>Define el alcance, descripción y responsables del proyecto.</p>
+            </div>
+          </div>
 
-          <mat-form-field appearance="outline">
-            <mat-label>{{ 'projects.description' | translate }}</mat-label>
-            <textarea matInput rows="2" formControlName="description"></textarea>
-          </mat-form-field>
+          <div class="project-fields">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'projects.name' | translate }}</mat-label>
+              <input matInput formControlName="name" />
+            </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>{{ 'projects.leader' | translate }}</mat-label>
-            <mat-select formControlName="leader_ids" multiple>
-              @for (leader of projectLeaders(); track leader.id) {
-                <mat-option [value]="leader.id">{{ leader.name }} - {{ leader.email }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'projects.description' | translate }}</mat-label>
+              <textarea matInput rows="2" formControlName="description"></textarea>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'projects.leader' | translate }}</mat-label>
+              <mat-select formControlName="leader_ids" multiple>
+                @for (leader of projectLeaders(); track leader.id) {
+                  <mat-option [value]="leader.id">{{ leader.name }} - {{ leader.email }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
 
           <div class="form-actions">
             @if (editingProject()) {
@@ -188,12 +218,25 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       .projects-page {
         padding: 2rem;
         display: grid;
-        gap: 1.25rem;
+        gap: 1.4rem;
+        background:
+          linear-gradient(180deg, rgba(15, 118, 110, 0.04), transparent 280px),
+          var(--bg-primary);
+        min-height: 100%;
+      }
+
+      .page-header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 1.5rem;
+        flex-wrap: wrap;
       }
 
       .page-header h1 {
-        margin: 0;
+        margin: 0.1rem 0 0.35rem;
         font-size: 1.875rem;
+        color: var(--text-primary);
       }
 
       .page-header p,
@@ -201,15 +244,102 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         color: var(--text-secondary);
       }
 
-      .project-form {
+      .eyebrow {
+        color: var(--primary-600);
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .page-kpis {
         display: grid;
-        grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.4fr) minmax(220px, 1.2fr) auto;
-        gap: 1rem;
-        align-items: start;
-        padding: 1rem;
-        border: 1px solid var(--border-color);
+        grid-template-columns: repeat(3, minmax(120px, 1fr));
+        gap: 0.75rem;
+      }
+
+      .page-kpis article {
+        min-width: 130px;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.15rem 0.55rem;
+        align-items: center;
+        padding: 0.75rem 0.85rem;
+        border: 1px solid var(--card-border);
         border-radius: var(--radius-lg);
         background: var(--card-bg);
+        box-shadow: 0 10px 28px var(--shadow-color);
+      }
+
+      .page-kpis mat-icon {
+        grid-row: span 2;
+        color: var(--primary-600);
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      .page-kpis span {
+        color: var(--text-secondary);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .page-kpis strong {
+        color: var(--text-primary);
+        font-size: 1.1rem;
+      }
+
+      .project-form {
+        display: grid;
+        grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.5fr) auto;
+        gap: 1rem;
+        align-items: center;
+        padding: 1rem 1.1rem;
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-lg);
+        background: var(--card-bg);
+        box-shadow: 0 12px 30px var(--shadow-color);
+      }
+
+      .project-form-heading {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        min-width: 0;
+      }
+
+      .project-form-heading strong {
+        display: block;
+        color: var(--text-primary);
+        font-size: 1rem;
+      }
+
+      .project-form-heading p {
+        margin: 0.2rem 0 0;
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+        line-height: 1.35;
+      }
+
+      .form-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 42px;
+        height: 42px;
+        border-radius: var(--radius-lg);
+        background: var(--primary-50);
+        color: var(--primary-700);
+        border: 1px solid var(--primary-100);
+      }
+
+      .project-fields {
+        display: grid;
+        grid-template-columns: minmax(160px, 0.8fr) minmax(220px, 1.1fr) minmax(220px, 1fr);
+        gap: 0.8rem;
       }
 
       .form-actions {
@@ -230,21 +360,24 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
       .projects-layout {
         display: grid;
-        grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
-        gap: 1rem;
+        grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+        gap: 1.1rem;
         align-items: start;
       }
 
       .project-list {
         display: grid;
         gap: 0.5rem;
-        padding: 0.25rem;
+        padding: 0.75rem;
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-lg);
+        background: var(--card-bg);
       }
 
       .project-row {
         width: 100%;
-        border: 1px solid var(--border-color);
-        background: var(--card-bg);
+        border: 1px solid transparent;
+        background: var(--bg-secondary);
         color: var(--text-primary);
         border-radius: var(--radius-md);
         padding: 0.85rem;
@@ -258,9 +391,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
       .project-row.active,
       .project-row:hover {
-        border-color: var(--primary-500);
+        border-color: var(--primary-300);
         background: var(--primary-50);
-        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+        box-shadow: 0 8px 18px var(--shadow-color);
       }
 
       .project-row span,
@@ -279,6 +412,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
       .project-panel {
         border-radius: var(--radius-md);
+        border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        box-shadow: 0 12px 30px var(--shadow-color);
       }
 
       .panel-section {
@@ -320,6 +456,11 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         background: var(--bg-primary);
       }
 
+      .form-item:hover {
+        border-color: var(--primary-300);
+        background: var(--hover-bg);
+      }
+
       .member-role {
         background: var(--bg-tertiary);
         border-radius: var(--radius-full);
@@ -330,10 +471,16 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
       @media (max-width: 900px) {
         .project-form,
+        .project-fields,
         .projects-layout,
         .form-item,
         .member-row {
           grid-template-columns: 1fr;
+        }
+
+        .page-kpis {
+          width: 100%;
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         }
 
         .form-actions {
@@ -359,6 +506,9 @@ export class ProjectListComponent implements OnInit {
 
   canManageProjects = computed(() => this.authService.isAdmin());
   canDeleteProjects = computed(() => this.authService.isSuperAdmin());
+  totalForms = computed(() =>
+    this.projects().reduce((total, project) => total + (project.forms?.length ?? project.forms_count ?? 0), 0),
+  );
 
   projectForm = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(255)]],
@@ -491,8 +641,8 @@ export class ProjectListComponent implements OnInit {
 
   roleLabel(role: string): string {
     const labels: Record<string, string> = {
-      PROJECT_LEADER: this.translate.instant('projects.roles.PROJECT_LEADER'),
-      EDITOR: this.translate.instant('projects.roles.EDITOR'),
+      PROJECT: this.translate.instant('projects.roles.PROJECT'),
+      EDITOR: this.translate.instant('projects.roles.PROJECT'),
       RECOLECTOR: this.translate.instant('projects.roles.RECOLECTOR'),
     };
 

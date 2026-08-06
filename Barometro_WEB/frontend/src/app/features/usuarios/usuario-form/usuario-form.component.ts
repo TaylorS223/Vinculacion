@@ -71,7 +71,7 @@ export class UsuarioFormComponent implements OnInit {
       name: ['', [Validators.required, Validators.maxLength(255)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
       password: ['', this.isEditMode() ? [] : [Validators.required, Validators.minLength(8)]],
-      rol: ['USER', [Validators.required]],
+      rol: ['RECOLECTOR', [Validators.required]],
       is_active: [true],
       telefono: ['', [Validators.maxLength(20)]],
       cargo: ['', [Validators.maxLength(100)]],
@@ -108,7 +108,7 @@ export class UsuarioFormComponent implements OnInit {
     this.userForm.patchValue({
       name: user.name || '',
       email: user.email || '',
-      rol: user.rol || 'USER',
+      rol: user.rol || 'RECOLECTOR',
       is_active: user.is_active ?? true,
       telefono: user.perfil?.telefono || '',
       cargo: user.perfil?.cargo || '',

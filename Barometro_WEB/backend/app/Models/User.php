@@ -17,12 +17,12 @@ class User extends Authenticatable
 
     public const ROLE_SUPER_ADMIN = 'SUPER_ADMIN';
     public const ROLE_ADMIN = 'ADMIN';
-    public const ROLE_PROJECT_LEADER = 'PROJECT_LEADER';
-    public const ROLE_USER = 'USER';
+    public const ROLE_PROJECT = 'PROJECT';
+    public const ROLE_USER = 'RECOLECTOR';
     public const ROLES = [
         self::ROLE_SUPER_ADMIN,
         self::ROLE_ADMIN,
-        self::ROLE_PROJECT_LEADER,
+        self::ROLE_PROJECT,
         self::ROLE_USER,
     ];
 
@@ -103,9 +103,14 @@ class User extends Authenticatable
         return $this->rol === self::ROLE_SUPER_ADMIN;
     }
 
+    public function isProject(): bool
+    {
+        return $this->rol === self::ROLE_PROJECT;
+    }
+
     public function isProjectLeader(): bool
     {
-        return $this->rol === self::ROLE_PROJECT_LEADER;
+        return $this->isProject();
     }
 
     public function canManageUsers(): bool

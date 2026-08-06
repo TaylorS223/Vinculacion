@@ -14,7 +14,7 @@
         {{ 'forms.builder.back' | translate }}
       </a>
       @if (vm.isEditMode() && authService.isAdmin()) {
-        <button class="btn btn-primary" type="button" style="background:#ff9800;border-color:#ff9800;" (click)="openShareModal()">
+        <button class="btn btn-primary" type="button" (click)="openShareModal()">
           <span class="material-icons" aria-hidden="true">share</span>
           Compartir
         </button>
@@ -1048,7 +1048,7 @@
               <span>Rol</span>
               <select [ngModel]="shareRole" (ngModelChange)="setShareRole($event)" name="role">
                 <option value="RECOLECTOR">Recolector</option>
-                <option value="EDITOR">Editor</option>
+                <option value="PROJECT">Project Manager</option>
               </select>
             </label>
             @if (shareRole === 'RECOLECTOR') {
@@ -1099,10 +1099,10 @@
                   </td>
                   <td>{{ share.user_email || '—' }}</td>
                   <td>
-                    <span class="role-pill role-{{ share.role.toLowerCase() }}">{{ share.role === 'EDITOR' ? 'Editor' : 'Recolector' }}</span>
+                    <span class="role-pill role-{{ share.role.toLowerCase() }}">{{ share.role === 'PROJECT' ? 'Project Manager' : 'Recolector' }}</span>
                   </td>
                   <td>
-                    @if (share.role === 'EDITOR') {
+                    @if (share.role === 'PROJECT') {
                       <span class="progress-text">Permiso de edicion</span>
                     } @else if (editingShareId === share.id) {
                       <div class="inline-edit">

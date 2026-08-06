@@ -39,7 +39,7 @@ class CreateUserUseCase
 
             // Validar rol
             if (!in_array($dto->rol, User::ROLES, true)) {
-                throw new \InvalidArgumentException('Rol inválido. Los roles permitidos son: SUPER_ADMIN, ADMIN, PROJECT_LEADER, USER');
+                throw new \InvalidArgumentException('Rol inválido. Los roles permitidos son: SUPER_ADMIN, ADMIN, PROJECT, RECOLECTOR');
             }
 
             if (!$admin->canManageRole($dto->rol)) {

@@ -113,7 +113,7 @@
   width: 100%;
   height: 100%;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--primary-600), var(--primary-400));
+  background: var(--primary-600);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -200,18 +200,18 @@
 }
 
 .badge-admin {
-  background: rgba(99, 102, 241, 0.15);
+  background: rgba(200, 16, 46, 0.14);
   color: var(--primary-600);
 }
 
 .badge-project-leader {
-  background: rgba(16, 185, 129, 0.15);
-  color: #059669;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
 }
 
 .badge-user {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .avatar-actions {
