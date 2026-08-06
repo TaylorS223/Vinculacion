@@ -203,6 +203,17 @@ export class UsuarioListComponent implements OnInit {
     return rol === 'PROJECT' ? 'badge-project-leader' : 'badge-user';
   }
 
+  getRoleLabel(rol: string): string {
+    const labels: Record<string, string> = {
+      SUPER_ADMIN: 'Super administrador',
+      ADMIN: 'Administrador',
+      PROJECT: 'Líder',
+      RECOLECTOR: 'Recolector',
+    };
+
+    return labels[rol] ?? rol;
+  }
+
   getStatusBadgeClass(isActive: boolean): string {
     return isActive ? 'badge-active' : 'badge-inactive';
   }

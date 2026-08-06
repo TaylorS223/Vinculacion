@@ -59,7 +59,7 @@
             <th mat-header-cell *matHeaderCellDef>{{ 'users.columns.role' | translate }}</th>
             <td mat-cell *matCellDef="let user">
               <span class="role-badge" [class]="getRoleBadgeClass(user.rol)">
-                {{ user.rol }}
+                {{ getRoleLabel(user.rol) }}
               </span>
             </td>
           </ng-container>
@@ -125,7 +125,7 @@
                   [disabled]="user.rol === 'SUPER_ADMIN'"
                 >
                   <mat-icon>workspace_premium</mat-icon>
-                  <span>SUPER_ADMIN</span>
+                  <span>{{ getRoleLabel('SUPER_ADMIN') }}</span>
                 </button>
                 <button
                   mat-menu-item
@@ -133,7 +133,7 @@
                   [disabled]="user.rol === 'ADMIN'"
                 >
                   <mat-icon>security</mat-icon>
-                  <span>ADMIN</span>
+                  <span>{{ getRoleLabel('ADMIN') }}</span>
                 </button>
                 <button
                   mat-menu-item
@@ -141,7 +141,7 @@
                   [disabled]="user.rol === 'PROJECT'"
                 >
                   <mat-icon>assignment_ind</mat-icon>
-                  <span>PROJECT</span>
+                  <span>{{ getRoleLabel('PROJECT') }}</span>
                 </button>
                 <button
                   mat-menu-item
@@ -149,7 +149,7 @@
                   [disabled]="user.rol === 'RECOLECTOR'"
                 >
                   <mat-icon>person</mat-icon>
-                  <span>USER</span>
+                  <span>{{ getRoleLabel('RECOLECTOR') }}</span>
                 </button>
               </mat-menu>
             </td>
