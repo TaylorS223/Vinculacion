@@ -15,14 +15,8 @@ class AdminUserSeeder extends Seeder
         $adminName = env('ADMIN_NAME', 'Super Administrador');
 
         if (empty($adminEmail) || empty($adminPassword)) {
-            if (app()->environment('local')) {
-                $adminEmail = 'admin@uleam.edu.ec';
-                $adminPassword = 'Admin123456!';
-                $adminName = 'Super Administrador';
-            } else {
-                $this->command->error('Error: configura ADMIN_EMAIL y ADMIN_PASSWORD en backend/.env');
-                return;
-            }
+            $this->command->error('Error: configura ADMIN_EMAIL y ADMIN_PASSWORD en backend/.env');
+            return;
         }
 
         $existingAdmin = User::where('email', $adminEmail)->first();

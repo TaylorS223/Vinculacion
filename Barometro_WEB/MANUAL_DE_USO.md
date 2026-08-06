@@ -174,8 +174,4 @@ SUPER_ADMIN/ADMIN crea proyecto
 
 ## 6. Cuenta inicial (desarrollo)
 
-```
-Email:    admin@uleam.edu.ec
-Password: Admin123456!
-Rol:      SUPER_ADMIN
-```
+Usa las que te proporciona la autoridad correspondiente,

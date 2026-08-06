@@ -188,7 +188,7 @@ Para crear el Super Admin:
 docker exec observatorio-backend php artisan db:seed --class=AdminUserSeeder
 ```
 
-**Credenciales**: `admin@uleam.edu.ec` / `Admin123456!`
+**Credenciales**: usa las que tenga configuradas tu archivo `.env` (`ADMIN_EMAIL` / `ADMIN_PASSWORD`)
 
 #### 2f. Volver a encender el backend después de apagar
 
