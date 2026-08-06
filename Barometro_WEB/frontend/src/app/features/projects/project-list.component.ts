@@ -154,7 +154,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                       @for (form of project.forms; track form.id) {
                         <a class="form-item" [routerLink]="['/admin/forms', form.id, 'edit']">
                           <span>{{ form.title }}</span>
-                          <small>{{ form.state }}</small>
+                          <small>{{ formStateLabel(form.state) }}</small>
                         </a>
                       }
                     </div>
@@ -193,6 +193,13 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     <mat-icon>edit</mat-icon>
                     {{ 'projects.editProject' | translate }}
                   </button>
+
+                  @if (canDeleteProjects()) {
+                    <button mat-button color="warn" type="button" (click)="deleteProject(project)">
+                      <mat-icon>delete</mat-icon>
+                      {{ 'projects.deleteProjectButton' | translate }}
+                    </button>
+                  }
                 </mat-card-actions>
               }
             </mat-card>
@@ -498,6 +505,7 @@ export class ProjectListComponent implements OnInit {
   editingProject = signal<Project | null>(null);
 
   canManageProjects = computed(() => this.authService.isAdmin());
+  canDeleteProjects = computed(() => this.authService.isSuperAdmin());
   totalForms = computed(() =>
     this.projects().reduce((total, project) => total + (project.forms?.length ?? project.forms_count ?? 0), 0),
   );
@@ -602,6 +610,35 @@ export class ProjectListComponent implements OnInit {
     return this.authService.isAdmin() || this.authService.isProjectLeader();
   }
 
+  deleteProject(project: Project): void {
+    if (!this.canDeleteProjects()) {
+      return;
+    }
+
+    const confirmed = window.confirm('Estas seguro que quieres eliminar el proyecto ?');
+    if (!confirmed) {
+      return;
+    }
+
+    this.projectService.deleteProject(project.id).subscribe({
+      next: () => {
+        this.snackBar.open('Proyecto eliminado exitosamente', this.translate.instant('common.buttons.close'), { duration: 3000 });
+
+        if (this.selectedProject()?.id === project.id) {
+          this.selectedProject.set(null);
+        }
+
+        this.cancelEdit();
+        this.loadProjects();
+      },
+      error: (error) => {
+        this.snackBar.open(error?.error?.message || 'No se pudo eliminar el proyecto', this.translate.instant('common.buttons.close'), {
+          duration: 3500,
+        });
+      },
+    });
+  }
+
   roleLabel(role: string): string {
     const labels: Record<string, string> = {
       PROJECT: this.translate.instant('projects.roles.PROJECT'),
@@ -610,6 +647,16 @@ export class ProjectListComponent implements OnInit {
     };
 
     return labels[role] ?? role;
+  }
+
+  formStateLabel(state: string): string {
+    const labels: Record<string, string> = {
+      DRAFT: this.translate.instant('projects.formStates.DRAFT'),
+      DEPLOYED: this.translate.instant('projects.formStates.DEPLOYED'),
+      ARCHIVED: this.translate.instant('projects.formStates.ARCHIVED'),
+    };
+
+    return labels[state] ?? state;
   }
 
   scopeLabel(scope: ProjectMember['scope']): string {

@@ -66,6 +66,8 @@
             <label class="field">
               <span>{{ 'common.labels.project' | translate }}</span>
               <select
+                class="project-select"
+                [class.project-select--empty]="!vm.projectId()"
                 [ngModel]="vm.projectId()"
                 (ngModelChange)="vm.updateProject($event)"
                 [disabled]="vm.isSaving() || vm.isEditMode() || !vm.canEditQuestions()"
@@ -153,247 +155,653 @@
         </section>
 
         <section class="questions-section">
-          @if (vm.questions().length === 0) {
+          <div class="section-actions">
+            <button
+              class="text-button"
+              type="button"
+              (click)="vm.addSection()"
+              [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+            >
+              <span class="material-icons" aria-hidden="true">folder_open</span>
+              {{ 'forms.builder.addSection' | translate }}
+            </button>
+          </div>
+
+          @if (vm.questions().length === 0 && vm.sections().length === 0) {
             <div class="empty-state">
               <span class="material-icons" aria-hidden="true">playlist_add</span>
               <p>{{ 'forms.builder.emptyQuestions' | translate }}</p>
             </div>
           }
 
-          @for (question of vm.questions(); track question.tempId; let index = $index) {
-            <article class="question-card">
-              <div class="question-card-header">
-                <div class="question-title-row">
-                  <span class="question-number">{{ index + 1 }}</span>
-                  <div>
-                    <strong>{{ vm.getTypeLabel(question.type) | translate }}</strong>
-                    <small>{{ 'forms.builder.order' | translate: { order: index + 1 } }}</small>
-                  </div>
-                </div>
-
-                <div class="question-actions">
-                  <button
-                    class="icon-button"
-                    type="button"
-                    [title]="'forms.builder.moveUp' | translate"
-                    (click)="vm.moveQuestion(question.tempId, -1)"
-                    [disabled]="index === 0 || vm.isSaving() || !vm.canEditQuestions()"
-                  >
-                    <span class="material-icons" aria-hidden="true">keyboard_arrow_up</span>
-                  </button>
-                  <button
-                    class="icon-button"
-                    type="button"
-                    [title]="'forms.builder.moveDown' | translate"
-                    (click)="vm.moveQuestion(question.tempId, 1)"
-                    [disabled]="index === vm.questions().length - 1 || vm.isSaving() || !vm.canEditQuestions()"
-                  >
-                    <span class="material-icons" aria-hidden="true">keyboard_arrow_down</span>
-                  </button>
-                  <button
-                    class="icon-button danger"
-                    type="button"
-                    [title]="'forms.builder.deleteQuestion' | translate"
-                    (click)="vm.removeQuestion(question.tempId)"
+          @for (section of vm.sections(); track section.tempId) {
+            <section class="section-card">
+              <div class="section-card-header">
+                <div class="section-title-block">
+                  <input
+                    class="section-title-input"
+                    type="text"
+                    [ngModel]="section.title"
+                    (ngModelChange)="vm.updateSectionTitle(section.tempId, $event)"
                     [disabled]="vm.isSaving() || !vm.canEditQuestions()"
-                  >
-                    <span class="material-icons" aria-hidden="true">delete</span>
-                  </button>
+                    [placeholder]="'forms.builder.sectionPlaceholder' | translate"
+                  />
+                  <span class="section-count">
+                    {{ vm.getSectionQuestionCount(section.tempId) }} {{ 'forms.builder.sectionQuestionCount' | translate: { count: vm.getSectionQuestionCount(section.tempId) } }}
+                  </span>
                 </div>
+                <button
+                  class="icon-button danger"
+                  type="button"
+                  [title]="'forms.builder.deleteSection' | translate"
+                  (click)="vm.removeSection(section.tempId)"
+                  [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                >
+                  <span class="material-icons" aria-hidden="true">delete</span>
+                </button>
               </div>
 
-              <label class="field">
-                <span>
-                  {{ (question.type === 'LIKERT' ? 'forms.builder.likert.titleLabel' : 'forms.builder.questionLabel') | translate }}
-                </span>
-                <input
-                  type="text"
-                  [ngModel]="question.label"
-                  (ngModelChange)="vm.updateQuestionLabel(question.tempId, $event)"
-                  [disabled]="vm.isSaving() || !vm.canEditQuestions()"
-                  [placeholder]="(question.type === 'LIKERT' ? 'forms.builder.likert.titlePlaceholder' : 'forms.builder.questionPlaceholder') | translate"
-                />
-              </label>
+              @if (vm.getQuestionsForSection(section.tempId).length === 0) {
+                <div class="section-empty-state">{{ 'forms.builder.sectionEmpty' | translate }}</div>
+              }
 
-              @if (['SINGLE_CHOICE', 'MULTIPLE_CHOICE'].includes(question.type)) {
-                <div class="options-block">
-                  <div class="options-header">
-                    <span>{{ 'forms.builder.optionsLabel' | translate }}</span>
-                    <button
-                      class="text-button"
-                      type="button"
-                      (click)="vm.addOption(question.tempId)"
-                      [disabled]="vm.isSaving() || !vm.canEditQuestions()"
-                    >
-                      <span class="material-icons" aria-hidden="true">add</span>
-                      {{ 'forms.builder.addOption' | translate }}
-                    </button>
-                  </div>
-
-                  <div class="options-list">
-                    @for (option of question.options; track $index; let optionIndex = $index) {
-                      <div class="option-row">
-                        <input
-                          type="text"
-                          [ngModel]="option"
-                          (ngModelChange)="vm.updateOption(question.tempId, optionIndex, $event)"
-                          [disabled]="vm.isSaving() || !vm.canEditQuestions()"
-                          [placeholder]="'forms.builder.optionPlaceholder' | translate"
-                        />
-                        <button
-                          class="icon-button danger"
-                          type="button"
-                          [title]="'forms.builder.deleteOption' | translate"
-                          (click)="vm.removeOption(question.tempId, optionIndex)"
-                          [disabled]="question.options.length <= 1 || vm.isSaving() || !vm.canEditQuestions()"
-                        >
-                          <span class="material-icons" aria-hidden="true">close</span>
-                        </button>
+              @for (entry of vm.getQuestionTreeForSection(section.tempId); track entry.question.tempId) {
+                @let question = entry.question;
+                <article
+                  class="question-card"
+                  [class.question-card--dragging]="vm.canEditQuestions() && draggedQuestionTempId() === entry.question.tempId"
+                  [class.question-card--drop-before]="isDropTarget(entry.question.tempId, 'before')"
+                  [class.question-card--drop-after]="isDropTarget(entry.question.tempId, 'after')"
+                  (dragover)="onDragOver($event, entry.question.tempId)"
+                  (drop)="onDrop($event, entry.question.tempId)"
+                  style="margin-left: {{ entry.level * 20 }}px;"
+                >
+                  <div class="question-card-header">
+                    <div class="question-title-row">
+                      <span class="question-number">{{ entry.displayNumber }}</span>
+                      <div>
+                        <strong>{{ vm.getTypeLabel(entry.question.type) | translate }}</strong>
+                        <small>{{ 'forms.builder.order' | translate: { order: entry.displayNumber } }}</small>
                       </div>
-                    }
-                  </div>
-                </div>
-              }
+                    </div>
 
-              @if (vm.canConfigureBranching(question.type)) {
-                <div class="branch-builder">
-                  <div class="options-header">
-                    <span>{{ 'forms.builder.branchingTitle' | translate }}</span>
-                    <small>{{ 'forms.builder.branchingHelp' | translate }}</small>
-                  </div>
-
-                  @if (!vm.stepByStep()) {
-                    <p class="branch-warning">
-                      {{ 'forms.builder.branchingStepHint' | translate }}
-                    </p>
-                  }
-
-                  <div class="branch-list">
-                    @for (option of question.options; track $index; let optionIndex = $index) {
-                      <label class="branch-row">
-                        <span>
-                          {{ option || ('forms.builder.emptyOption' | translate) }}
-                        </span>
-                        <div class="branch-controls">
-                          <select
-                            [ngModel]="vm.getBranchRuleAction(question, optionIndex)"
-                            (ngModelChange)="vm.updateBranchAction(question.tempId, optionIndex, $event)"
-                            [disabled]="vm.isSaving() || !vm.canEditQuestions()"
-                          >
-                            <option value="CONTINUE">{{ 'forms.builder.branch.actions.CONTINUE' | translate }}</option>
-                            <option value="GO_TO">{{ 'forms.builder.branch.actions.GO_TO' | translate }}</option>
-                            <option value="END_FORM">{{ 'forms.builder.branch.actions.END_FORM' | translate }}</option>
-                          </select>
-
-                          @if (vm.getBranchRuleAction(question, optionIndex) === 'GO_TO') {
-                            <select
-                              [ngModel]="vm.getBranchRuleValue(question, optionIndex)"
-                              (ngModelChange)="vm.updateBranchTarget(question.tempId, optionIndex, $event)"
-                              [disabled]="vm.isSaving() || !vm.canEditQuestions()"
-                            >
-                              @for (target of vm.getBranchTargetOptions(question.tempId); track target.value ?? 'end') {
-                                <option [ngValue]="target.value">{{ target.label }}</option>
-                              }
-                            </select>
-                          }
-                        </div>
-                      </label>
-                    }
-                  </div>
-                </div>
-              }
-
-              @if (question.type === 'LIKERT') {
-                <div class="likert-builder">
-                  <div class="options-header">
-                    <span>{{ 'forms.builder.likert.matrixLabel' | translate }}</span>
-                    <div class="likert-actions">
+                    <div class="question-actions">
                       <button
-                        class="text-button"
+                        class="icon-button"
                         type="button"
-                        (click)="vm.addLikertRow(question.tempId)"
+                        [title]="'forms.builder.addSubquestion' | translate"
+                        (click)="vm.addSubquestion(question.tempId)"
                         [disabled]="vm.isSaving() || !vm.canEditQuestions()"
                       >
-                        <span class="material-icons" aria-hidden="true">add</span>
-                        {{ 'forms.builder.likert.addRow' | translate }}
+                        <span class="material-icons" aria-hidden="true">subdirectory_arrow_right</span>
                       </button>
                       <button
-                        class="text-button"
+                        class="icon-button drag-handle"
                         type="button"
-                        (click)="vm.addLikertColumn(question.tempId)"
+                        [title]="'forms.builder.dragToReorder' | translate"
+                        draggable="true"
+                        (dragstart)="onDragStart($event, entry.question.tempId)"
+                        (dragend)="onDragEnd()"
                         [disabled]="vm.isSaving() || !vm.canEditQuestions()"
                       >
-                        <span class="material-icons" aria-hidden="true">add</span>
-                        {{ 'forms.builder.likert.addColumn' | translate }}
+                        <span class="material-icons" aria-hidden="true">drag_indicator</span>
+                      </button>
+                      <button
+                        class="icon-button"
+                        type="button"
+                        [title]="'forms.builder.moveUp' | translate"
+                        (click)="vm.moveQuestion(question.tempId, -1)"
+                        [disabled]="entry.index === 0 || vm.isSaving() || !vm.canEditQuestions()"
+                      >
+                        <span class="material-icons" aria-hidden="true">keyboard_arrow_up</span>
+                      </button>
+                      <button
+                        class="icon-button"
+                        type="button"
+                        [title]="'forms.builder.moveDown' | translate"
+                        (click)="vm.moveQuestion(entry.question.tempId, 1)"
+                        [disabled]="entry.index === entry.siblingCount - 1 || vm.isSaving() || !vm.canEditQuestions()"
+                      >
+                        <span class="material-icons" aria-hidden="true">keyboard_arrow_down</span>
+                      </button>
+                      <button
+                        class="icon-button danger"
+                        type="button"
+                        [title]="'forms.builder.deleteQuestion' | translate"
+                        (click)="vm.removeQuestion(question.tempId)"
+                        [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                      >
+                        <span class="material-icons" aria-hidden="true">delete</span>
                       </button>
                     </div>
                   </div>
 
-                  <div
-                    class="likert-matrix-editor"
-                    [style.grid-template-columns]="'minmax(220px, 1.35fr) repeat(' + question.likertColumns.length + ', minmax(150px, 1fr))'"
-                  >
-                    <div class="likert-corner">{{ 'forms.builder.likert.rowsLabel' | translate }}</div>
-                    @for (column of question.likertColumns; track $index; let columnIndex = $index) {
-                      <div class="likert-column-editor">
-                        <input
-                          type="text"
-                          [ngModel]="column"
-                          (ngModelChange)="vm.updateLikertColumn(question.tempId, columnIndex, $event)"
-                          [disabled]="vm.isSaving() || !vm.canEditQuestions()"
-                          [placeholder]="'forms.builder.likert.columnPlaceholder' | translate"
-                        />
-                        <button
-                          class="mini-remove"
-                          type="button"
-                          [title]="'forms.builder.likert.deleteColumn' | translate"
-                          (click)="vm.removeLikertColumn(question.tempId, columnIndex)"
-                          [disabled]="question.likertColumns.length <= 1 || vm.isSaving() || !vm.canEditQuestions()"
-                        >
-                          <span class="material-icons" aria-hidden="true">close</span>
-                        </button>
-                      </div>
-                    }
-
-                    @for (row of question.likertRows; track $index; let rowIndex = $index) {
-                      <div class="likert-row-editor">
-                        <input
-                          type="text"
-                          [ngModel]="row"
-                          (ngModelChange)="vm.updateLikertRow(question.tempId, rowIndex, $event)"
-                          [disabled]="vm.isSaving() || !vm.canEditQuestions()"
-                          [placeholder]="'forms.builder.likert.rowPlaceholder' | translate"
-                        />
-                        <button
-                          class="mini-remove"
-                          type="button"
-                          [title]="'forms.builder.likert.deleteRow' | translate"
-                          (click)="vm.removeLikertRow(question.tempId, rowIndex)"
-                          [disabled]="question.likertRows.length <= 1 || vm.isSaving() || !vm.canEditQuestions()"
-                        >
-                          <span class="material-icons" aria-hidden="true">close</span>
-                        </button>
-                      </div>
-                      @for (column of question.likertColumns; track $index) {
-                        <div class="likert-radio-preview">
-                          <span></span>
-                        </div>
+                  <label class="field">
+                    <span>{{ 'forms.builder.sectionLabel' | translate }}</span>
+                    <select
+                      [ngModel]="question.sectionTempId"
+                      (ngModelChange)="vm.assignQuestionToSection(question.tempId, $event)"
+                      [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                    >
+                      <option [ngValue]="null">{{ 'forms.builder.sectionNone' | translate }}</option>
+                      @for (targetSection of vm.sections(); track targetSection.tempId) {
+                        <option [ngValue]="targetSection.tempId">{{ targetSection.title || ('forms.builder.untitledSection' | translate) }}</option>
                       }
-                    }
-                  </div>
-                </div>
-              }
+                    </select>
+                  </label>
 
-              <label class="toggle-row">
-                <input
-                  type="checkbox"
-                  [checked]="question.required"
-                  (change)="vm.updateQuestionRequired(question.tempId, $any($event.target).checked)"
-                  [disabled]="vm.isSaving() || !vm.canEditQuestions()"
-                />
-                <span>{{ 'forms.builder.required' | translate }}</span>
-              </label>
-            </article>
+                  <label class="field">
+                    <span>{{ 'forms.builder.typeLabel' | translate }}</span>
+                    <select
+                      [ngModel]="question.type"
+                      (ngModelChange)="vm.updateQuestionType(question.tempId, $event)"
+                      [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                    >
+                      @for (type of questionTypes; track type.value) {
+                        <option [ngValue]="type.value">{{ type.labelKey | translate }}</option>
+                      }
+                    </select>
+                  </label>
+
+                  <label class="field">
+                    <span>
+                      {{ (question.type === 'LIKERT' ? 'forms.builder.likert.titleLabel' : 'forms.builder.questionLabel') | translate }}
+                    </span>
+                    <input
+                      type="text"
+                      [ngModel]="question.label"
+                      (ngModelChange)="vm.updateQuestionLabel(question.tempId, $event)"
+                      [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                      [placeholder]="(question.type === 'LIKERT' ? 'forms.builder.likert.titlePlaceholder' : 'forms.builder.questionPlaceholder') | translate"
+                    />
+                  </label>
+
+                  @if (['SINGLE_CHOICE', 'MULTIPLE_CHOICE'].includes(question.type)) {
+                    <div class="options-block">
+                      <div class="options-header">
+                        <span>{{ 'forms.builder.optionsLabel' | translate }}</span>
+                        <button
+                          class="text-button"
+                          type="button"
+                          (click)="vm.addOption(question.tempId)"
+                          [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                        >
+                          <span class="material-icons" aria-hidden="true">add</span>
+                          {{ 'forms.builder.addOption' | translate }}
+                        </button>
+                      </div>
+
+                      <div class="options-list">
+                        @for (option of question.options; track $index; let optionIndex = $index) {
+                          <div class="option-row">
+                            <input
+                              type="text"
+                              [ngModel]="option"
+                              (ngModelChange)="vm.updateOption(question.tempId, optionIndex, $event)"
+                              [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                              [placeholder]="'forms.builder.optionPlaceholder' | translate"
+                            />
+                            <button
+                              class="icon-button danger"
+                              type="button"
+                              [title]="'forms.builder.deleteOption' | translate"
+                              (click)="vm.removeOption(question.tempId, optionIndex)"
+                              [disabled]="question.options.length <= 1 || vm.isSaving() || !vm.canEditQuestions()"
+                            >
+                              <span class="material-icons" aria-hidden="true">close</span>
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @if (vm.canConfigureBranching(question.type)) {
+                    <div class="branch-builder">
+                      <div class="options-header">
+                        <span>{{ 'forms.builder.branchingTitle' | translate }}</span>
+                        <small>{{ 'forms.builder.branchingHelp' | translate }}</small>
+                      </div>
+
+                      @if (!vm.stepByStep()) {
+                        <p class="branch-warning">
+                          {{ 'forms.builder.branchingStepHint' | translate }}
+                        </p>
+                      }
+
+                      <div class="branch-list">
+                        @for (option of question.options; track $index; let optionIndex = $index) {
+                          <label class="branch-row">
+                            <span>
+                              {{ option || ('forms.builder.emptyOption' | translate) }}
+                            </span>
+                            <div class="branch-controls">
+                              <select
+                                [ngModel]="vm.getBranchRuleAction(question, optionIndex)"
+                                (ngModelChange)="vm.updateBranchAction(question.tempId, optionIndex, $event)"
+                                [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                              >
+                                <option value="CONTINUE">{{ 'forms.builder.branch.actions.CONTINUE' | translate }}</option>
+                                <option value="GO_TO">{{ 'forms.builder.branch.actions.GO_TO' | translate }}</option>
+                                <option value="END_FORM">{{ 'forms.builder.branch.actions.END_FORM' | translate }}</option>
+                              </select>
+
+                              @if (vm.getBranchRuleAction(question, optionIndex) === 'GO_TO') {
+                                <select
+                                  [ngModel]="vm.getBranchRuleValue(question, optionIndex)"
+                                  (ngModelChange)="vm.updateBranchTarget(question.tempId, optionIndex, $event)"
+                                  [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                                >
+                                  @for (target of vm.getBranchTargetOptions(question.tempId); track target.value ?? 'end') {
+                                    <option [ngValue]="target.value">{{ target.label }}</option>
+                                  }
+                                </select>
+                              }
+                            </div>
+                          </label>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @if (question.type === 'LIKERT') {
+                    <div class="likert-builder">
+                      <div class="options-header">
+                        <span>{{ 'forms.builder.likert.matrixLabel' | translate }}</span>
+                        <div class="likert-actions">
+                          <button
+                            class="text-button"
+                            type="button"
+                            (click)="vm.addLikertRow(question.tempId)"
+                            [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                          >
+                            <span class="material-icons" aria-hidden="true">add</span>
+                            {{ 'forms.builder.likert.addRow' | translate }}
+                          </button>
+                          <button
+                            class="text-button"
+                            type="button"
+                            (click)="vm.addLikertColumn(question.tempId)"
+                            [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                          >
+                            <span class="material-icons" aria-hidden="true">add</span>
+                            {{ 'forms.builder.likert.addColumn' | translate }}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        class="likert-matrix-editor"
+                        [style.grid-template-columns]="'minmax(220px, 1.35fr) repeat(' + question.likertColumns.length + ', minmax(150px, 1fr))'"
+                      >
+                        <div class="likert-corner">{{ 'forms.builder.likert.rowsLabel' | translate }}</div>
+                        @for (column of question.likertColumns; track $index; let columnIndex = $index) {
+                          <div class="likert-column-editor">
+                            <input
+                              type="text"
+                              [ngModel]="column"
+                              (ngModelChange)="vm.updateLikertColumn(question.tempId, columnIndex, $event)"
+                              [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                              [placeholder]="'forms.builder.likert.columnPlaceholder' | translate"
+                            />
+                            <button
+                              class="mini-remove"
+                              type="button"
+                              [title]="'forms.builder.likert.deleteColumn' | translate"
+                              (click)="vm.removeLikertColumn(question.tempId, columnIndex)"
+                              [disabled]="question.likertColumns.length <= 1 || vm.isSaving() || !vm.canEditQuestions()"
+                            >
+                              <span class="material-icons" aria-hidden="true">close</span>
+                            </button>
+                          </div>
+                        }
+
+                        @for (row of question.likertRows; track $index; let rowIndex = $index) {
+                          <div class="likert-row-editor">
+                            <input
+                              type="text"
+                              [ngModel]="row"
+                              (ngModelChange)="vm.updateLikertRow(question.tempId, rowIndex, $event)"
+                              [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                              [placeholder]="'forms.builder.likert.rowPlaceholder' | translate"
+                            />
+                            <button
+                              class="mini-remove"
+                              type="button"
+                              [title]="'forms.builder.likert.deleteRow' | translate"
+                              (click)="vm.removeLikertRow(question.tempId, rowIndex)"
+                              [disabled]="question.likertRows.length <= 1 || vm.isSaving() || !vm.canEditQuestions()"
+                            >
+                              <span class="material-icons" aria-hidden="true">close</span>
+                            </button>
+                          </div>
+                          @for (column of question.likertColumns; track $index) {
+                            <div class="likert-radio-preview">
+                              <span></span>
+                            </div>
+                          }
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <label class="toggle-row">
+                    <input
+                      type="checkbox"
+                      [checked]="question.required"
+                      (change)="vm.updateQuestionRequired(question.tempId, $any($event.target).checked)"
+                      [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                    />
+                    <span>{{ 'forms.builder.required' | translate }}</span>
+                  </label>
+                </article>
+              }
+            </section>
+          }
+
+          @if (vm.getQuestionsForSection(null).length > 0) {
+            <section class="section-card section-card--unassigned">
+              <div class="section-card-header">
+                <div class="section-title-block">
+                  <strong>{{ 'forms.builder.unassignedSection' | translate }}</strong>
+                  <span class="section-count">
+                    {{ vm.getSectionQuestionCount(null) }} {{ 'forms.builder.sectionQuestionCount' | translate: { count: vm.getSectionQuestionCount(null) } }}
+                  </span>
+                </div>
+              </div>
+
+              @for (entry of vm.getQuestionTreeForSection(null); track entry.question.tempId) {
+                @let question = entry.question;
+                <article
+                  class="question-card"
+                  [class.question-card--dragging]="vm.canEditQuestions() && draggedQuestionTempId() === question.tempId"
+                  [class.question-card--drop-before]="isDropTarget(question.tempId, 'before')"
+                  [class.question-card--drop-after]="isDropTarget(question.tempId, 'after')"
+                  (dragover)="onDragOver($event, question.tempId)"
+                  (drop)="onDrop($event, question.tempId)"
+                  style="margin-left: {{ entry.level * 20 }}px;"
+                >
+                  <div class="question-card-header">
+                    <div class="question-title-row">
+                      <span class="question-number">{{ entry.displayNumber }}</span>
+                      <div>
+                        <strong>{{ vm.getTypeLabel(question.type) | translate }}</strong>
+                        <small>{{ 'forms.builder.order' | translate: { order: entry.displayNumber } }}</small>
+                      </div>
+                    </div>
+
+                    <div class="question-actions">
+                      <button
+                        class="icon-button"
+                        type="button"
+                        [title]="'forms.builder.addSubquestion' | translate"
+                        (click)="vm.addSubquestion(question.tempId)"
+                        [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                      >
+                        <span class="material-icons" aria-hidden="true">subdirectory_arrow_right</span>
+                      </button>
+                      <button
+                        class="icon-button drag-handle"
+                        type="button"
+                        [title]="'forms.builder.dragToReorder' | translate"
+                        draggable="true"
+                        (dragstart)="onDragStart($event, question.tempId)"
+                        (dragend)="onDragEnd()"
+                        [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                      >
+                        <span class="material-icons" aria-hidden="true">drag_indicator</span>
+                      </button>
+                      <button
+                        class="icon-button"
+                        type="button"
+                        [title]="'forms.builder.moveUp' | translate"
+                        (click)="vm.moveQuestion(question.tempId, -1)"
+                        [disabled]="entry.index === 0 || vm.isSaving() || !vm.canEditQuestions()"
+                      >
+                        <span class="material-icons" aria-hidden="true">keyboard_arrow_up</span>
+                      </button>
+                      <button
+                        class="icon-button"
+                        type="button"
+                        [title]="'forms.builder.moveDown' | translate"
+                        (click)="vm.moveQuestion(question.tempId, 1)"
+                        [disabled]="entry.index === entry.siblingCount - 1 || vm.isSaving() || !vm.canEditQuestions()"
+                      >
+                        <span class="material-icons" aria-hidden="true">keyboard_arrow_down</span>
+                      </button>
+                      <button
+                        class="icon-button danger"
+                        type="button"
+                        [title]="'forms.builder.deleteQuestion' | translate"
+                        (click)="vm.removeQuestion(question.tempId)"
+                        [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                      >
+                        <span class="material-icons" aria-hidden="true">delete</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="field">
+                    <span>{{ 'forms.builder.sectionLabel' | translate }}</span>
+                    <select
+                      [ngModel]="question.sectionTempId"
+                      (ngModelChange)="vm.assignQuestionToSection(question.tempId, $event)"
+                      [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                    >
+                      <option [ngValue]="null">{{ 'forms.builder.sectionNone' | translate }}</option>
+                      @for (targetSection of vm.sections(); track targetSection.tempId) {
+                        <option [ngValue]="targetSection.tempId">{{ targetSection.title || ('forms.builder.untitledSection' | translate) }}</option>
+                      }
+                    </select>
+                  </label>
+
+                  <label class="field">
+                    <span>{{ 'forms.builder.typeLabel' | translate }}</span>
+                    <select
+                      [ngModel]="question.type"
+                      (ngModelChange)="vm.updateQuestionType(question.tempId, $event)"
+                      [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                    >
+                      @for (type of questionTypes; track type.value) {
+                        <option [ngValue]="type.value">{{ type.labelKey | translate }}</option>
+                      }
+                    </select>
+                  </label>
+
+                  <label class="field">
+                    <span>
+                      {{ (question.type === 'LIKERT' ? 'forms.builder.likert.titleLabel' : 'forms.builder.questionLabel') | translate }}
+                    </span>
+                    <input
+                      type="text"
+                      [ngModel]="question.label"
+                      (ngModelChange)="vm.updateQuestionLabel(question.tempId, $event)"
+                      [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                      [placeholder]="(question.type === 'LIKERT' ? 'forms.builder.likert.titlePlaceholder' : 'forms.builder.questionPlaceholder') | translate"
+                    />
+                  </label>
+
+                  @if (['SINGLE_CHOICE', 'MULTIPLE_CHOICE'].includes(question.type)) {
+                    <div class="options-block">
+                      <div class="options-header">
+                        <span>{{ 'forms.builder.optionsLabel' | translate }}</span>
+                        <button
+                          class="text-button"
+                          type="button"
+                          (click)="vm.addOption(question.tempId)"
+                          [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                        >
+                          <span class="material-icons" aria-hidden="true">add</span>
+                          {{ 'forms.builder.addOption' | translate }}
+                        </button>
+                      </div>
+
+                      <div class="options-list">
+                        @for (option of question.options; track $index; let optionIndex = $index) {
+                          <div class="option-row">
+                            <input
+                              type="text"
+                              [ngModel]="option"
+                              (ngModelChange)="vm.updateOption(question.tempId, optionIndex, $event)"
+                              [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                              [placeholder]="'forms.builder.optionPlaceholder' | translate"
+                            />
+                            <button
+                              class="icon-button danger"
+                              type="button"
+                              [title]="'forms.builder.deleteOption' | translate"
+                              (click)="vm.removeOption(question.tempId, optionIndex)"
+                              [disabled]="question.options.length <= 1 || vm.isSaving() || !vm.canEditQuestions()"
+                            >
+                              <span class="material-icons" aria-hidden="true">close</span>
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @if (vm.canConfigureBranching(question.type)) {
+                    <div class="branch-builder">
+                      <div class="options-header">
+                        <span>{{ 'forms.builder.branchingTitle' | translate }}</span>
+                        <small>{{ 'forms.builder.branchingHelp' | translate }}</small>
+                      </div>
+
+                      @if (!vm.stepByStep()) {
+                        <p class="branch-warning">
+                          {{ 'forms.builder.branchingStepHint' | translate }}
+                        </p>
+                      }
+
+                      <div class="branch-list">
+                        @for (option of question.options; track $index; let optionIndex = $index) {
+                          <label class="branch-row">
+                            <span>
+                              {{ option || ('forms.builder.emptyOption' | translate) }}
+                            </span>
+                            <div class="branch-controls">
+                              <select
+                                [ngModel]="vm.getBranchRuleAction(question, optionIndex)"
+                                (ngModelChange)="vm.updateBranchAction(question.tempId, optionIndex, $event)"
+                                [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                              >
+                                <option value="CONTINUE">{{ 'forms.builder.branch.actions.CONTINUE' | translate }}</option>
+                                <option value="GO_TO">{{ 'forms.builder.branch.actions.GO_TO' | translate }}</option>
+                                <option value="END_FORM">{{ 'forms.builder.branch.actions.END_FORM' | translate }}</option>
+                              </select>
+
+                              @if (vm.getBranchRuleAction(question, optionIndex) === 'GO_TO') {
+                                <select
+                                  [ngModel]="vm.getBranchRuleValue(question, optionIndex)"
+                                  (ngModelChange)="vm.updateBranchTarget(question.tempId, optionIndex, $event)"
+                                  [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                                >
+                                  @for (target of vm.getBranchTargetOptions(question.tempId); track target.value ?? 'end') {
+                                    <option [ngValue]="target.value">{{ target.label }}</option>
+                                  }
+                                </select>
+                              }
+                            </div>
+                          </label>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @if (question.type === 'LIKERT') {
+                    <div class="likert-builder">
+                      <div class="options-header">
+                        <span>{{ 'forms.builder.likert.matrixLabel' | translate }}</span>
+                        <div class="likert-actions">
+                          <button
+                            class="text-button"
+                            type="button"
+                            (click)="vm.addLikertRow(question.tempId)"
+                            [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                          >
+                            <span class="material-icons" aria-hidden="true">add</span>
+                            {{ 'forms.builder.likert.addRow' | translate }}
+                          </button>
+                          <button
+                            class="text-button"
+                            type="button"
+                            (click)="vm.addLikertColumn(question.tempId)"
+                            [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                          >
+                            <span class="material-icons" aria-hidden="true">add</span>
+                            {{ 'forms.builder.likert.addColumn' | translate }}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        class="likert-matrix-editor"
+                        [style.grid-template-columns]="'minmax(220px, 1.35fr) repeat(' + question.likertColumns.length + ', minmax(150px, 1fr))'"
+                      >
+                        <div class="likert-corner">{{ 'forms.builder.likert.rowsLabel' | translate }}</div>
+                        @for (column of question.likertColumns; track $index; let columnIndex = $index) {
+                          <div class="likert-column-editor">
+                            <input
+                              type="text"
+                              [ngModel]="column"
+                              (ngModelChange)="vm.updateLikertColumn(question.tempId, columnIndex, $event)"
+                              [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                              [placeholder]="'forms.builder.likert.columnPlaceholder' | translate"
+                            />
+                            <button
+                              class="mini-remove"
+                              type="button"
+                              [title]="'forms.builder.likert.deleteColumn' | translate"
+                              (click)="vm.removeLikertColumn(question.tempId, columnIndex)"
+                              [disabled]="question.likertColumns.length <= 1 || vm.isSaving() || !vm.canEditQuestions()"
+                            >
+                              <span class="material-icons" aria-hidden="true">close</span>
+                            </button>
+                          </div>
+                        }
+
+                        @for (row of question.likertRows; track $index; let rowIndex = $index) {
+                          <div class="likert-row-editor">
+                            <input
+                              type="text"
+                              [ngModel]="row"
+                              (ngModelChange)="vm.updateLikertRow(question.tempId, rowIndex, $event)"
+                              [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                              [placeholder]="'forms.builder.likert.rowPlaceholder' | translate"
+                            />
+                            <button
+                              class="mini-remove"
+                              type="button"
+                              [title]="'forms.builder.likert.deleteRow' | translate"
+                              (click)="vm.removeLikertRow(question.tempId, rowIndex)"
+                              [disabled]="question.likertRows.length <= 1 || vm.isSaving() || !vm.canEditQuestions()"
+                            >
+                              <span class="material-icons" aria-hidden="true">close</span>
+                            </button>
+                          </div>
+                          @for (column of question.likertColumns; track $index) {
+                            <div class="likert-radio-preview">
+                              <span></span>
+                            </div>
+                          }
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <label class="toggle-row">
+                    <input
+                      type="checkbox"
+                      [checked]="question.required"
+                      (change)="vm.updateQuestionRequired(question.tempId, $any($event.target).checked)"
+                      [disabled]="vm.isSaving() || !vm.canEditQuestions()"
+                    />
+                    <span>{{ 'forms.builder.required' | translate }}</span>
+                  </label>
+                </article>
+              }
+            </section>
           }
         </section>
       </article>
@@ -629,7 +1037,7 @@
               <div class="user-preview-info">
                 <strong>{{ matchedUser.name }}</strong>
                 <span>{{ matchedUser.email }}</span>
-                <span class="user-preview-role">{{ matchedUser.rol }}</span>
+                <span class="user-preview-role">{{ roleLabel(matchedUser.rol) }}</span>
               </div>
             </div>
           } @else if (shareEmail.trim().length >= 3) {

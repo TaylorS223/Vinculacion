@@ -29,6 +29,8 @@ export class LlenarEncuestaComponent implements OnInit, OnDestroy {
   errorCarga = '';
   draftId: number | null = null;
   targetAlcanzado = false;
+  flujoFinalizado = false;
+  preguntaActualIndex = 0;
 
   tiempoInicio: Date = new Date();
   tiempoInicioFormato = '';
@@ -53,6 +55,7 @@ export class LlenarEncuestaComponent implements OnInit, OnDestroy {
         this.cargando = false;
         return;
       }
+      form.step_by_step = true;
       this.formulario = form;
 
       if (form.target_responses != null && form.target_responses > 0) {
@@ -104,6 +107,207 @@ export class LlenarEncuestaComponent implements OnInit, OnDestroy {
     }, 1000);
   }
 
+  get preguntaActual(): FormQuestion | null {
+    if (!this.formulario?.step_by_step) {
+      return null;
+    }
+    return this.formulario.questions[this.preguntaActualIndex] ?? null;
+  }
+
+  get pasoActualTexto(): string {
+    if (!this.formulario?.step_by_step) {
+      return '';
+    }
+    return `Pregunta ${this.preguntaActualIndex + 1} de ${this.formulario.questions.length}`;
+  }
+
+  get puedeAvanzar(): boolean {
+    const pregunta = this.preguntaActual;
+    if (!pregunta) {
+      return true;
+    }
+
+    const respuesta = this.respuestas[pregunta.id];
+    if (!pregunta.required) {
+      return true;
+    }
+
+    if (pregunta.type === 'MULTIPLE_CHOICE') {
+      return Array.isArray(respuesta) && respuesta.length > 0;
+    }
+
+    if (pregunta.type === 'LIKERT') {
+      return pregunta.likert_rows?.every((row: string) => respuesta && respuesta[row]) ?? false;
+    }
+
+    return respuesta !== undefined && respuesta !== null && String(respuesta).trim() !== '';
+  }
+
+  get hasStepByStep(): boolean {
+    return !!this.formulario?.step_by_step;
+  }
+
+  get siguienteTexto(): string {
+    const pregunta = this.preguntaActual;
+    if (!pregunta) {
+      return 'Siguiente';
+    }
+
+    const selectedIndex = this.selectedOptionIndex(pregunta, this.respuestas[pregunta.id]);
+    const decision = this.branchDecisionForQuestion(pregunta, selectedIndex);
+    if (decision.action === 'END_FORM') {
+      return 'Finalizar';
+    }
+
+    return this.preguntaActualIndex + 1 === this.formulario?.questions.length ? 'Finalizar' : 'Siguiente';
+  }
+
+  private isEndFormAction(question: FormQuestion, answer: any): boolean {
+    const selectedIndex = this.selectedOptionIndex(question, answer);
+    const decision = this.branchDecisionForQuestion(question, selectedIndex);
+    return decision.action === 'END_FORM';
+  }
+
+  private nextQuestionIndex(currentIndex: number): number {
+    if (!this.formulario) {
+      return currentIndex + 1;
+    }
+
+    const questions = this.formulario.questions;
+    const conditionalTargetIds = this.conditionalTargetIds(questions);
+    let nextIndex = currentIndex + 1;
+
+    while (nextIndex < questions.length) {
+      const candidate = questions[nextIndex];
+      if (!candidate || !conditionalTargetIds[candidate.id]) {
+        break;
+      }
+      nextIndex++;
+    }
+
+    return nextIndex;
+  }
+
+  private selectedOptionIndex(question: FormQuestion, answer: any): number | null {
+    if (!Array.isArray(question.options)) {
+      return null;
+    }
+
+    const options = question.options.filter((option: any) => option !== null && option !== undefined);
+    const value = typeof answer === 'string' || typeof answer === 'number' ? String(answer).trim() : '';
+    if (value === '') {
+      return null;
+    }
+
+    return options.findIndex((option: any) => String(option) === value);
+  }
+
+  private branchDecisionForQuestion(question: FormQuestion, selectedIndex: number | null): { action: string; target: string | null } {
+    if (selectedIndex === null || !Array.isArray(question.branch_rules)) {
+      return { action: 'CONTINUE', target: null };
+    }
+
+    for (const rule of question.branch_rules) {
+      if (!rule || typeof rule !== 'object') {
+        continue;
+      }
+      const optionIndex = typeof rule.option_index === 'number' ? rule.option_index : null;
+      if (optionIndex !== selectedIndex) {
+        continue;
+      }
+
+      const action = typeof rule.action === 'string' && ['CONTINUE', 'GO_TO', 'END_FORM'].includes(rule.action) ? rule.action : 'CONTINUE';
+      const target = typeof rule.next_question_id === 'string' && rule.next_question_id !== '' ? rule.next_question_id : null;
+      return { action, target: action === 'GO_TO' ? target : null };
+    }
+
+    return { action: 'CONTINUE', target: null };
+  }
+
+  private conditionalTargetIds(questions: FormQuestion[]): Record<string, boolean> {
+    const targets: Record<string, boolean> = {};
+    for (const question of questions) {
+      if (question.type !== 'SINGLE_CHOICE' || !Array.isArray(question.branch_rules)) {
+        continue;
+      }
+      for (const rule of question.branch_rules) {
+        if (!rule || typeof rule !== 'object') {
+          continue;
+        }
+        const action = typeof rule.action === 'string' ? rule.action : (rule.next_question_id ? 'GO_TO' : 'CONTINUE');
+        const target = typeof rule.next_question_id === 'string' && rule.next_question_id !== '' ? rule.next_question_id : null;
+        if (action === 'GO_TO' && target) {
+          targets[target] = true;
+        }
+      }
+    }
+    return targets;
+  }
+
+  avanzarPregunta() {
+    const pregunta = this.preguntaActual;
+    if (!pregunta) {
+      return;
+    }
+
+    if (pregunta.required && !this.puedeAvanzar) {
+      this.toast.show('Debes responder la pregunta antes de avanzar.', 'error');
+      return;
+    }
+
+    const selectedIndex = this.selectedOptionIndex(pregunta, this.respuestas[pregunta.id]);
+    const branchDecision = this.branchDecisionForQuestion(pregunta, selectedIndex);
+    if (branchDecision.action === 'END_FORM') {
+      this.flujoFinalizado = true;
+      return;
+    }
+
+    const questionIndexes = Object.fromEntries(this.formulario!.questions.map((q, index) => [q.id, index]));
+
+    let nextIndex = this.nextQuestionIndex(this.preguntaActualIndex);
+    if (branchDecision.action === 'GO_TO' && branchDecision.target && questionIndexes[branchDecision.target] !== undefined) {
+      const targetIndex = questionIndexes[branchDecision.target];
+      if (targetIndex > this.preguntaActualIndex) {
+        nextIndex = targetIndex;
+      }
+    }
+
+    if (nextIndex >= this.formulario!.questions.length) {
+      this.flujoFinalizado = true;
+      return;
+    }
+
+    this.preguntaActualIndex = nextIndex;
+  }
+
+  retrocederPregunta() {
+    if (!this.formulario?.step_by_step || this.preguntaActualIndex <= 0) {
+      return;
+    }
+    this.preguntaActualIndex = Math.max(0, this.preguntaActualIndex - 1);
+    this.flujoFinalizado = false;
+  }
+
+  private inicializarRespuestas() {
+    if (!this.formulario) return;
+    for (const q of this.formulario.questions) {
+      if (q.type === 'MULTIPLE_CHOICE') {
+        this.respuestas[q.id] = [];
+      } else if (q.type === 'LIKERT') {
+        this.respuestas[q.id] = {};
+        if (q.likert_rows) {
+          for (const row of q.likert_rows) {
+            this.respuestas[q.id][row] = '';
+          }
+        }
+      } else {
+        this.respuestas[q.id] = '';
+      }
+    }
+    this.preguntaActualIndex = 0;
+    this.flujoFinalizado = false;
+  }
+
   ngOnDestroy() {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
@@ -139,24 +343,6 @@ export class LlenarEncuestaComponent implements OnInit, OnDestroy {
     }
   }
 
-  private inicializarRespuestas() {
-    if (!this.formulario) return;
-    for (const q of this.formulario.questions) {
-      if (q.type === 'MULTIPLE_CHOICE') {
-        this.respuestas[q.id] = [];
-      } else if (q.type === 'LIKERT') {
-        this.respuestas[q.id] = {};
-        if (q.likert_rows) {
-          for (const row of q.likert_rows) {
-            this.respuestas[q.id][row] = '';
-          }
-        }
-      } else {
-        this.respuestas[q.id] = '';
-      }
-    }
-  }
-
   onCheckboxChange(qId: string, option: string, event: any) {
     const checked = event.target.checked;
     if (!Array.isArray(this.respuestas[qId])) {
@@ -166,6 +352,19 @@ export class LlenarEncuestaComponent implements OnInit, OnDestroy {
       this.respuestas[qId].push(option);
     } else {
       this.respuestas[qId] = this.respuestas[qId].filter((o: string) => o !== option);
+    }
+  }
+
+  onSingleChoiceChange(qId: string, option: string) {
+    const pregunta = this.formulario?.questions.find(q => q.id === qId);
+    if (!pregunta) {
+      return;
+    }
+
+    const selectedIndex = this.selectedOptionIndex(pregunta, option);
+    const decision = this.branchDecisionForQuestion(pregunta, selectedIndex);
+    if (decision.action === 'END_FORM') {
+      this.flujoFinalizado = true;
     }
   }
 

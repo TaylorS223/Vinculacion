@@ -2,35 +2,22 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Cross-Origin Resource Sharing (CORS) Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure your settings for cross-origin resource sharing
-    | or "CORS". This determines what cross-origin operations may execute
-    | in web browsers. You are free to adjust these settings as needed.
-    |
-    | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-    |
-    */
-
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'storage/*'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
         'http://localhost:4200',
-        'http://localhost:4202',
-        'http://localhost:4000',
         'http://127.0.0.1:4200',
-        'https://observatirio.vercel.app',
-        'https://observatirio.onrender.com',
+        'http://localhost:4201',
+        'http://127.0.0.1:4201',
+        'https://barometro.netlify.app',
+        'https://barometromovil.netlify.app',
     ],
 
     'allowed_origins_patterns' => [
-        '#^https://observatirio.*\.vercel\.app$#',
-        '#^http://localhost:[0-9]+$#',
+        '#^https://.*--barometro\.netlify\.app$#',
+        '#^https://.*--barometromovil\.netlify\.app$#',
     ],
 
     'allowed_headers' => ['*'],

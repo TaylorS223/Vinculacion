@@ -1,6 +1,6 @@
 <div class="lista-container">
   <div class="top-bar">
-    <a routerLink="/" class="btn-back">⬅ {{ 'back' | translate }}</a>
+    <a routerLink="/" class="btn-back"><span class="arrow">⬅</span><span class="back-label"> {{ 'back' | translate }}</span></a>
     <h2>{{ 'fill_form' | translate }}</h2>
   </div>
 
@@ -34,11 +34,14 @@
               }
             </div>
           </div>
-          @if (form.completado) {
-            <button class="btn-llenar disabled" disabled>{{ 'fill_form' | translate }}</button>
-          } @else {
-            <button class="btn-llenar" (click)="irALlenar(form.id)">{{ 'fill_form' | translate }}</button>
-          }
+
+          <div class="encuesta-actions">
+            @if (form.completado) {
+              <button class="btn-llenar disabled" disabled>{{ 'fill_form' | translate }}</button>
+            } @else {
+              <button class="btn-llenar" (click)="irALlenar(form.id)">{{ 'fill_form' | translate }}</button>
+            }
+          </div>
         </div>
       }
     </div>

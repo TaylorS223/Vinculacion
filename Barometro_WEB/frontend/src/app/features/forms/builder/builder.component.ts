@@ -30,6 +30,9 @@ export class BuilderComponent implements OnInit, OnDestroy {
   private readonly document = inject(DOCUMENT);
   readonly previewMode = signal<PreviewMode>('mobile');
   readonly previewModalOpen = signal(false);
+  readonly draggedQuestionTempId = signal<string | null>(null);
+  readonly dropTargetTempId = signal<string | null>(null);
+  readonly dropPosition = signal<'before' | 'after'>('after');
   readonly previewSummaryQuestions = computed(() =>
     this.toPreviewQuestions(this.vm.questions().slice(0, 3)),
   );
@@ -124,6 +127,75 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.setPreviewShell(true);
   }
 
+  onDragStart(event: DragEvent, tempId: string): void {
+    if (!this.vm.canEditQuestions()) return;
+
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', tempId);
+    }
+
+    this.draggedQuestionTempId.set(tempId);
+  }
+
+  onDragOver(event: DragEvent, targetTempId: string): void {
+    if (!this.vm.canEditQuestions() || !this.draggedQuestionTempId()) return;
+
+    event.preventDefault();
+
+    const target = event.currentTarget as HTMLElement | null;
+    if (target) {
+      const rect = target.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      const position: 'before' | 'after' = event.clientY < midpoint ? 'before' : 'after';
+      this.dropTargetTempId.set(targetTempId);
+      this.dropPosition.set(position);
+    }
+
+    this.autoScrollOnDrag(event.clientY);
+  }
+
+  onDrop(event: DragEvent, targetTempId: string): void {
+    event.preventDefault();
+
+    const sourceTempId = this.draggedQuestionTempId();
+    const position = this.dropPosition();
+
+    this.draggedQuestionTempId.set(null);
+    this.dropTargetTempId.set(null);
+
+    if (!sourceTempId || !this.vm.canEditQuestions() || sourceTempId === targetTempId) return;
+
+    this.vm.reorderQuestion(sourceTempId, targetTempId, position);
+  }
+
+  onDragEnd(): void {
+    this.draggedQuestionTempId.set(null);
+    this.dropTargetTempId.set(null);
+  }
+
+  isDropTarget(tempId: string, position: 'before' | 'after'): boolean {
+    return this.draggedQuestionTempId() !== null
+      && this.dropTargetTempId() === tempId
+      && this.dropPosition() === position
+      && this.draggedQuestionTempId() !== tempId;
+  }
+
+  private autoScrollOnDrag(clientY: number): void {
+    const edgeThreshold = 110;
+    const maxScrollStep = 18;
+    const viewportHeight = window.innerHeight;
+
+    if (clientY < edgeThreshold) {
+      window.scrollBy({ top: -maxScrollStep, behavior: 'auto' });
+      return;
+    }
+
+    if (clientY > viewportHeight - edgeThreshold) {
+      window.scrollBy({ top: maxScrollStep, behavior: 'auto' });
+    }
+  }
+
   closePreview(): void {
     this.previewModalOpen.set(false);
     this.setPreviewShell(false);
@@ -167,6 +239,23 @@ export class BuilderComponent implements OnInit, OnDestroy {
     if (role === 'PROJECT') {
       this.shareTarget = null;
     }
+  }
+
+  roleLabel(role: string | null | undefined): string {
+    const labels: Record<string, string> = {
+      SUPER_ADMIN: 'Super administrador',
+      ADMIN: 'Administrador',
+      PROJECT_LEADER: 'Lider de proyecto',
+      USER: 'Usuario',
+      EDITOR: 'Editor',
+      RECOLECTOR: 'Recolector',
+    };
+
+    if (!role) {
+      return '';
+    }
+
+    return labels[role] ?? role;
   }
 
   lookupUser(): void {

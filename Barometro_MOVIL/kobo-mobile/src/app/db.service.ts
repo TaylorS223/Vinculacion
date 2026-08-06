@@ -1,6 +1,12 @@
 import { Injectable } from '@angular/core';
 import Dexie from 'dexie';
 
+export interface BranchRule {
+  option_index: number;
+  action?: 'CONTINUE' | 'GO_TO' | 'END_FORM';
+  next_question_id?: string | null;
+}
+
 export interface FormDefinition {
   id: string;
   title: string;
@@ -10,6 +16,7 @@ export interface FormDefinition {
   downloadedAt: number;
   target_responses?: number;
   responses_count?: number;
+  step_by_step?: boolean;
 }
 
 export interface FormQuestion {
@@ -21,6 +28,7 @@ export interface FormQuestion {
   order: number;
   likert_rows?: string[];
   likert_columns?: string[];
+  branch_rules?: BranchRule[];
 }
 
 export interface SavedResponse {

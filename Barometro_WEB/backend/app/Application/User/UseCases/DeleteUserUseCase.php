@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\User\UseCases;
 
+use App\Application\Auth\Contracts\SupabaseAuthUserProvisioner;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -12,6 +13,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class DeleteUserUseCase
 {
+    public function __construct(private readonly SupabaseAuthUserProvisioner $supabaseAuthUserProvisioner)
+    {
+    }
+
     /**
      * Elimina un usuario (soft delete).
      * Solo puede ser ejecutado por un administrador.
@@ -41,6 +46,10 @@ class DeleteUserUseCase
             if (!$admin->canManageRole($user->rol)) {
                 throw new AccessDeniedHttpException('Solo el super admin puede eliminar administradores');
             }
+
+            $supabaseAuthId = $user->supabase_auth_id;
+
+            $this->supabaseAuthUserProvisioner->deleteUser($supabaseAuthId);
 
             // Eliminar tokens de acceso
             $user->tokens()->delete();

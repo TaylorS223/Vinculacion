@@ -27,9 +27,13 @@ export interface FormQuestion {
   type: 'MULTIPLE_CHOICE' | 'SINGLE_CHOICE' | 'LIKERT' | 'TEXT' | 'NUMBER';
   label: string;
   options?: string[] | LikertOptions | null;
+  likert_rows?: string[] | null;
+  likert_columns?: string[] | null;
   branch_rules?: FormQuestionBranchRule[] | null;
   required: boolean;
   order: number;
+  section_name?: string | null;
+  parent_question_id?: string | null;
 }
 
 export interface FormQuestionBranchRule {

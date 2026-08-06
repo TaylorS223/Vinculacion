@@ -44,11 +44,13 @@ export class SyncService {
             required: q.required,
             order: q.order,
             likert_rows: q.likert_rows,
-            likert_columns: q.likert_columns
+            likert_columns: q.likert_columns,
+            branch_rules: q.branch_rules,
           })),
           downloadedAt: Date.now(),
           target_responses: detalle.target_responses,
           responses_count: detalle.responses_count,
+          step_by_step: detalle.step_by_step ?? false,
         });
         descargados++;
       } catch {

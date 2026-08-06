@@ -174,4 +174,4 @@ SUPER_ADMIN/ADMIN crea proyecto
 
 ## 6. Cuenta inicial (desarrollo)
 
-Usa las que te proporciona la autoridad correspondiente,
+Usa las que te proporciona la autoridad correspondiente

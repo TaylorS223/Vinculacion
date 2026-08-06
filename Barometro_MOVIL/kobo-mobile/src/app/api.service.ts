@@ -9,6 +9,12 @@ export interface LoginResponse {
   user: { id: number; name: string; email: string; rol: string };
 }
 
+export interface BranchRule {
+  option_index: number;
+  action?: 'CONTINUE' | 'GO_TO' | 'END_FORM';
+  next_question_id?: string | null;
+}
+
 export interface BackendForm {
   id: string;
   title: string;
@@ -18,6 +24,7 @@ export interface BackendForm {
   questions: BackendQuestion[];
   target_responses?: number;
   responses_count?: number;
+  step_by_step?: boolean;
 }
 
 export interface BackendQuestion {
@@ -29,6 +36,7 @@ export interface BackendQuestion {
   order: number;
   likert_rows?: string[];
   likert_columns?: string[];
+  branch_rules?: BranchRule[];
 }
 
 export interface SubmitResponse {

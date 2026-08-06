@@ -25,19 +25,23 @@ export class LoginComponent {
   async iniciarSesion() {
     this.errorLogin = '';
 
-    if (!this.urlServidor.trim() || !this.usuario.trim() || !this.clave.trim()) {
+    const urlLimpia = this.urlServidor.trim().replace(/\/+$/, '');
+    const usuarioLimpio = this.usuario.trim();
+    const claveLimpia = this.clave.trim();
+
+    if (!urlLimpia || !usuarioLimpio || !claveLimpia) {
       this.errorLogin = 'Completa la URL del servidor, usuario y contraseña.';
       return;
     }
 
     this.cargando = true;
     try {
-      const response = await this.api.login(this.urlServidor, this.usuario, this.clave);
+      const response = await this.api.login(urlLimpia, usuarioLimpio, claveLimpia);
       this.auth.guardarSesion(
         response.token,
         response.user.name,
         response.user.email,
-        this.urlServidor
+        urlLimpia
       );
       this.cargando = false;
       this.router.navigate(['/']);

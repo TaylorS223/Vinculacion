@@ -8,6 +8,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Form, FormQuestion, FormService } from '@core/services/form.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
+interface QuestionVisualMeta {
+  level: number;
+  displayNumber: string;
+  sectionName: string;
+}
+
 @Component({
   selector: 'app-form-collect',
   standalone: true,
@@ -59,13 +65,30 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
             @for (question of orderedQuestions(); track question.id; let i = $index) {
               @if (!form()!.step_by_step || i === currentStepIndex()) {
-                <div class="question-block" [class.invalid]="questionError(question.id)">
+                @if (shouldShowSectionHeader(i, question)) {
+                  <div class="section-divider">
+                    <span class="section-divider__line"></span>
+                    <strong>{{ getQuestionSectionName(question) }}</strong>
+                    <span class="section-divider__line"></span>
+                  </div>
+                }
+
+                <div
+                  class="question-block"
+                  [class.invalid]="questionError(question.id)"
+                  [class.subquestion]="getQuestionLevel(question.id) > 0"
+                  [style.margin-left.px]="getQuestionIndent(question.id)"
+                >
                   <label class="question-label">
-                    {{ i + 1 }}. {{ question.label }}
+                    {{ getQuestionDisplayNumber(question.id) }}. {{ question.label }}
                     @if (question.required) {
                       <span class="required">*</span>
                     }
                   </label>
+
+                  @if (getQuestionLevel(question.id) > 0) {
+                    <span class="subquestion-chip">{{ 'forms.collect.subquestion' | translate }}</span>
+                  }
 
                   @switch (question.type) {
                     @case ('SINGLE_CHOICE') {
@@ -277,19 +300,58 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+        padding: 0.9rem;
+        border: 1px solid var(--border-color);
         border-radius: var(--radius-lg);
+        background: var(--bg-primary);
+      }
+
+      .question-block.subquestion {
+        border-style: dashed;
+        background: var(--bg-secondary);
       }
 
       .question-block.invalid {
-        padding: 0.75rem;
         border: 1px solid rgba(239, 68, 68, 0.28);
         background: var(--error-bg);
+      }
+
+      .section-divider {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0.35rem 0 0.15rem;
+
+        strong {
+          font-size: 0.8rem;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: var(--text-secondary);
+        }
+      }
+
+      .section-divider__line {
+        height: 1px;
+        background: var(--border-color);
       }
 
       .question-label {
         font-weight: 600;
         font-size: 0.9375rem;
         color: var(--text-primary);
+      }
+
+      .subquestion-chip {
+        display: inline-flex;
+        align-self: flex-start;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--primary-700);
+        background: var(--primary-100);
+        border: 1px solid var(--primary-200);
+        border-radius: var(--radius-full);
+        padding: 0.16rem 0.5rem;
       }
 
       .required {
@@ -441,6 +503,8 @@ export class FormCollectComponent implements OnInit {
     [...(this.form()?.questions ?? [])].sort((left, right) => left.order - right.order),
   );
 
+  questionVisualMeta = computed(() => this.buildQuestionVisualMeta(this.orderedQuestions()));
+
   currentQuestion = computed(() => {
     const form = this.form();
     if (!form?.step_by_step) {
@@ -548,6 +612,10 @@ export class FormCollectComponent implements OnInit {
   }
 
   getLikertRows(question: FormQuestion): string[] {
+    if (Array.isArray(question.likert_rows)) {
+      return question.likert_rows.map((row) => String(row)).filter(Boolean);
+    }
+
     if (question.options && !Array.isArray(question.options) && Array.isArray(question.options.rows)) {
       return question.options.rows.map((row) => String(row)).filter(Boolean);
     }
@@ -556,6 +624,10 @@ export class FormCollectComponent implements OnInit {
   }
 
   getLikertColumns(question: FormQuestion): string[] {
+    if (Array.isArray(question.likert_columns)) {
+      return question.likert_columns.map((column) => String(column)).filter(Boolean);
+    }
+
     if (question.options && !Array.isArray(question.options) && Array.isArray(question.options.columns)) {
       return question.options.columns.map((column) => String(column)).filter(Boolean);
     }
@@ -651,6 +723,33 @@ export class FormCollectComponent implements OnInit {
     return this.validationErrors()[questionId] ?? '';
   }
 
+  getQuestionDisplayNumber(questionId: string): string {
+    return this.questionVisualMeta().get(questionId)?.displayNumber ?? '0';
+  }
+
+  getQuestionLevel(questionId: string): number {
+    return this.questionVisualMeta().get(questionId)?.level ?? 0;
+  }
+
+  getQuestionIndent(questionId: string): number {
+    return this.getQuestionLevel(questionId) * 16;
+  }
+
+  getQuestionSectionName(question: FormQuestion): string {
+    const section = this.questionVisualMeta().get(question.id)?.sectionName?.trim();
+    return section || this.translate.instant('forms.collect.sectionGeneral');
+  }
+
+  shouldShowSectionHeader(index: number, question: FormQuestion): boolean {
+    if (index === 0) return true;
+
+    const questions = this.orderedQuestions();
+    const previous = questions[index - 1];
+    if (!previous) return true;
+
+    return this.getQuestionSectionName(previous) !== this.getQuestionSectionName(question);
+  }
+
   private submitAnswers(): void {
     this.submitting.set(true);
 
@@ -682,6 +781,11 @@ export class FormCollectComponent implements OnInit {
   }
 
   private validateQuestion(question: FormQuestion): boolean {
+    if (!this.isQuestionActive(question)) {
+      this.clearQuestionError(question.id);
+      return true;
+    }
+
     const errors = { ...this.validationErrors() };
 
     if (!question.required || this.hasRequiredAnswer(question)) {
@@ -702,6 +806,10 @@ export class FormCollectComponent implements OnInit {
     const errors: Record<string, string> = {};
 
     for (const question of questions) {
+      if (!this.isQuestionActive(question)) {
+        continue;
+      }
+
       if (!question.required || this.hasRequiredAnswer(question)) {
         continue;
       }
@@ -858,6 +966,20 @@ export class FormCollectComponent implements OnInit {
     return answer !== undefined && answer !== null && String(answer).trim() !== '';
   }
 
+  private isQuestionActive(question: FormQuestion): boolean {
+    const parentId = question.parent_question_id;
+    if (!parentId) {
+      return true;
+    }
+
+    const parent = this.orderedQuestions().find((item) => item.id === parentId);
+    if (!parent) {
+      return true;
+    }
+
+    return this.hasRequiredAnswer(parent);
+  }
+
   private clearQuestionError(questionId: string): void {
     if (!this.validationErrors()[questionId]) return;
 
@@ -865,6 +987,53 @@ export class FormCollectComponent implements OnInit {
       const next = { ...errors };
       delete next[questionId];
       return next;
+    });
+  }
+
+  private buildQuestionVisualMeta(questions: FormQuestion[]): Map<string, QuestionVisualMeta> {
+    const byParent = new Map<string | null, FormQuestion[]>();
+
+    for (const question of questions) {
+      const parentId = question.parent_question_id ?? null;
+      const siblings = byParent.get(parentId) ?? [];
+      siblings.push(question);
+      byParent.set(parentId, siblings);
+    }
+
+    for (const siblings of byParent.values()) {
+      siblings.sort((left, right) => left.order - right.order);
+    }
+
+    const rootQuestions = (byParent.get(null) ?? []).slice().sort((left, right) => left.order - right.order);
+    const meta = new Map<string, QuestionVisualMeta>();
+
+    rootQuestions.forEach((root, rootIndex) => {
+      const sectionName = (root.section_name ?? '').trim();
+      this.walkQuestionTree(root, byParent, meta, [rootIndex + 1], 0, sectionName);
+    });
+
+    return meta;
+  }
+
+  private walkQuestionTree(
+    question: FormQuestion,
+    byParent: Map<string | null, FormQuestion[]>,
+    meta: Map<string, QuestionVisualMeta>,
+    path: number[],
+    level: number,
+    inheritedSection: string,
+  ): void {
+    const sectionName = (question.section_name ?? '').trim() || inheritedSection;
+
+    meta.set(question.id, {
+      level,
+      displayNumber: path.join('.'),
+      sectionName,
+    });
+
+    const children = (byParent.get(question.id) ?? []).slice().sort((left, right) => left.order - right.order);
+    children.forEach((child, childIndex) => {
+      this.walkQuestionTree(child, byParent, meta, [...path, childIndex + 1], level + 1, sectionName);
     });
   }
 }

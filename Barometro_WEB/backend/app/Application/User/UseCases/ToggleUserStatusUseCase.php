@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\User\UseCases;
 
+use App\Application\Auth\Contracts\SupabaseAuthUserProvisioner;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -12,6 +13,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ToggleUserStatusUseCase
 {
+    public function __construct(private readonly SupabaseAuthUserProvisioner $supabaseAuthUserProvisioner)
+    {
+    }
+
     /**
      * Activa o desactiva un usuario.
      * Solo puede ser ejecutado por un administrador.
@@ -58,6 +63,8 @@ class ToggleUserStatusUseCase
 
             // Cargar relaciones
             $user->load('perfil');
+
+            $this->supabaseAuthUserProvisioner->ensureUser($user);
 
             return $user;
         });

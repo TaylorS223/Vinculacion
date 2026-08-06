@@ -17,7 +17,9 @@ class FormQuestion extends Model
         'options',
         'branch_rules',
         'required',
-        'order'
+        'order',
+        'section_name',
+        'parent_question_id'
     ];
 
     protected $casts = [
